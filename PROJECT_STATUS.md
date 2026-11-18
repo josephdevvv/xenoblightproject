@@ -29,7 +29,7 @@ plus the loading & performance architecture groundwork
 | Player movement | WASD, 8 directions, ground-space normalised speed (3.6 tiles/s), facing, idle/walk state. |
 | Camera | Smooth follow, clamped to world bounds, round pixels. |
 | Atmosphere | Dithered fog (low + high layers), drifting cloud shadows, smoke from vents and braziers, subtle purple glow on shrine/braziers, vignette. |
-| Game logo | Real logo art (`public/assets/ui/xenoblight_logo.jpg`) shown in the creation-screen header; smoothly pre-scaled and edge-faded at runtime. |
+| Game logo & app icons | Transparent logo (`public/icons/XENOBLIGHT_512x512.png`) in the creation-screen header, smoothly pre-scaled at runtime. Browser favicon `XENOBLIGHT_App.ico` (16-256 px), `apple-touch-icon` (256 px PNG) and `manifest.webmanifest` (128/256/512 px). |
 | HUD | Name plate, info panel (tile, facing, state), controls hint. Esc returns to character creation. |
 
 ## Verified in browser (dev server)
@@ -97,8 +97,6 @@ level 50+ mutation subclasses.
   0 vulnerabilities. The fix needs Vite 7, which requires Node 20.19+ (current machine: 20.11).
 - Phaser's Canvas fallback is configured (`Phaser.AUTO`) but was not separately exercised; testing ran on WebGL.
   In Canvas mode, additive glow blending may look slightly different.
-- The logo file is a non-transparent JPG; its dark background is faded at the edges but still shows faintly
-  as a slightly lighter rectangle. Replace with a transparent PNG later.
 - Mockup characters are deliberately crude; NE/NW (and SE/SW) differ only by mirroring.
 - First production sheet: body pixels have alpha 252-253 (not 255) and ~1,300 very faint (alpha 1-30) dark
   edge/speck pixels, typical of a resampled export. Not visible on the dark map; clean in the source art if needed.

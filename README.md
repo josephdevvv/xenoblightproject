@@ -86,9 +86,11 @@ First production sheets: `public/assets/characters/male/long_middle_part/blonde_
 Put the PNG under `public/assets/characters/<gender>/<hairstyle>/<color>_<outfit>.png` and add it to
 `CHARACTER_SPRITE_MANIFEST`. The mockup generator is skipped automatically for that ID.
 
-**Logo.** `public/assets/ui/xenoblight_logo.jpg` (first real asset). `src/assets/LogoTexture.ts` crops it,
-downscales it smoothly to its on-screen size and fades the edges, because the file has no transparency yet.
-When a transparent PNG is available, update `LOGO_URL`, the crop and set the fade start to 1.
+**App icons and logo.** `public/icons/` holds the app icon set: `XENOBLIGHT_App.ico` (multi-size 16-256 px,
+browser tab favicon) and PNGs from 16 to 512 px. `index.html` links the ICO as favicon, the 256 px PNG as
+`apple-touch-icon`, and `public/manifest.webmanifest` (128/256/512 px icons). The creation-screen header logo
+is the transparent `XENOBLIGHT_512x512.png`: `src/assets/LogoTexture.ts` crops it to the artwork and
+downscales it smoothly to its on-screen size. (The older `public/assets/ui/xenoblight_logo.jpg` is no longer loaded.)
 
 **Tiles, props and FX.** Load an image under the matching key in `TextureKeys.ts` (BootScene preload);
 the generator skips any key that already exists. Tiles are 64x40 PNGs (64x32 diamond + 8 px side).

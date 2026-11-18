@@ -1,16 +1,21 @@
 import Phaser from 'phaser';
 import { TextureKeys } from './TextureKeys';
 
-export const LOGO_URL = 'assets/ui/xenoblight_logo.jpg';
+/** Transparent logo artwork from the app icon set (512 x 512, logo centred with empty margins). */
+export const LOGO_URL = 'icons/XENOBLIGHT_512x512.png';
 
 /**
  * Region of the source image that contains the emblem + title, as fractions of the image size
  * (fractions keep working if the file is replaced by a higher-resolution version).
+ * Artwork bounds in the 512 px PNG: x 27-490, y 129-385; a few pixels of padding are kept.
  */
-const LOGO_CROP = { x: 60 / 1408, y: 20 / 768, w: 1290 / 1408, h: 660 / 768 };
+const LOGO_CROP = { x: 24 / 512, y: 126 / 512, w: 470 / 512, h: 263 / 512 };
 
-/** Where the edge fade starts (0..1 from centre to edge). Hides the rectangular, non-transparent background. */
-const FADE_START = { x: 0.9, y: 0.86 };
+/**
+ * Where the edge fade starts (0..1 from centre to edge). 1 = no fade: the source is transparent.
+ * (The previous JPG logo needed a fade to hide its rectangular background.)
+ */
+const FADE_START = { x: 1, y: 1 };
 
 /**
  * The logo is high-resolution painted art, but the game renders with nearest-neighbour filtering.

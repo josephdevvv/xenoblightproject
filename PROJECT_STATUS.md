@@ -17,7 +17,7 @@ plus the loading & performance architecture groundwork
 | Character data | `CharacterAppearance` (gender, hairstyle, hair colour, outfit IDs), `CharacterData`, name validation, in-memory `CharacterStore`. |
 | Appearance catalog | 2 genders, 6 hairstyles per gender (from the design doc), 5 hair colours, 2 outfits (Basic Wraps = "unclothed", Adventurer). |
 | Character asset IDs | One sprite ID + expected file path per combination (120 total). |
-| Production character art | 114 of 120 appearances have full pre-rendered static 8-direction sheets (male 60/60, female 54/60), loaded on demand; per-sheet measured foot anchor (`standingFeetY`). Walk animation for male / long_middle_part / blonde / adventurer (also the default appearance); others use their static directional frame while moving. Inventory: CHARACTER_SPRITE_INVENTORY.md. |
+| Production character art | 114 of 120 appearances have full pre-rendered static 8-direction sheets (male 60/60, female 54/60), loaded on demand (character creation prefetches likely choices in the background). Every sheet is measured at runtime (`SpriteMetrics`): anchored on its feet and normalised to a 54 px figure height, so all appearances are the same size and do not jump when options change. Walk animation for male / long_middle_part / blonde / adventurer (also the default appearance); others use their static directional frame while moving. Inventory: CHARACTER_SPRITE_INVENTORY.md. |
 | Mockup character sheets | Generated on demand only for the 6 appearances without production art (female adventurer long_side_part x5, straight_bangs red); same 4x2 static layout. |
 | Character rendering | `CharacterView` = one sprite per character; appearance change swaps the whole sheet. |
 | Character animator | `CharacterAnimator`: while moving plays the 8-direction walk cycle (6 frames, 8 FPS, looping; keeps stride phase when turning); when movement stops it switches immediately to the static standing frame of the last facing. No idle animation. Each sheet has its own feet origin (standing 58, walk 62). Only appearances with a walk sheet animate. |
@@ -101,8 +101,9 @@ level 50+ mutation subclasses.
 - First production sheet: body pixels have alpha 252-253 (not 255) and ~1,300 very faint (alpha 1-30) dark
   edge/speck pixels, typical of a resampled export. Not visible on the dark map; clean in the source art if needed.
   Its SW frame (7) is turned only slightly and reads close to the S frame.
-- The walk sheet's figure is drawn ~6 px taller (59 px vs 54 px) than the standing sheet's, so the head shifts up
-  slightly when walking starts. Feet stay aligned. Fixing it needs matching art (no non-integer rescaling).
+- Character size normalisation uses non-integer nearest-neighbour scaling for sheets whose figure is not 54 px
+  tall (by user decision): sprites stay sharp, but some pixels render slightly wider than others.
+  (This also resolved the walk sheet being drawn ~6 px taller than the standing sheet.)
 - UI text is rendered by Phaser and is scaled with the canvas, so it looks soft/blocky at large window sizes.
 
 ## Next development steps

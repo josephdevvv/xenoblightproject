@@ -74,8 +74,9 @@ export class CharacterView {
     this.sprite.setDepth(depth);
   }
 
+  /** Uniform display scale (e.g. 3 for the creation preview); size normalisation is applied on top. */
   setScale(scale: number): void {
-    this.sprite.setScale(scale);
+    this.animator.setBaseScale(scale);
   }
 
   destroy(): void {

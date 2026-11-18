@@ -38,6 +38,10 @@ They apply to every new feature (outfits, maps, animations, multiplayer).
 - **Full sprites only**: one complete pre-rendered 64x64 sheet per appearance (standing 4x2, optional walk 6x8).
   No layered body/hair/outfit rendering. **No idle animations** - standing is a static frame.
 - **Pixel-perfect**: never resample, smooth or re-encode character art; keep supplied transparency as is.
+- **Character creation prefetch**: once its UI is ready, the creation screen background-loads standing sheets
+  the player can reach in one click, then the rest of the selected gender (`AssetManager.prefetchStandingSheets`),
+  so option changes are instant. Prefetched sheets are tracked like any lazy texture and garbage-collected
+  when unused.
 - **Future content** (outfits, maps, animations) is added to a manifest and loaded lazily the same way.
 
 ## 2. Map loading lifecycle
@@ -90,7 +94,9 @@ CLEANUP    release the previous map's owner, run texture GC
 - The culler derives its view from the camera scroll (not `worldView`, which updates later in the frame).
 - Create large numbers of objects through a time-sliced task (`runTimeSliced`), not in one frame.
 - Never recreate textures that already exist: generators check `textures.exists()` first.
-- Keep characters at integer scales; pixelArt / nearest filtering / roundPixels stay on.
+- pixelArt / nearest filtering / roundPixels stay on. Characters are scaled only by the size normalisation
+  (`CharacterAnimator`, target `CHARACTER_DISPLAY_HEIGHT`) and integer display scales such as the preview's x3.
+- Sprite measurements (`SpriteMetrics`) are computed once per texture and dropped when the texture is evicted.
 - Avoid premature optimization: add culling/priorities only where profiling shows a need.
 
 Budgets (`PerformanceConfig.ts`): frame time 20.8 ms (60 FPS + 25%), 4000 game objects,

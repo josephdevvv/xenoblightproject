@@ -1,6 +1,14 @@
 import type Phaser from 'phaser';
 import { DIRECTIONS, type Direction } from '../core/Direction';
-import { CHARACTER_ORIGIN, CHARACTER_WALK_LAYOUT, characterFrameIndex } from './CharacterSheetLayout';
+import {
+  CHARACTER_DISPLAY_HEIGHT,
+  CHARACTER_FRAME_HEIGHT,
+  CHARACTER_FRAME_WIDTH,
+  CHARACTER_ORIGIN,
+  CHARACTER_WALK_LAYOUT,
+  characterFrameIndex,
+} from './CharacterSheetLayout';
+import { getSheetMetrics, type FrameBounds } from './SpriteMetrics';
 
 export type CharacterMotion = 'stand' | 'walk';
 
@@ -9,11 +17,14 @@ export interface CharacterSheets {
   standing: string;
   /** Walk-cycle sheet, or null when the appearance has no walk art (it then stays static while moving). */
   walk: string | null;
-  /**
-   * Vertical origin (0..1) that puts this standing sheet's feet on the ground point.
-   * Comes from the manifest's measured standingFeetY; defaults to CHARACTER_ORIGIN.y (58/64).
-   */
-  standingOriginY?: number;
+}
+
+/** Sprite origin + size normalisation for one displayed frame / walk row. */
+interface Placement {
+  originX: number;
+  originY: number;
+  /** Multiplier that brings the figure to CHARACTER_DISPLAY_HEIGHT. */
+  normalize: number;
 }
 
 export function walkAnimationKey(walkTexture: string, direction: Direction): string {
@@ -45,13 +56,17 @@ export function removeWalkAnimations(anims: Phaser.Animations.AnimationManager, 
  *   - stand: the static directional frame from the standing sheet (no idle animation, ever)
  *   - walk:  the looping walk clip for the direction, if the appearance has walk art
  *
- * Each sheet has its own feet origin so the character's feet stay on the same ground point
- * when switching between them.
+ * Every sheet is measured (SpriteMetrics) and displayed so that, whatever the art:
+ *   - the feet sit exactly on the world position (no jumping between appearances or directions),
+ *   - the figure is CHARACTER_DISPLAY_HEIGHT tall (all appearances, standing and walking, same size).
+ * Scaling uses the game's nearest-neighbour filtering, so sprites stay sharp.
  */
 export class CharacterAnimator {
   private sheets: CharacterSheets;
   private motion: CharacterMotion = 'stand';
   private direction: Direction = 'S';
+  /** Extra uniform scale requested by the owner (e.g. 3 for the creation preview). */
+  private baseScale = 1;
 
   constructor(
     private readonly sprite: Phaser.GameObjects.Sprite,
@@ -85,6 +100,16 @@ export class CharacterAnimator {
     return this.direction;
   }
 
+  /** Uniform display scale on top of the size normalisation. */
+  setBaseScale(scale: number): void {
+    this.baseScale = scale;
+    this.apply(true);
+  }
+
+  getSheets(): CharacterSheets {
+    return this.sheets;
+  }
+
   private apply(force: boolean): void {
     if (this.motion === 'walk' && this.sheets.walk) {
       this.showWalk(this.sheets.walk, force);
@@ -102,13 +127,56 @@ export class CharacterAnimator {
     const wasWalking = anims.isPlaying && anims.currentAnim?.key.startsWith(`${walkTexture}::walk::`);
     const startFrame = wasWalking && anims.currentFrame ? anims.currentFrame.index - 1 : 0;
 
-    this.sprite.setOrigin(CHARACTER_WALK_LAYOUT.origin.x, CHARACTER_WALK_LAYOUT.origin.y);
+    this.place(this.walkPlacement(walkTexture));
     this.sprite.play({ key, startFrame });
   }
 
   private showStanding(): void {
     if (this.sprite.anims.isPlaying) this.sprite.stop();
-    this.sprite.setTexture(this.sheets.standing, characterFrameIndex(this.direction));
-    this.sprite.setOrigin(CHARACTER_ORIGIN.x, this.sheets.standingOriginY ?? CHARACTER_ORIGIN.y);
+    const index = characterFrameIndex(this.direction);
+    this.sprite.setTexture(this.sheets.standing, index);
+    this.place(this.standingPlacement(index));
+  }
+
+  private place(p: Placement): void {
+    this.sprite.setOrigin(p.originX, p.originY);
+    this.sprite.setScale(this.baseScale * p.normalize);
+  }
+
+  /** Standing: anchor this frame on its own feet; size from the sheet's front (S) frame. */
+  private standingPlacement(index: number): Placement {
+    const metrics = getSheetMetrics(this.sprite.scene.textures, this.sheets.standing);
+    const frame = metrics[index];
+    const reference = metrics[characterFrameIndex('S')] ?? frame;
+    return {
+      originX: frame ? frame.feetX / CHARACTER_FRAME_WIDTH : CHARACTER_ORIGIN.x,
+      // Bottom EDGE of the lowest foot row, so the soles land exactly on the anchor at any scale.
+      originY: frame ? (frame.bottom + 1) / CHARACTER_FRAME_HEIGHT : CHARACTER_ORIGIN.y,
+      normalize: reference ? CHARACTER_DISPLAY_HEIGHT / reference.height : 1,
+    };
+  }
+
+  /**
+   * Walking: one anchor per direction row (average feet centre, lowest contact row) so the stride
+   * animates in place without sliding; size from the median height of the S walk row.
+   */
+  private walkPlacement(walkTexture: string): Placement {
+    const metrics = getSheetMetrics(this.sprite.scene.textures, walkTexture);
+    const { columns, rows } = CHARACTER_WALK_LAYOUT;
+    const rowFrames = (direction: Direction): FrameBounds[] =>
+      metrics.slice(rows[direction] * columns, rows[direction] * columns + columns).filter((f): f is FrameBounds => f !== null);
+    const row = rowFrames(this.direction);
+    const front = rowFrames('S').map((f) => f.height).sort((a, b) => a - b);
+    const referenceHeight = front.length > 0 ? front[Math.floor(front.length / 2)] : CHARACTER_DISPLAY_HEIGHT;
+    if (row.length === 0) {
+      return { originX: CHARACTER_WALK_LAYOUT.origin.x, originY: CHARACTER_WALK_LAYOUT.origin.y, normalize: 1 };
+    }
+    const feetX = row.reduce((sum, f) => sum + f.feetX, 0) / row.length;
+    const bottom = Math.max(...row.map((f) => f.bottom));
+    return {
+      originX: feetX / CHARACTER_FRAME_WIDTH,
+      originY: (bottom + 1) / CHARACTER_FRAME_HEIGHT,
+      normalize: CHARACTER_DISPLAY_HEIGHT / referenceHeight,
+    };
   }
 }

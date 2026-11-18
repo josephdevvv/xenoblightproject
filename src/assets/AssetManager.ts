@@ -9,7 +9,8 @@ import {
   CHARACTER_SHEET_ROWS,
 } from '../characters/CharacterSheetLayout';
 import { GameServices } from '../systems/GameServices';
-import { CHARACTER_SPRITE_MANIFEST, DEFAULT_STANDING_FEET_Y } from './CharacterSpriteManifest';
+import { forgetSheetMetrics } from '../characters/SpriteMetrics';
+import { CHARACTER_SPRITE_MANIFEST } from './CharacterSpriteManifest';
 import { LOGO_URL } from './LogoTexture';
 import { TextureKeys } from './TextureKeys';
 import { createMockupCharacterSheet } from './mockup/MockupCharacterFactory';
@@ -59,14 +60,26 @@ export const AssetManager = {
       return null;
     }
     const standing = id;
-    // Each real sheet stands on its own measured foot row (falls back to the contract default).
-    const standingOriginY = (entry.standingFeetY ?? DEFAULT_STANDING_FEET_Y) / CHARACTER_FRAME_HEIGHT;
 
-    if (!options.walk || !entry.walk) return { standing, walk: null, standingOriginY };
+    if (!options.walk || !entry.walk) return { standing, walk: null };
     const walkId = walkSpriteIdOf(id);
-    if (textures.exists(walkId)) return { standing, walk: walkId, standingOriginY };
-    if (failures.has(walkId)) return { standing, walk: null, standingOriginY };
+    if (textures.exists(walkId)) return { standing, walk: walkId };
+    if (failures.has(walkId)) return { standing, walk: null };
     return null;
+  },
+
+  /**
+   * Background-loads standing sheets for appearances the player is likely to pick next (character
+   * creation), so switching options shows the new sprite immediately. Skips loaded / failed /
+   * art-less appearances; never rejects. Order of `appearances` = priority.
+   */
+  async prefetchStandingSheets(scene: Phaser.Scene, appearances: CharacterAppearance[]): Promise<void> {
+    const services = GameServices.get();
+    const failures = services.assets.getFailures();
+    const ids = [...new Set(appearances.map(getCharacterSpriteId))].filter(
+      (id) => CHARACTER_SPRITE_MANIFEST[id] && !scene.textures.exists(id) && !failures.has(id),
+    );
+    await Promise.all(ids.map((id) => loadStandingSheet(id).catch(() => undefined)));
   },
 
   /**
@@ -80,18 +93,18 @@ export const AssetManager = {
     const services = GameServices.get();
     const id = getCharacterSpriteId(appearance);
     const entry = CHARACTER_SPRITE_MANIFEST[id];
-    const frame = { frameWidth: CHARACTER_FRAME_WIDTH, frameHeight: CHARACTER_FRAME_HEIGHT };
     const jobs: Promise<unknown>[] = [
-      services.assets.load({ key: id, type: 'spritesheet', url: entry.standing, ...frame }).then(
-        () => services.cache.track(id),
-        (e: Error) => console.warn(`[assets] ${e.message} - using mockup for ${id}`),
-      ),
+      loadStandingSheet(id).catch((e: Error) => console.warn(`[assets] ${e.message} - using mockup for ${id}`)),
     ];
     if (options.walk && entry.walk) {
       const walkId = walkSpriteIdOf(id);
       jobs.push(
-        services.assets.load({ key: walkId, type: 'spritesheet', url: entry.walk, ...frame }).then(
-          () => services.cache.track(walkId, () => removeWalkAnimations(scene.game.anims, walkId)),
+        services.assets.load({ key: walkId, type: 'spritesheet', url: entry.walk, ...SHEET_FRAME }).then(
+          () =>
+            services.cache.track(walkId, () => {
+              removeWalkAnimations(scene.game.anims, walkId);
+              forgetSheetMetrics(walkId);
+            }),
           (e: Error) => console.warn(`[assets] ${e.message} - ${id} will not animate while walking`),
         ),
       );
@@ -107,6 +120,17 @@ export const AssetManager = {
     return { standing: ensureMockupSheet(scene, key, appearance), walk: null };
   },
 };
+
+const SHEET_FRAME = { frameWidth: CHARACTER_FRAME_WIDTH, frameHeight: CHARACTER_FRAME_HEIGHT };
+
+/** Loads (deduplicated) one real standing sheet and tracks it as an evictable texture. */
+function loadStandingSheet(id: string): Promise<void> {
+  const services = GameServices.get();
+  const entry = CHARACTER_SPRITE_MANIFEST[id];
+  return services.assets
+    .load({ key: id, type: 'spritesheet', url: entry.standing, ...SHEET_FRAME })
+    .then(() => services.cache.track(id, () => forgetSheetMetrics(id)));
+}
 
 /** Generates (once) a mockup standing sheet under `key` and tracks it as an evictable texture. */
 function ensureMockupSheet(scene: Phaser.Scene, key: string, appearance: CharacterAppearance): string {
@@ -125,6 +149,6 @@ function ensureMockupSheet(scene: Phaser.Scene, key: string, appearance: Charact
       );
     }
   }
-  GameServices.get().cache.track(key);
+  GameServices.get().cache.track(key, () => forgetSheetMetrics(key));
   return key;
 }

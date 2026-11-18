@@ -30,8 +30,16 @@ export const CHARACTER_DIRECTION_FRAMES: Readonly<Record<Direction, number>> = {
   SW: 7,
 };
 
-/** Origin that places the character's feet on its world position (standing sheet). */
+/** Fallback origin (feet) for a frame that cannot be measured. Measured frames use SpriteMetrics. */
 export const CHARACTER_ORIGIN = { x: 0.5, y: 58 / 64 } as const;
+
+/**
+ * On-screen height (world px at scale 1) every character figure is normalised to, measured on its
+ * front (S) frame. Art from different sources draws characters at 38-56 px inside the 64x64 cell;
+ * scaling each sheet to this height makes all appearances the same size. 54 px = the original
+ * reference character, which therefore renders at exactly 1:1.
+ */
+export const CHARACTER_DISPLAY_HEIGHT = 54;
 
 export function characterFrameIndex(direction: Direction): number {
   return CHARACTER_DIRECTION_FRAMES[direction];

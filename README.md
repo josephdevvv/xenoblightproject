@@ -74,8 +74,8 @@ Sheet format (see `src/characters/CharacterSheetLayout.ts`):
 
 - 64x64 frames, 4 columns x 2 rows (256x128), 8 static directional frames (no animation yet)
 - row 0: S, SE, E, NE  /  row 1: N, NW, W, SW
-- feet at pixel row 58 by default; a sheet whose feet sit elsewhere declares its measured row as
-  `standingFeetY` in the manifest so it still stands on the ground
+- the figure may sit anywhere in the frame and be any height: the game measures each frame's feet and
+  height from the pixels (`SpriteMetrics`), anchors it on its feet and scales it to a 54 px figure
 
 Optional walk sheet (`<color>_<outfit>_walk.png`): 6 columns x 8 rows (384x512), one direction per row in
 the order S, SE, E, NE, N, NW, W, SW, played at 8 FPS while moving; feet at y = 62. Register both files in

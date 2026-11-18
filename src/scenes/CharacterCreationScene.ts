@@ -60,6 +60,8 @@ export class CharacterCreationScene extends Phaser.Scene {
   private createButton!: Button;
   private atmosphere!: AtmosphereEffects;
   private submitting = false;
+  /** Genders whose full sheet set has been queued for background prefetch in this visit. */
+  private readonly prefetchedGenders = new Set<Gender>();
 
   constructor() {
     super(SCENES.CharacterCreation);
@@ -70,6 +72,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.appearance = previous ? { ...previous.appearance } : createDefaultAppearance();
     this.previewDirection = DIRECTIONS.indexOf('S');
     this.submitting = false;
+    this.prefetchedGenders.clear();
 
     this.createBackdrop();
     const loading = new LoadingScreen(this).show();
@@ -258,6 +261,36 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.preview.setAppearance(this.appearance);
     this.spriteIdText.setText(getCharacterSpriteId(this.appearance));
     this.refreshPreviewDirection();
+    this.prefetchLikelyAppearances();
+  }
+
+  /**
+   * Background-loads the sheets the player can reach next, so changing an option shows the new
+   * sprite immediately: first everything one click away, then the rest of the current gender.
+   * Already-loaded sheets are skipped, so calling this after every change is cheap.
+   */
+  private prefetchLikelyAppearances(): void {
+    const a = this.appearance;
+    const near: CharacterAppearance[] = [];
+    for (const color of HAIR_COLORS) near.push({ ...a, hairColorId: color.id });
+    for (const style of getHairstyles(a.gender)) near.push({ ...a, hairstyleId: style.id });
+    for (const outfit of OUTFITS) near.push({ ...a, outfitId: outfit.id });
+    const otherGender: Gender = a.gender === 'male' ? 'female' : 'male';
+    const slot = indexOfOption(getHairstyles(a.gender), a.hairstyleId);
+    near.push({ ...a, gender: otherGender, hairstyleId: getHairstyles(otherGender)[slot].id });
+
+    const gender = a.gender;
+    void AssetManager.prefetchStandingSheets(this, near).then(() => {
+      if (!this.sys.isActive() || this.prefetchedGenders.has(gender)) return;
+      this.prefetchedGenders.add(gender);
+      const all: CharacterAppearance[] = [];
+      for (const outfit of OUTFITS) {
+        for (const style of getHairstyles(gender)) {
+          for (const color of HAIR_COLORS) all.push({ gender, hairstyleId: style.id, hairColorId: color.id, outfitId: outfit.id });
+        }
+      }
+      void AssetManager.prefetchStandingSheets(this, all);
+    });
   }
 
   private refreshPreviewDirection(): void {

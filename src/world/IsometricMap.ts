@@ -29,6 +29,7 @@ export class IsometricMap {
   readonly obstacles: PlacedObstacle[] = [];
   readonly structures: StructureLayer;
 
+  private readonly staticImages: Phaser.GameObjects.Image[] = [];
   private readonly ground: GroundType[][];
   private readonly blocked: boolean[][];
 
@@ -155,14 +156,28 @@ export class IsometricMap {
   // Rendering
   // -------------------------------------------------------------------------------------------
 
-  /** Renders ground tiles (back-to-front) and props (depth-sorted by screen Y). */
+  /** Renders the whole map in one go (kept for compatibility; prefer buildSteps via MapLoadingManager). */
   build(scene: Phaser.Scene): void {
+    const steps = this.buildSteps(scene);
+    while (!steps.next().done) {
+      // drain synchronously
+    }
+  }
+
+  /**
+   * Incremental build: ground tiles (back-to-front), props (depth-sorted by screen Y), structures.
+   * Yields progress (0..1) after each tile diagonal / prop group so a time-sliced runner can spread
+   * object creation over several frames. The visual result is identical to a one-shot build.
+   */
+  *buildSteps(scene: Phaser.Scene): Generator<number> {
     const layer = scene.add.layer();
     layer.setDepth(DEPTH.Ground);
     const rng = createRng(this.definition.seed);
+    const diagonals = this.cols + this.rows - 1;
+    const totalSteps = diagonals + 2;
 
     // Draw diagonals in increasing (col + row) so nearer tiles cover the sides of farther ones.
-    for (let sum = 0; sum <= this.cols + this.rows - 2; sum++) {
+    for (let sum = 0; sum < diagonals; sum++) {
       for (let col = 0; col < this.cols; col++) {
         const row = sum - col;
         if (row < 0 || row >= this.rows) continue;
@@ -171,16 +186,29 @@ export class IsometricMap {
         const image = scene.make.image({ x: top.x - TILE_WIDTH / 2, y: top.y, key }, false);
         image.setOrigin(0, 0);
         layer.add(image);
+        this.staticImages.push(image);
       }
+      yield (sum + 1) / totalSteps;
     }
 
     for (const o of this.obstacles) {
       const image = scene.add.image(o.world.x, o.world.y, o.definition.textureKey);
       image.setOrigin(o.definition.originX, o.definition.originY);
       image.setDepth(o.world.y);
+      this.staticImages.push(image);
     }
+    yield (diagonals + 1) / totalSteps;
 
     this.structures.build(scene, layer);
+    yield 1;
+  }
+
+  /**
+   * Static, never-moving images created by the build (ground tiles and props). Safe to hide when
+   * off-screen; structure walls are excluded because they fade dynamically.
+   */
+  getStaticImages(): readonly Phaser.GameObjects.Image[] {
+    return this.staticImages;
   }
 
   private pickTileTexture(type: GroundType, rng: () => number): string {

@@ -3,7 +3,9 @@ import { GAME_HEIGHT, GAME_WIDTH } from './constants';
 import { PALETTE } from './palette';
 import { BootScene } from '../scenes/BootScene';
 import { CharacterCreationScene } from '../scenes/CharacterCreationScene';
+import { DebugOverlayScene } from '../scenes/DebugOverlayScene';
 import { GameScene } from '../scenes/GameScene';
+import { SystemScene } from '../scenes/SystemScene';
 
 export function createGameConfig(): Phaser.Types.Core.GameConfig {
   return {
@@ -25,6 +27,7 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
     dom: {
       createContainer: true,
     },
-    scene: [BootScene, CharacterCreationScene, GameScene],
+    // Boot starts first; SystemScene is `active` and runs alongside everything; the overlay renders last (on top).
+    scene: [BootScene, SystemScene, CharacterCreationScene, GameScene, DebugOverlayScene],
   };
 }

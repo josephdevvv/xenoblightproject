@@ -23,8 +23,12 @@ export const MOCKUP_PIXEL_SCALE = 2;
 
 export const SCENES = {
   Boot: 'BootScene',
+  /** Persistent, invisible scene hosting the asset loader and game-wide services. */
+  System: 'SystemScene',
   CharacterCreation: 'CharacterCreationScene',
   Game: 'GameScene',
+  /** Optional performance overlay (dev: toggle with F3; production: only with ?debug in the URL). */
+  DebugOverlay: 'DebugOverlayScene',
 } as const;
 
 /**

@@ -73,6 +73,7 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (!this.ready) return;
     this.player.update(delta);
+    this.monsters.update(delta, this.cameras.main, GameServices.get().performance);
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
     this.atmosphere.update(delta);
     this.culler.update();
@@ -141,7 +142,8 @@ export class GameScene extends Phaser.Scene {
     // Visibility management: static map images, and smoke that pauses (not resets) off-screen.
     this.culler = new VisibilityCuller(cam);
     for (const image of this.map.getStaticImages()) this.culler.add(image);
-    for (const monster of this.monsters.getMonsters()) this.culler.add(monster.sprite);
+    // Monsters only go to the culler when they can never move.
+    for (const monster of this.monsters.getMonsters()) if (!monster.moves) this.culler.add(monster.sprite);
     for (const s of this.atmosphere.smokeEmitters) {
       const smokeBounds = new Phaser.Geom.Rectangle(s.x - 64, s.y - 240, 128, 260);
       this.culler.add(s.emitter, smokeBounds, (visible) => (visible ? s.emitter.resume() : s.emitter.pause()));

@@ -62,7 +62,7 @@ src/
   player/                      Keyboard input, pure movement/collision, PlayerController
   world/                       Iso projection, map data, obstacle catalog, IsometricMap, atmosphere FX
     structures/                Walk-in buildings: blueprints (data) + StructureLayer (walls, collision, depth, fade)
-  monsters/                    MonsterDefinition (data), MonsterEntity, MonsterSpawner, MonsterSpawns (per-map table)
+  monsters/                    MonsterDefinition (data), MonsterEntity, MonsterSpawner, MonsterSpawns (per-map table), WanderBehavior
   ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, HUD
   scenes/                      BootScene, CharacterCreationScene, GameScene
 ```

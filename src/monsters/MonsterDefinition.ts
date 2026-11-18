@@ -28,13 +28,26 @@ export interface MonsterSpriteDefinition {
   animations?: Readonly<Record<string, MonsterAnimationClip>>;
 }
 
+/** Idle wandering around the spawn point. Purely positional: no AI decisions, targets or combat. */
+export interface MonsterWanderBehavior {
+  type: 'wander';
+  /** Maximum distance from the spawn point, in tiles. */
+  radiusTiles: number;
+  /** Walking speed in tiles per second. */
+  speed: number;
+  /** Random pause between walks, in ms [min, max]. */
+  pauseMs: [number, number];
+}
+
 export interface MonsterDefinition {
   id: MonsterId;
   displayName: string;
   category: 'monster';
   sprite: MonsterSpriteDefinition;
-  /** Half-size of the square ground footprint in tiles (spawn validation / future collision). */
+  /** Half-size of the square ground footprint in tiles (spawn validation and movement collision). */
   footprintRadius: number;
+  /** Omit for a monster that stays where it spawned. */
+  behavior?: MonsterWanderBehavior;
 }
 
 export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>> = {
@@ -50,5 +63,7 @@ export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>>
       anchor: { x: 32, y: 30 },
     },
     footprintRadius: 0.3,
+    // Slow, creepy shuffling inside a 3-tile circle around its spawn point.
+    behavior: { type: 'wander', radiusTiles: 3, speed: 0.9, pauseMs: [900, 2800] },
   },
 };

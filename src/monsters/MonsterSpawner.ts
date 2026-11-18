@@ -1,5 +1,7 @@
 import type Phaser from 'phaser';
 import type { Point } from '../core/types';
+import type { CollisionQuery } from '../player/PlayerMovement';
+import type { PerformanceManager } from '../systems/performance/PerformanceManager';
 import type { IsometricMap } from '../world/IsometricMap';
 import type { TileBox } from '../world/structures/StructureLayer';
 import { MONSTER_DEFINITIONS } from './MonsterDefinition';
@@ -22,16 +24,20 @@ const overlaps = (a: TileBox, b: TileBox): boolean =>
   a.minX < b.maxX && a.maxX > b.minX && a.minY < b.maxY && a.maxY > b.minY;
 
 /**
- * Validates spawn points against the map and creates monsters. Kept separate from player logic:
- * the scene passes the player-related constraints in. Invalid points are reported, never placed.
+ * Validates spawn points against the map, creates monsters and drives their (idle) movement.
+ * Kept separate from player logic: the scene passes player-related constraints in.
+ * Invalid spawn points are reported, never placed.
  */
 export class MonsterSpawner {
   private readonly monsters: MonsterEntity[] = [];
+  private readonly buildings: TileBox[];
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly map: IsometricMap,
-  ) {}
+  ) {
+    this.buildings = map.structures.footprints();
+  }
 
   spawn(points: readonly MonsterSpawnPoint[], constraints: SpawnConstraints): SpawnReport {
     const report: SpawnReport = { spawned: [], rejected: [] };
@@ -41,10 +47,19 @@ export class MonsterSpawner {
         report.rejected.push({ point, reason });
         continue;
       }
-      const monster = new MonsterEntity(this.scene, this.map, MONSTER_DEFINITIONS[point.monster], {
-        x: point.col + 0.5,
-        y: point.row + 0.5,
-      });
+      const definition = MONSTER_DEFINITIONS[point.monster];
+      // Placeholder until the entity exists; the query needs the entity to ignore itself.
+      let self: MonsterEntity | null = null;
+      const collision: CollisionQuery = { isAreaFree: (box) => this.isAreaFreeFor(self, box) };
+      const monster = new MonsterEntity(
+        this.scene,
+        this.map,
+        definition,
+        { x: point.col + 0.5, y: point.row + 0.5 },
+        collision,
+        point.col * 1009 + point.row * 31 + 7,
+      );
+      self = monster;
       this.monsters.push(monster);
       report.spawned.push(monster);
     }
@@ -57,8 +72,30 @@ export class MonsterSpawner {
     return report;
   }
 
+  /**
+   * Moves wandering monsters. Monsters in the "dormant" distance band (far from the camera) are
+   * skipped; nothing else changes, and stationary monsters cost nothing.
+   */
+  update(deltaMs: number, camera: Phaser.Cameras.Scene2D.Camera, performance: PerformanceManager): void {
+    const cx = camera.midPoint.x;
+    const cy = camera.midPoint.y;
+    for (const monster of this.monsters) {
+      if (!monster.moves) continue;
+      const w = monster.world;
+      if (performance.priorityForDistance(Math.hypot(w.x - cx, w.y - cy)) === 'dormant') continue;
+      monster.update(deltaMs, (p) => this.isAreaFreeFor(monster, monster.footprint(p)));
+    }
+  }
+
   getMonsters(): readonly MonsterEntity[] {
     return this.monsters;
+  }
+
+  /** Map collision + no buildings + no other monster. */
+  private isAreaFreeFor(self: MonsterEntity | null, box: TileBox): boolean {
+    if (!this.map.isAreaFree(box)) return false;
+    if (this.buildings.some((b) => overlaps(box, b))) return false;
+    return !this.monsters.some((m) => m !== self && overlaps(box, m.footprint()));
   }
 
   /** Returns why a point is invalid, or null when it may be used. */
@@ -68,7 +105,7 @@ export class MonsterSpawner {
     const { col, row } = point;
     if (!this.map.isInside(col, row)) return 'outside the map';
     if (this.map.isTileBlocked(col, row)) return 'blocked tile (obstacle)';
-    if (this.map.structures.footprints().some((f) => col >= f.minX && col < f.maxX && row >= f.minY && row < f.maxY)) {
+    if (this.buildings.some((f) => col >= f.minX && col < f.maxX && row >= f.minY && row < f.maxY)) {
       return 'inside a building';
     }
 

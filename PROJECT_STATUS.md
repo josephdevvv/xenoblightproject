@@ -30,7 +30,7 @@ plus the loading & performance architecture groundwork
 | Camera | Smooth follow, clamped to world bounds, round pixels. |
 | Atmosphere | Dithered fog (low + high layers), drifting cloud shadows, smoke from vents and braziers, subtle purple glow on shrine/braziers, vignette. |
 | Game logo & app icons | Transparent logo (`public/icons/XENOBLIGHT_512x512.png`) in the creation-screen header, smoothly pre-scaled at runtime. Browser favicon `XENOBLIGHT_App.ico` (16-256 px), `apple-touch-icon` (256 px PNG) and `manifest.webmanifest` (128/256/512 px). |
-| Monster system | `src/monsters/`: `MonsterDefinition` (data: id, name, sprite frame/anchor/optional URL, future animation clips, footprint), `MonsterEntity` (one static full-sprite image, feet-anchored, depth-sorted once), `MonsterSpawner` (validates bounds, blocked tiles, buildings, walls, distance from player spawn in world px, overlaps; reports and skips invalid points), `MonsterSpawns` (deterministic per-map spawn table). First monster: **Voidmite**, 64x32 procedural mockup (`MockupMonsterFactory`), 10 spawned on Ashen Crossroads. Visual only: no AI, movement, combat, HP, collision with the player, or per-frame updates; culled off-screen like static props. |
+| Monster system | `src/monsters/`: `MonsterDefinition` (data: id, name, sprite frame/anchor/optional URL, future animation clips, footprint), `MonsterEntity` (one static full-sprite image, feet-anchored, depth-sorted once), `MonsterSpawner` (validates bounds, blocked tiles, buildings, walls, distance from player spawn in world px, overlaps; reports and skips invalid points), `MonsterSpawns` (deterministic per-map spawn table). First monster: **Voidmite**, 64x32 procedural mockup (`MockupMonsterFactory`), 10 spawned on Ashen Crossroads. Idle **wandering** (`WanderBehavior`): walks to random reachable points within 3 tiles of its spawn at 0.9 tiles/s, pauses 0.9-2.8 s, uses the same tile collision as the player, never enters buildings or overlaps other monsters, gives up on destinations it stops approaching (0.6 s), skipped when in the "dormant" distance band. No AI decisions, chasing, combat, HP, or collision with the player. |
 | HUD | Name plate, info panel (tile, facing, state), controls hint. Esc returns to character creation. |
 
 ## Verified in browser (dev server)
@@ -54,8 +54,8 @@ plus the loading & performance architecture groundwork
 
 Not in scope for Milestone 01, intentionally not implemented:
 multiplayer / networking, login / accounts, database persistence, combat, skills, inventory,
-equipment, monster AI / movement / combat / HP / loot / respawn, quests, audio, monetisation.
-(Static monsters exist as visual entities only - see "Monster system".)
+equipment, monster AI / chasing / combat / HP / loot / respawn, quests, audio, monetisation.
+(Monsters exist as wandering visual entities only - see "Monster system".)
 
 Prepared for (not implemented): combat-idle / attack / cast / pick-up / death animations using only
 NE / SE / SW / NW (`ACTION_DIRECTIONS`), production character sheets via `CHARACTER_SPRITE_MANIFEST`.

@@ -8,6 +8,9 @@ import { createCharacterData, createDefaultAppearance, type CharacterData } from
 import { CharacterStore } from '../data/CharacterStore';
 import { KeyboardMovementInput } from '../player/KeyboardMovementInput';
 import { PlayerController } from '../player/PlayerController';
+import { MONSTER_DEFINITIONS } from '../monsters/MonsterDefinition';
+import { MonsterSpawner } from '../monsters/MonsterSpawner';
+import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
 import { GameServices, type Services } from '../systems/GameServices';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
 import { GameHud } from '../ui/GameHud';
@@ -17,6 +20,9 @@ import type { IsometricMap } from '../world/IsometricMap';
 import { DEFAULT_MAP_ID } from '../world/loading/MapRegistry';
 
 const CULLING_DEBUG_SOURCE = 'Culling';
+const MONSTER_DEBUG_SOURCE = 'Monsters';
+/** Minimum distance (world px, rendered coordinates) between a monster and the player spawn. */
+const MONSTER_MIN_SPAWN_DISTANCE_PX = 20;
 
 /**
  * First playable map. Loading goes through MapLoadingManager (PRELOAD -> PREPARE -> BUILD ->
@@ -29,6 +35,7 @@ export class GameScene extends Phaser.Scene {
   private atmosphere!: AtmosphereEffects;
   private hud!: GameHud;
   private culler!: VisibilityCuller;
+  monsters!: MonsterSpawner;
   private loading!: LoadingScreen;
   private mapId = DEFAULT_MAP_ID;
   private ready = false;
@@ -55,6 +62,8 @@ export class GameScene extends Phaser.Scene {
       this.input.keyboard?.off('keydown-ESC', onEscape);
       const services = GameServices.tryGet();
       services?.debugSources.delete(CULLING_DEBUG_SOURCE);
+      services?.debugSources.delete(MONSTER_DEBUG_SOURCE);
+      services?.cache.releaseOwner(this.monsterOwner());
       services?.maps.exit(this.mapId);
     });
 
@@ -76,6 +85,7 @@ export class GameScene extends Phaser.Scene {
       const [prepared] = await Promise.all([
         services.maps.enter(this, this.mapId, { onProgress: (p) => this.loading.setProgress(p) }),
         AssetManager.ensureCharacterSheets(this, character.appearance, { walk: true }),
+        this.loadMonsterTextures(services),
       ]);
       if (!this.sys.isActive()) return;
       this.map = prepared.map;
@@ -114,6 +124,13 @@ export class GameScene extends Phaser.Scene {
     const view = new CharacterView(this, character.appearance, spawnWorld.x, spawnWorld.y);
     this.player = new PlayerController(this.map, view, new KeyboardMovementInput(this), spawn);
 
+    // Monsters: static visual entities, validated against the map and the player spawn.
+    this.monsters = new MonsterSpawner(this, this.map);
+    this.monsters.spawn(MONSTER_SPAWNS[this.mapId] ?? [], {
+      avoid: { world: spawnWorld, minDistancePx: MONSTER_MIN_SPAWN_DISTANCE_PX },
+      reserved: [this.player.getFootprint()],
+    });
+
     // Camera
     const cam = this.cameras.main;
     cam.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -124,6 +141,7 @@ export class GameScene extends Phaser.Scene {
     // Visibility management: static map images, and smoke that pauses (not resets) off-screen.
     this.culler = new VisibilityCuller(cam);
     for (const image of this.map.getStaticImages()) this.culler.add(image);
+    for (const monster of this.monsters.getMonsters()) this.culler.add(monster.sprite);
     for (const s of this.atmosphere.smokeEmitters) {
       const smokeBounds = new Phaser.Geom.Rectangle(s.x - 64, s.y - 240, 128, 260);
       this.culler.add(s.emitter, smokeBounds, (visible) => (visible ? s.emitter.resume() : s.emitter.pause()));
@@ -133,10 +151,25 @@ export class GameScene extends Phaser.Scene {
       const c = this.culler.getStats();
       return `${c.visible} / ${c.total} static objects drawn`;
     });
+    services.debugSources.set(MONSTER_DEBUG_SOURCE, () => {
+      const list = this.monsters.getMonsters();
+      return `${list.length} (${[...new Set(list.map((m) => m.definition.id))].join(', ')})`;
+    });
 
     // HUD
     this.hud = new GameHud(this, character, this.map.definition.name);
     this.hud.update(this.player);
+  }
+
+  /** Loads (once) every monster sprite used by this map's spawn table and holds it while the map is shown. */
+  private async loadMonsterTextures(services: Services): Promise<void> {
+    const ids = [...new Set((MONSTER_SPAWNS[this.mapId] ?? []).map((p) => p.monster))];
+    const keys = await Promise.all(ids.map((id) => AssetManager.ensureMonsterTexture(this, MONSTER_DEFINITIONS[id])));
+    for (const key of keys) services.cache.retain(key, this.monsterOwner());
+  }
+
+  private monsterOwner(): string {
+    return `monsters:${this.mapId}`;
   }
 
   /** Normally set by character creation; falls back to a default for direct scene testing. */

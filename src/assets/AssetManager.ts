@@ -13,7 +13,9 @@ import { forgetSheetMetrics } from '../characters/SpriteMetrics';
 import { CHARACTER_SPRITE_MANIFEST } from './CharacterSpriteManifest';
 import { LOGO_URL } from './LogoTexture';
 import { TextureKeys } from './TextureKeys';
+import type { MonsterDefinition } from '../monsters/MonsterDefinition';
 import { createMockupCharacterSheet } from './mockup/MockupCharacterFactory';
+import { createMonsterMockup } from './mockup/MockupMonsterFactory';
 import { createEnvironmentTextures } from './mockup/MockupEnvironmentFactory';
 
 export interface CharacterSheetOptions {
@@ -42,6 +44,29 @@ export const AssetManager = {
   /** Generate placeholder tiles, props and FX for any key not provided by real art. */
   createMockupTextures(scene: Phaser.Scene): void {
     createEnvironmentTextures(scene.textures);
+  },
+
+  /**
+   * Makes a monster's sprite available (on demand, once): loads its production sheet when the
+   * definition has a URL, otherwise generates the procedural mockup. Falls back to the mockup if
+   * loading fails. Tracked as a lazy texture; callers retain it while monsters are on screen.
+   */
+  async ensureMonsterTexture(scene: Phaser.Scene, definition: MonsterDefinition): Promise<string> {
+    const s = definition.sprite;
+    if (scene.textures.exists(s.textureKey)) return s.textureKey;
+    const services = GameServices.get();
+    if (s.url) {
+      try {
+        await services.assets.load({ key: s.textureKey, type: 'spritesheet', url: s.url, frameWidth: s.frameWidth, frameHeight: s.frameHeight });
+      } catch (e) {
+        console.warn(`[assets] ${(e as Error).message} - using mockup for ${definition.id}`);
+      }
+    }
+    if (!scene.textures.exists(s.textureKey)) {
+      scene.textures.addCanvas(s.textureKey, createMonsterMockup(definition.id, s.frameWidth, s.frameHeight));
+    }
+    services.cache.track(s.textureKey);
+    return s.textureKey;
   },
 
   /**

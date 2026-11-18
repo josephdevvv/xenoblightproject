@@ -16,7 +16,7 @@
 | Production character art | `char_male_long_middle_part_blonde_adventurer` (male, long middle part, blonde, adventurer): 8 static directions, default appearance in creation and in game. |
 | Mockup character sheets | Generated on demand only for appearances without production art; same 4x2 static layout. |
 | Character rendering | `CharacterView` = one sprite per character; appearance change swaps the whole sheet. |
-| Directional frames | `DirectionalFrameController` shows the static frame of the facing direction via `setFrame()`; the last facing is kept when the player stops. Idle animation removed; walk animation waits for new art. |
+| Character animator | `CharacterAnimator`: while moving plays the 8-direction walk cycle (6 frames, 8 FPS, looping; keeps stride phase when turning); when movement stops it switches immediately to the static standing frame of the last facing. No idle animation. Each sheet has its own feet origin (standing 58, walk 62). Only appearances with a walk sheet animate. |
 | Character creation screen | Gender, hairstyle, hair colour, outfit, name, live preview (rotate 8 directions, shows sprite ID). |
 | Name validation | Trimmed, 3-16 characters, letters (any script incl. Thai) / digits / single spaces. Inline error message. |
 | Isometric map | 30x30 diamond tiles (64x32), correct iso <-> tile conversion, ground/path/vent tiles, 7 prop types, depth sorting by screen Y. |
@@ -95,6 +95,8 @@ level 50+ mutation subclasses.
 - First production sheet: body pixels have alpha 252-253 (not 255) and ~1,300 very faint (alpha 1-30) dark
   edge/speck pixels, typical of a resampled export. Not visible on the dark map; clean in the source art if needed.
   Its SW frame (7) is turned only slightly and reads close to the S frame.
+- The walk sheet's figure is drawn ~6 px taller (59 px vs 54 px) than the standing sheet's, so the head shifts up
+  slightly when walking starts. Feet stay aligned. Fixing it needs matching art (no non-integer rescaling).
 - UI text is rendered by Phaser and is scaled with the canvas, so it looks soft/blocky at large window sizes.
 
 ## Next development steps

@@ -76,8 +76,12 @@ Sheet format (see `src/characters/CharacterSheetLayout.ts`):
 - row 0: S, SE, E, NE  /  row 1: N, NW, W, SW
 - feet at pixel (32, 58) of each frame
 
-First production sheet: `public/assets/characters/male/long_middle_part/blonde_adventurer.png`
-(also the default appearance).
+Optional walk sheet (`<color>_<outfit>_walk.png`): 6 columns x 8 rows (384x512), one direction per row in
+the order S, SE, E, NE, N, NW, W, SW, played at 8 FPS while moving; feet at y = 62. Register both files in
+`CHARACTER_SPRITE_MANIFEST` (`standing` and `walk`). Appearances without a walk sheet stay static while moving.
+
+First production sheets: `public/assets/characters/male/long_middle_part/blonde_adventurer.png` and
+`blonde_adventurer_walk.png` (also the default appearance).
 
 Put the PNG under `public/assets/characters/<gender>/<hairstyle>/<color>_<outfit>.png` and add it to
 `CHARACTER_SPRITE_MANIFEST`. The mockup generator is skipped automatically for that ID.

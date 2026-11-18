@@ -12,13 +12,14 @@ export const PLAYER_MOVEMENT = {
   radius: 0.22, // tiles
 } as const;
 
-/** Logical movement state (shown in the HUD; will drive walk animation once that art exists). */
+/** Logical movement state: drives the walk animation and is shown in the HUD. */
 export type MovementState = 'idle' | 'walk';
 
 /**
- * Central player controller: input -> movement (tile space) -> view (world space) -> facing frame.
- * Movement rules live in PlayerMovement; frame selection lives in DirectionalFrameController.
- * When input stops, the last facing direction is kept, so the matching static frame stays visible.
+ * Central player controller: input -> movement (tile space) -> view (world space) -> animator.
+ * Movement rules live in PlayerMovement; sprite selection lives in CharacterAnimator.
+ * While moving the walk clip plays; when movement stops the last facing direction is kept and its
+ * static standing frame is shown immediately.
  */
 export class PlayerController {
   private readonly movement: PlayerMovement;
@@ -76,13 +77,14 @@ export class PlayerController {
   /** Approximate on-screen area covered by the character sprite (for depth / occlusion tests). */
   getScreenRect(): Phaser.Geom.Rectangle {
     const world = this.getWorldPosition();
-    return new Phaser.Geom.Rectangle(world.x - 14, world.y - 54, 28, 56);
+    // Covers both sheets: standing art reaches ~54 px above the feet, walk art ~60 px.
+    return new Phaser.Geom.Rectangle(world.x - 15, world.y - 60, 30, 62);
   }
 
   private syncView(): void {
     const world = this.getWorldPosition();
     this.view.setPosition(world.x, world.y);
     this.view.setDepth(this.map.resolveDepth(this.getFootprint(), world.y, this.getScreenRect()));
-    this.view.facing.setDirection(this.facing);
+    this.view.animator.setMotion(this.state === 'walk' ? 'walk' : 'stand', this.facing);
   }
 }

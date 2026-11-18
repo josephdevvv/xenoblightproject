@@ -1,35 +1,34 @@
 import Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import type { CharacterAppearance } from '../data/CharacterData';
-import { CHARACTER_ORIGIN } from './CharacterSheetLayout';
-import { DirectionalFrameController } from './DirectionalFrameController';
+import { CharacterAnimator, type CharacterSheets } from './CharacterAnimator';
 
 /**
- * Character rendering: ONE sprite showing ONE complete pre-rendered sheet.
- * Changing appearance swaps the whole sheet; there are no body/hair/outfit layers.
+ * Character rendering: ONE sprite showing ONE complete pre-rendered sheet at a time
+ * (standing sheet when still, walk sheet while moving). No body/hair/outfit layers.
  */
 export class CharacterView {
   readonly sprite: Phaser.GameObjects.Sprite;
-  readonly facing: DirectionalFrameController;
+  readonly animator: CharacterAnimator;
   private textureKey: string;
 
   constructor(scene: Phaser.Scene, appearance: CharacterAppearance, x: number, y: number) {
-    this.textureKey = AssetManager.ensureCharacterTexture(scene, appearance);
-    this.sprite = scene.add.sprite(x, y, this.textureKey, 0);
-    this.sprite.setOrigin(CHARACTER_ORIGIN.x, CHARACTER_ORIGIN.y);
-    this.facing = new DirectionalFrameController(this.sprite);
+    const sheets = CharacterView.resolveSheets(scene, appearance);
+    this.textureKey = sheets.standing;
+    this.sprite = scene.add.sprite(x, y, sheets.standing, 0);
+    this.animator = new CharacterAnimator(this.sprite, sheets);
   }
 
+  /** Texture key of the standing sheet (the appearance's sprite ID). */
   getTextureKey(): string {
     return this.textureKey;
   }
 
   setAppearance(appearance: CharacterAppearance): void {
-    const key = AssetManager.ensureCharacterTexture(this.sprite.scene, appearance);
-    if (key === this.textureKey) return;
-    this.textureKey = key;
-    this.sprite.setTexture(key);
-    this.facing.apply();
+    const sheets = CharacterView.resolveSheets(this.sprite.scene, appearance);
+    if (sheets.standing === this.textureKey) return;
+    this.textureKey = sheets.standing;
+    this.animator.setSheets(sheets);
   }
 
   setPosition(x: number, y: number): void {
@@ -46,5 +45,12 @@ export class CharacterView {
 
   destroy(): void {
     this.sprite.destroy();
+  }
+
+  private static resolveSheets(scene: Phaser.Scene, appearance: CharacterAppearance): CharacterSheets {
+    return {
+      standing: AssetManager.ensureCharacterTexture(scene, appearance),
+      walk: AssetManager.getWalkTexture(scene, appearance),
+    };
   }
 }

@@ -35,7 +35,7 @@ export class GameHud {
 
   update(player: PlayerController): void {
     const world = player.getWorldPosition();
-    this.namePlate.setPosition(Math.round(world.x), Math.round(world.y - 56));
+    this.namePlate.setPosition(Math.round(world.x), Math.round(world.y - 62));
     const tile = player.getTilePosition();
     this.statusText.setText(
       `Tile ${Math.floor(tile.x)},${Math.floor(tile.y)}   Facing ${player.getFacing()}   ${player.getState().toUpperCase()}`,

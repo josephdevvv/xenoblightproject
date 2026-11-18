@@ -250,7 +250,7 @@ export class CharacterCreationScene extends Phaser.Scene {
 
   private refreshPreviewDirection(): void {
     const direction = DIRECTIONS[this.previewDirection];
-    this.preview.facing.setDirection(direction);
+    this.preview.animator.setMotion('stand', direction);
     this.directionText.setText(direction);
   }
 

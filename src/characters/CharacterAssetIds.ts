@@ -10,6 +10,15 @@ export function getCharacterSpriteId(a: CharacterAppearance): string {
   return `char_${a.gender}_${a.hairstyleId}_${a.hairColorId}_${a.outfitId}`;
 }
 
+/** Texture key of an appearance's optional walk-cycle sheet. */
+export function getCharacterWalkSpriteId(a: CharacterAppearance): string {
+  return walkSpriteIdOf(getCharacterSpriteId(a));
+}
+
+export function walkSpriteIdOf(spriteId: string): string {
+  return `${spriteId}_walk`;
+}
+
 /** Where the final sprite sheet for an appearance is expected to live (relative to /public). */
 export function getCharacterSpritePath(a: CharacterAppearance): string {
   return `assets/characters/${a.gender}/${a.hairstyleId}/${a.hairColorId}_${a.outfitId}.png`;

@@ -30,9 +30,26 @@ export const CHARACTER_DIRECTION_FRAMES: Readonly<Record<Direction, number>> = {
   SW: 7,
 };
 
-/** Origin that places the character's feet on its world position. */
+/** Origin that places the character's feet on its world position (standing sheet). */
 export const CHARACTER_ORIGIN = { x: 0.5, y: 58 / 64 } as const;
 
 export function characterFrameIndex(direction: Direction): number {
   return CHARACTER_DIRECTION_FRAMES[direction];
 }
+
+/**
+ * Walk-cycle sheet contract (optional, per appearance):
+ *
+ *   - Frame: 64 x 64 px, sheet 384 x 512 px (6 columns x 8 rows)
+ *   - Each row is one direction, frames loop left to right
+ *   - Row order (verified against char_male_long_middle_part_blonde_adventurer walk sheet):
+ *       S, SE, E, NE, N, NW, W, SW
+ *   - Feet (contact foot) at pixel y = 62 - the walk art stands lower in its frame than the
+ *     standing art, so it gets its own origin to keep the feet on the same ground point.
+ */
+export const CHARACTER_WALK_LAYOUT = {
+  columns: 6,
+  frameRate: 8,
+  rows: { S: 0, SE: 1, E: 2, NE: 3, N: 4, NW: 5, W: 6, SW: 7 } as Readonly<Record<Direction, number>>,
+  origin: { x: 0.5, y: 62 / 64 },
+} as const;

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { CharacterAppearance } from '../data/CharacterData';
-import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
+import { getCharacterSpriteId, getCharacterWalkSpriteId, walkSpriteIdOf } from '../characters/CharacterAssetIds';
 import {
   CHARACTER_FRAME_HEIGHT,
   CHARACTER_FRAME_WIDTH,
@@ -26,12 +26,17 @@ export const AssetManager = {
   /** Queue production assets for loading (called from BootScene.preload). */
   preload(loader: Phaser.Loader.LoaderPlugin): void {
     loader.image(TextureKeys.ui.logoSource, LOGO_URL);
-    for (const [spriteId, url] of Object.entries(CHARACTER_SPRITE_MANIFEST)) {
-      loader.spritesheet(spriteId, url, {
-        frameWidth: CHARACTER_FRAME_WIDTH,
-        frameHeight: CHARACTER_FRAME_HEIGHT,
-      });
+    const frameConfig = { frameWidth: CHARACTER_FRAME_WIDTH, frameHeight: CHARACTER_FRAME_HEIGHT };
+    for (const [spriteId, entry] of Object.entries(CHARACTER_SPRITE_MANIFEST)) {
+      loader.spritesheet(spriteId, entry.standing, frameConfig);
+      if (entry.walk) loader.spritesheet(walkSpriteIdOf(spriteId), entry.walk, frameConfig);
     }
+  },
+
+  /** Texture key of the appearance's walk-cycle sheet, or null if it has none (static only). */
+  getWalkTexture(scene: Phaser.Scene, appearance: CharacterAppearance): string | null {
+    const key = getCharacterWalkSpriteId(appearance);
+    return scene.textures.exists(key) ? key : null;
   },
 
   /** Generate placeholder tiles, props and FX for any key not provided by real art. */

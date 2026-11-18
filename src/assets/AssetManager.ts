@@ -9,7 +9,7 @@ import {
   CHARACTER_SHEET_ROWS,
 } from '../characters/CharacterSheetLayout';
 import { GameServices } from '../systems/GameServices';
-import { CHARACTER_SPRITE_MANIFEST } from './CharacterSpriteManifest';
+import { CHARACTER_SPRITE_MANIFEST, DEFAULT_STANDING_FEET_Y } from './CharacterSpriteManifest';
 import { LOGO_URL } from './LogoTexture';
 import { TextureKeys } from './TextureKeys';
 import { createMockupCharacterSheet } from './mockup/MockupCharacterFactory';
@@ -54,15 +54,18 @@ export const AssetManager = {
 
     const failures = GameServices.get().assets.getFailures();
     const textures = scene.textures;
-    let standing: string;
-    if (textures.exists(id)) standing = id;
-    else if (failures.has(id)) standing = ensureMockupSheet(scene, id + FALLBACK_SUFFIX, appearance);
-    else return null;
+    if (!textures.exists(id)) {
+      if (failures.has(id)) return { standing: ensureMockupSheet(scene, id + FALLBACK_SUFFIX, appearance), walk: null };
+      return null;
+    }
+    const standing = id;
+    // Each real sheet stands on its own measured foot row (falls back to the contract default).
+    const standingOriginY = (entry.standingFeetY ?? DEFAULT_STANDING_FEET_Y) / CHARACTER_FRAME_HEIGHT;
 
-    if (!options.walk || !entry.walk) return { standing, walk: null };
+    if (!options.walk || !entry.walk) return { standing, walk: null, standingOriginY };
     const walkId = walkSpriteIdOf(id);
-    if (textures.exists(walkId)) return { standing, walk: walkId };
-    if (failures.has(walkId)) return { standing, walk: null };
+    if (textures.exists(walkId)) return { standing, walk: walkId, standingOriginY };
+    if (failures.has(walkId)) return { standing, walk: null, standingOriginY };
     return null;
   },
 

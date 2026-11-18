@@ -17,8 +17,8 @@ plus the loading & performance architecture groundwork
 | Character data | `CharacterAppearance` (gender, hairstyle, hair colour, outfit IDs), `CharacterData`, name validation, in-memory `CharacterStore`. |
 | Appearance catalog | 2 genders, 6 hairstyles per gender (from the design doc), 5 hair colours, 2 outfits (Basic Wraps = "unclothed", Adventurer). |
 | Character asset IDs | One sprite ID + expected file path per combination (120 total). |
-| Production character art | `char_male_long_middle_part_blonde_adventurer` (male, long middle part, blonde, adventurer): 8 static directions, default appearance in creation and in game. |
-| Mockup character sheets | Generated on demand only for appearances without production art; same 4x2 static layout. |
+| Production character art | 114 of 120 appearances have full pre-rendered static 8-direction sheets (male 60/60, female 54/60), loaded on demand; per-sheet measured foot anchor (`standingFeetY`). Walk animation for male / long_middle_part / blonde / adventurer (also the default appearance); others use their static directional frame while moving. Inventory: CHARACTER_SPRITE_INVENTORY.md. |
+| Mockup character sheets | Generated on demand only for the 6 appearances without production art (female adventurer long_side_part x5, straight_bangs red); same 4x2 static layout. |
 | Character rendering | `CharacterView` = one sprite per character; appearance change swaps the whole sheet. |
 | Character animator | `CharacterAnimator`: while moving plays the 8-direction walk cycle (6 frames, 8 FPS, looping; keeps stride phase when turning); when movement stops it switches immediately to the static standing frame of the last facing. No idle animation. Each sheet has its own feet origin (standing 58, walk 62). Only appearances with a walk sheet animate. |
 | Character creation screen | Gender, hairstyle, hair colour, outfit, name, live preview (rotate 8 directions, shows sprite ID). |

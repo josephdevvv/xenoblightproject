@@ -74,14 +74,16 @@ Sheet format (see `src/characters/CharacterSheetLayout.ts`):
 
 - 64x64 frames, 4 columns x 2 rows (256x128), 8 static directional frames (no animation yet)
 - row 0: S, SE, E, NE  /  row 1: N, NW, W, SW
-- feet at pixel (32, 58) of each frame
+- feet at pixel row 58 by default; a sheet whose feet sit elsewhere declares its measured row as
+  `standingFeetY` in the manifest so it still stands on the ground
 
 Optional walk sheet (`<color>_<outfit>_walk.png`): 6 columns x 8 rows (384x512), one direction per row in
 the order S, SE, E, NE, N, NW, W, SW, played at 8 FPS while moving; feet at y = 62. Register both files in
 `CHARACTER_SPRITE_MANIFEST` (`standing` and `walk`). Appearances without a walk sheet stay static while moving.
 
-First production sheets: `public/assets/characters/male/long_middle_part/blonde_adventurer.png` and
-`blonde_adventurer_walk.png` (also the default appearance).
+Production art: 114 static sheets (all male appearances, 54 female) plus one walk sheet
+(male / long_middle_part / blonde / adventurer, also the default appearance). See
+`CHARACTER_SPRITE_INVENTORY.md` for the full list, missing combinations and known art issues.
 
 Put the PNG under `public/assets/characters/<gender>/<hairstyle>/<color>_<outfit>.png` and add it to
 `CHARACTER_SPRITE_MANIFEST`. The mockup generator is skipped automatically for that ID.

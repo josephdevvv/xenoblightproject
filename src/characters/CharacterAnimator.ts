@@ -9,6 +9,11 @@ export interface CharacterSheets {
   standing: string;
   /** Walk-cycle sheet, or null when the appearance has no walk art (it then stays static while moving). */
   walk: string | null;
+  /**
+   * Vertical origin (0..1) that puts this standing sheet's feet on the ground point.
+   * Comes from the manifest's measured standingFeetY; defaults to CHARACTER_ORIGIN.y (58/64).
+   */
+  standingOriginY?: number;
 }
 
 export function walkAnimationKey(walkTexture: string, direction: Direction): string {
@@ -104,6 +109,6 @@ export class CharacterAnimator {
   private showStanding(): void {
     if (this.sprite.anims.isPlaying) this.sprite.stop();
     this.sprite.setTexture(this.sheets.standing, characterFrameIndex(this.direction));
-    this.sprite.setOrigin(CHARACTER_ORIGIN.x, CHARACTER_ORIGIN.y);
+    this.sprite.setOrigin(CHARACTER_ORIGIN.x, this.sheets.standingOriginY ?? CHARACTER_ORIGIN.y);
   }
 }

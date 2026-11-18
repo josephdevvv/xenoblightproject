@@ -29,6 +29,11 @@ export function registerWalkAnimations(anims: Phaser.Animations.AnimationManager
   }
 }
 
+/** Removes a walk sheet's clips (called when the sheet is evicted from the cache). */
+export function removeWalkAnimations(anims: Phaser.Animations.AnimationManager, walkTexture: string): void {
+  for (const direction of DIRECTIONS) anims.remove(walkAnimationKey(walkTexture, direction));
+}
+
 /**
  * Decides what the character sprite shows. Knows nothing about input or movement.
  *

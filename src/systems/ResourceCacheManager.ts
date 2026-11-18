@@ -32,6 +32,8 @@ export interface CacheStats {
 
 export const DEFAULT_GC_GRACE_MS = 30_000;
 
+const UUID_KEY = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export class ResourceCacheManager {
   private readonly entries = new Map<string, CacheEntry>();
 
@@ -100,7 +102,9 @@ export class ResourceCacheManager {
       tracked++;
       if (entry.owners.size > 0) inUse++;
     }
-    return { textures: this.textures.getTextureKeys().length, tracked, inUse };
+    // Phaser registers each Text object's canvas under a random UUID; those are not assets.
+    const assets = this.textures.getTextureKeys().filter((key) => !UUID_KEY.test(key)).length;
+    return { textures: assets, tracked, inUse };
   }
 
   private entry(key: string): CacheEntry {

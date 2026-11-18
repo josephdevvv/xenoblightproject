@@ -24,6 +24,8 @@ export interface DriftLayerOptions {
  */
 export class AtmosphereEffects {
   private readonly drifters: Drifter[] = [];
+  /** Smoke emitters with their source point (for visibility management). */
+  readonly smokeEmitters: { emitter: Phaser.GameObjects.Particles.ParticleEmitter; x: number; y: number }[] = [];
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -68,6 +70,7 @@ export class AtmosphereEffects {
       x: { min: -6, max: 6 },
     });
     emitter.setDepth(depth);
+    this.smokeEmitters.push({ emitter, x, y });
     return this;
   }
 

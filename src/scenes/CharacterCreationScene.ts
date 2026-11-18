@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, SCENES } from '../config/constants';
 import { PALETTE, toColorInt } from '../config/palette';
+import { AssetManager } from '../assets/AssetManager';
 import { getLogoTexture } from '../assets/LogoTexture';
+import { GameServices } from '../systems/GameServices';
+import { LoadingScreen } from '../ui/LoadingScreen';
 import { DIRECTIONS } from '../core/Direction';
 import { TextureKeys } from '../assets/TextureKeys';
 import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
@@ -69,12 +72,21 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.submitting = false;
 
     this.createBackdrop();
-    this.createHeader();
-    this.createOptionsPanel(previous?.name ?? '');
-    this.createPreviewPanel();
-    this.refreshAll();
-
+    const loading = new LoadingScreen(this).show();
     this.cameras.main.fadeIn(400, 0, 0, 0);
+
+    // The preview's sprite sheet is loaded on demand (deduplicated) before the UI is built,
+    // so the first frame of the preview is already the real art.
+    void GameServices.ready()
+      .then(() => AssetManager.ensureCharacterSheets(this, this.appearance, { walk: false }))
+      .then(() => {
+        if (!this.sys.isActive()) return;
+        this.createHeader();
+        this.createOptionsPanel(previous?.name ?? '');
+        this.createPreviewPanel();
+        this.refreshAll();
+        loading.hide();
+      });
   }
 
   update(_time: number, delta: number): void {
@@ -205,7 +217,7 @@ export class CharacterCreationScene extends Phaser.Scene {
       .setOrigin(0.5, 16 / 40)
       .setScale(PREVIEW_SCALE);
 
-    this.preview = new CharacterView(this, this.appearance, cx, feetY);
+    this.preview = new CharacterView(this, this.appearance, cx, feetY, { walk: false });
     this.preview.setScale(PREVIEW_SCALE);
 
     new Button(this, cx - 84, 408, { width: 32, height: 26, label: '<', onClick: () => this.rotatePreview(-1) });

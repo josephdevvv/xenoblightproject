@@ -54,9 +54,13 @@ export class VisibilityCuller {
     this.lastY = cam.scrollY;
     this.lastZoom = cam.zoom;
 
-    const wv = cam.worldView;
-    // worldView can lag one frame behind scroll; the margin absorbs that.
-    this.view.setTo(wv.x - this.marginPx, wv.y - this.marginPx, wv.width + this.marginPx * 2, wv.height + this.marginPx * 2);
+    // Derive the view from the same scroll values recorded above. (camera.worldView is only refreshed
+    // in preRender, so after a camera jump it would still describe the OLD position.)
+    const width = cam.width / cam.zoom;
+    const height = cam.height / cam.zoom;
+    const left = cam.scrollX + cam.width * cam.originX - width / 2;
+    const top = cam.scrollY + cam.height * cam.originY - height / 2;
+    this.view.setTo(left - this.marginPx, top - this.marginPx, width + this.marginPx * 2, height + this.marginPx * 2);
 
     let visible = 0;
     for (const e of this.entries) {

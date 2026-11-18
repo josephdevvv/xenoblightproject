@@ -51,6 +51,7 @@ export class GameScene extends Phaser.Scene {
     const onEscape = (): void => this.returnToCreation();
     this.input.keyboard?.on('keydown-ESC', onEscape);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
       const services = GameServices.tryGet();
       services?.debugSources.delete(CULLING_DEBUG_SOURCE);

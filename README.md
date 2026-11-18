@@ -93,4 +93,6 @@ When a transparent PNG is available, update `LOGO_URL`, the crop and set the fad
 **Tiles, props and FX.** Load an image under the matching key in `TextureKeys.ts` (BootScene preload);
 the generator skips any key that already exists. Tiles are 64x40 PNGs (64x32 diamond + 8 px side).
 
-See `PROJECT_STATUS.md` for milestone status and technical decisions.
+See `PROJECT_STATUS.md` for milestone status and technical decisions, and `PERFORMANCE_GUIDELINES.md` for
+asset loading, map loading, texture ownership and performance rules. Debug overlay: F3 in `npm run dev`,
+or add `?debug` to the URL of a production build.

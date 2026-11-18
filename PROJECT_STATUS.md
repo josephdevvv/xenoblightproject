@@ -1,6 +1,7 @@
 # Project Status
 
-**Current milestone:** 01 — Playable prototype (character creation + first isometric map)
+**Current milestone:** 01 — Playable prototype (character creation + first isometric map),
+plus the loading & performance architecture groundwork
 **Status:** Complete. Type check, production build and in-browser tests pass.
 **Last updated:** 2026-11-18
 
@@ -9,7 +10,10 @@
 | System | Notes |
 | --- | --- |
 | Project setup | Phaser 3.90, TypeScript (strict), Vite 5. `Phaser.AUTO` (WebGL, Canvas fallback). 960x480, FIT scaling, centered, pixel art / nearest filtering / no antialiasing. |
-| Boot | Preloads production assets from the manifest (empty now), generates mockup textures. |
+| Boot | Loads only essential assets (logo) and generates the core environment textures. |
+| Loading & performance architecture | Persistent `SystemScene` hosting `GameServices`: `AssetLoadingManager` (on-demand, deduplicated, failure-safe), `ResourceCacheManager` (ref-counted texture ownership, grace-period GC), `MapLoadingManager` (PRELOAD -> PREPARE -> time-sliced BUILD -> TRANSITION -> CLEANUP), `PerformanceManager` (frame stats, budgets, distance priorities), `VisibilityCuller` (off-screen static objects hidden, off-screen smoke paused), `LoadingScreen`, optional debug overlay (F3 in dev, `?debug` in production). See PERFORMANCE_GUIDELINES.md. |
+| Lazy character loading | Character sheets load when a scene needs them (creation: standing only; game: standing + walk); views hold cache references; failed art falls back to a mockup. |
+| Multiplayer preparation | Interfaces only (`src/multiplayer/contracts.ts`): character snapshots, appearance loader, remote renderer, interest manager, nearby query; `CharacterRegistry` tracks live views. No networking. |
 | Character data | `CharacterAppearance` (gender, hairstyle, hair colour, outfit IDs), `CharacterData`, name validation, in-memory `CharacterStore`. |
 | Appearance catalog | 2 genders, 6 hairstyles per gender (from the design doc), 5 hair colours, 2 outfits (Basic Wraps = "unclothed", Adventurer). |
 | Character asset IDs | One sprite ID + expected file path per combination (120 total). |
@@ -38,6 +42,10 @@
 - Collision: player stops at the shrine and shows idle while pushing against it
 - Boundaries: player stops at the south and west map edges
 - Esc -> creation (previous selections and name restored) -> create again works (scene restart)
+- Loading architecture: only the logo + standing sheet are fetched before creation; the walk sheet on entering
+  the map; duplicate requests share one fetch; a missing file fails cleanly; 3 game/creation cycles keep
+  texture count, display-list size and registered characters constant; culling hides nothing on screen and
+  never affects collision; production build has no overlay unless `?debug`
 - Ruined house: enter through the doorway, stop flush at back/front/side walls, exit through the SE gap;
   drawn in front of back walls when inside, behind them (walls fade) when standing behind the house
 
@@ -106,3 +114,6 @@ level 50+ mutation subclasses.
 3. Add a pixel bitmap font for crisp UI text.
 4. Introduce the action-animation sheet contract (NE/SE/SW/NW) ahead of combat.
 5. Define the server-authoritative data model before networking (character store -> API client).
+6. When a second map exists: register it in `MapRegistry`, call `maps.prepare()` near entrances and
+   `maps.enter()` on transition (see PERFORMANCE_GUIDELINES.md).
+7. Implement `RemoteCharacterRenderer` / `InterestManager` from `src/multiplayer/contracts.ts` once networking starts.

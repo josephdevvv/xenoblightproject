@@ -16,6 +16,7 @@ import { GameServices, type Services } from '../systems/GameServices';
 import type { GameUIScene } from './GameUIScene';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
 import { GameHud } from '../ui/GameHud';
+import { DungeonHud } from '../ui/hud/DungeonHud';
 import { LoadingScreen } from '../ui/LoadingScreen';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import type { IsometricMap } from '../world/IsometricMap';
@@ -95,6 +96,7 @@ export class GameScene extends Phaser.Scene {
         services.maps.enter(this, this.mapId, { onProgress: (p) => this.loading.setProgress(p) }),
         AssetManager.ensureCharacterSheets(this, character.appearance, { walk: true }),
         this.loadMonsterTextures(services),
+        DungeonHud.load(),
       ]);
       if (!this.sys.isActive()) return;
       this.map = prepared.map;
@@ -102,7 +104,7 @@ export class GameScene extends Phaser.Scene {
       this.loading.hide();
       this.cameras.main.fadeIn(500, 0, 0, 0);
       this.ready = true;
-      // Screen-space UI (Status button + window) lives in its own overlay scene so UI clicks never
+      // Screen-space UI (HUD + Status window) lives in its own overlay scene so UI clicks never
       // reach the world.
       this.scene.launch(SCENES.GameUI, { characterId: character.id });
     } catch (error) {
@@ -170,7 +172,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // HUD
-    this.hud = new GameHud(this, character, this.map.definition.name);
+    this.hud = new GameHud(this, character);
     this.hud.update(this.player);
   }
 

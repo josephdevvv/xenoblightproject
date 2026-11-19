@@ -1,0 +1,15 @@
+﻿{
+  "reference_resolution": { "width": 1664, "height": 940 },
+  "render_order": ["01_player_status.png", "02_quest_auto.png", "03_map_and_menu.png", "04_chat.png", "05_hotbar.png", "06_exp_bar.png"],
+  "dynamic_text": {
+    "player_name": { "x": 31, "y": 17 }, "level": { "x": 178, "y": 17 },
+    "hp_value": { "x": 22, "y": 48 }, "mp_value": { "x": 274, "y": 48 },
+    "coordinates": { "x": 1511, "y": 206 }, "auto_label": { "x": 247, "y": 151 }
+  },
+  "bars": {
+    "hp": { "fill_rect": [174, 49, 78, 10], "hex": "#D74A51" },
+    "mp": { "fill_rect": [412, 49, 60, 10], "hex": "#5699E2" },
+    "exp": { "fill_rect": [228, 920, 1200, 20], "hex": "#AB71D5" }
+  },
+  "note": "Render each color fill first, clipped by current/max ratio; render the named PNG frame above it. All coordinates use the 1664x940 reference canvas."
+}

@@ -42,13 +42,13 @@ Open http://localhost:5173.
 | Enter         | Submit the name field                |
 | W / A / S / D | Move (8 directions with combinations) |
 | Esc           | Close an open window; otherwise return to character creation (in game) |
-| STATUS button | Open / close the character Status window (in game, top-left) |
+| Status icon   | First slot of the HUD menu bar (top right): open / close the character Status window |
 
 W moves straight up on screen, D straight right; key combinations (e.g. W+D) move along the isometric tile axes.
 
 ### Character Status window
 
-Click **STATUS** (under the info panel). The window shows level, available stat points, the six main stats
+Click the **Status** icon (first slot of the HUD menu bar, top right; hover shows its name). The window shows level, available stat points, the six main stats
 (STR, DEX, INT, VIT, AGI, LUK) with **+** buttons, and every derived stat. Allocation is staged: **+** only selects
 a point; **CONFIRM** applies and saves, **CANCEL** / **X** / **Esc** discards. (S stays "move down", so there is no
 keyboard shortcut.)
@@ -78,9 +78,27 @@ src/
     structures/                Walk-in buildings: blueprints (data) + StructureLayer (walls, collision, depth, fade)
   monsters/                    MonsterDefinition (data), MonsterEntity, MonsterSpawner, MonsterSpawns (per-map table), WanderBehavior
   status/                      Character status: stat types/rules, derived-stat formulas, staged allocation, save store, service
-  ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, ScrollArea, HUD, StatusWindow
+  ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, ScrollArea, name plate, StatusWindow
+    hud/                       Dungeon HUD: HudLayout (pack layout -> screen), DungeonHud, Minimap, hudPack.generated.json
   scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```
+
+## In-game HUD (dungeon HUD layer pack)
+
+The HUD art lives in `art-source/ui/dungeon_hud/` exactly as delivered (`README.md` = how to draw it,
+`hud_layout.json` = positions on the 1664x940 reference canvas). The pack is drawn at twice the game's pixel
+density, so it is converted once into game-ready textures:
+
+```
+powershell -ExecutionPolicy Bypass -File tools/import-hud-pack.ps1
+```
+
+This writes cropped, half-resolution layers to `public/assets/ui/hud/` (every 2-px line becomes a crisp 1-px
+line, no blur) and `src/ui/hud/hudPack.generated.json` (crop offsets + a copy of `hud_layout.json`). After
+editing `hud_layout.json` or replacing the layer PNGs, run the script again. Each layer is pinned to its screen
+edge (left / right / centre, top / bottom), because the game view (960x480) is wider than the halved reference
+canvas (832x470). Positions the JSON does not list (menu slots, minimap, hotbar slots, chat tabs) are measured
+from the art in `REF_ELEMENTS` (`src/ui/hud/HudLayout.ts`).
 
 ## Replacing mockup art
 

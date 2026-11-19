@@ -1,9 +1,9 @@
 # Project Status
 
 **Current milestone:** 01 — Playable prototype (character creation + first isometric map),
-plus the loading & performance architecture groundwork
+plus the loading & performance architecture groundwork and the Character Status foundation
 **Status:** Complete. Type check, production build and in-browser tests pass.
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-19
 
 ## Completed systems
 
@@ -32,6 +32,7 @@ plus the loading & performance architecture groundwork
 | Game logo & app icons | Transparent logo (`public/icons/XENOBLIGHT_512x512.png`) in the creation-screen header, smoothly pre-scaled at runtime. Browser favicon `XENOBLIGHT_App.ico` (16-256 px), `apple-touch-icon` (256 px PNG) and `manifest.webmanifest` (128/256/512 px). |
 | Monster system | `src/monsters/`: `MonsterDefinition` (data: id, name, sprite frame/anchor/optional URL, future animation clips, footprint), `MonsterEntity` (one static full-sprite image, feet-anchored, depth-sorted once), `MonsterSpawner` (validates bounds, blocked tiles, buildings, walls, distance from player spawn in world px, overlaps; reports and skips invalid points), `MonsterSpawns` (deterministic per-map spawn table). First monster: **Voidmite**, 64x32 procedural mockup (`MockupMonsterFactory`), 10 spawned on Ashen Crossroads. Idle **wandering** (`WanderBehavior`): walks to random reachable points within 3 tiles of its spawn at 0.9 tiles/s, pauses 0.9-2.8 s, uses the same tile collision as the player, never enters buildings or overlaps other monsters, gives up on destinations it stops approaching (0.6 s), skipped when in the "dormant" distance band. No AI decisions, chasing, combat, HP, or collision with the player. |
 | HUD | Name plate, info panel (tile, facing, state), controls hint. Esc returns to character creation. |
+| Character Status (foundation) | `src/status/`. `CharacterData.status` = level (1-99), BASE stats (STR/DEX/INT/VIT/AGI/LUK, start 1, max 99 from points), BONUS stats (future equipment/passives, 0 for now, not saved), TOTAL = base + bonus (may exceed 99), unspent stat points. 3 points per level from 2 to 99 (294 total), 1 point = +1 base. `DerivedStats.ts` holds every TEMPORARY formula in one table (Melee/Ranged ATK, MATK, Max HP/SP, DEF, MDEF, HIT, FLEE, Attack Speed bonus, Crit Rate/Damage, Material Find as a relative bonus), computed from TOTAL stats, shown with at most 2 decimals. `StatAllocationDraft` stages points and re-validates on confirm. `StatusSaveStore`: localStorage, one key per character name (`xenoblight.status.v1.<name>`), saves level/base/points only and recalculates derived stats; invalid fields are clamped individually, unreadable records are backed up (`.invalid-backup`) and replaced with a fresh status; missing level points are granted retroactively, extra points are never removed. `CharacterStatusService` is the single entry point (load, confirm, `setLevel` hook, dev grant, change events). UI: `GameUIScene` overlay with a STATUS button and a modal `StatusWindow` (scrollable derived list, wheel + drag). Not applied to gameplay yet: no combat, EXP or leveling. |
 
 ## Verified in browser (dev server)
 
@@ -49,12 +50,18 @@ plus the loading & performance architecture groundwork
   never affects collision; production build has no overlay unless `?debug`
 - Ruined house: enter through the doorway, stop flush at back/front/side walls, exit through the SE gap;
   drawn in front of back walls when inside, behind them (walls fade) when standing behind the house
+- Character Status: level-1 derived values match the spec (ATK 7/7/7, HP 120, SP 23, DEF 1, MDEF 0.5, HIT 104,
+  FLEE 103, ASPD 0.2%, Crit 5.1% / 150%, Material Find 0.05%); + stages points, CANCEL / X / Esc discard,
+  CONFIRM applies and saves; base capped at 99, no overspending (also re-checked at confirm); status survives a
+  page reload (same name, any letter case); corrupted / out-of-range saves are repaired or backed up; UI clicks
+  never move the player and Esc closes the window before leaving the map; DEV buttons absent in a production
+  build without `?debug`
 
 ## Pending systems (future milestones)
 
 Not in scope for Milestone 01, intentionally not implemented:
-multiplayer / networking, login / accounts, database persistence, combat, skills, inventory,
-equipment, monster AI / chasing / combat / HP / loot / respawn, quests, audio, monetisation.
+multiplayer / networking, login / accounts, database persistence, combat, EXP / leveling gameplay, skills,
+inventory, equipment, monster AI / chasing / combat / HP / loot / respawn, quests, audio, monetisation.
 (Monsters exist as wandering visual entities only - see "Monster system".)
 
 Prepared for (not implemented): combat-idle / attack / cast / pick-up / death animations using only
@@ -107,6 +114,8 @@ level 50+ mutation subclasses.
   tall (by user decision): sprites stay sharp, but some pixels render slightly wider than others.
   (This also resolved the walk sheet being drawn ~6 px taller than the standing sheet.)
 - UI text is rendered by Phaser and is scaled with the canvas, so it looks soft/blocky at large window sizes.
+- Status saves are keyed by character name in the browser's localStorage (prototype): two characters with the
+  same name share one status, and clearing site data resets it. A server-side character ID replaces this later.
 
 ## Next development steps
 
@@ -117,4 +126,7 @@ level 50+ mutation subclasses.
 5. Define the server-authoritative data model before networking (character store -> API client).
 6. When a second map exists: register it in `MapRegistry`, call `maps.prepare()` near entrances and
    `maps.enter()` on transition (see PERFORMANCE_GUIDELINES.md).
-7. Implement `RemoteCharacterRenderer` / `InterestManager` from `src/multiplayer/contracts.ts` once networking starts.
+7. Hook future systems into the status foundation: leveling calls `CharacterStatusService.setLevel()`; combat reads
+   `CharacterStatusService.derived()`; equipment / passives fill `status.bonus`; the server replaces `StatusSaveStore`
+   and re-validates allocations with the same rules (`StatAllocationDraft.commit`).
+8. Implement `RemoteCharacterRenderer` / `InterestManager` from `src/multiplayer/contracts.ts` once networking starts.

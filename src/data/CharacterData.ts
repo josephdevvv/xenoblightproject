@@ -1,3 +1,4 @@
+import { createInitialStatus, type CharacterStatus } from '../status/StatTypes';
 import type { Gender } from './AppearanceCatalog';
 
 /**
@@ -16,6 +17,8 @@ export interface CharacterData {
   name: string;
   appearance: CharacterAppearance;
   createdAt: number;
+  /** Level, main stats and stat points. Loaded/saved by CharacterStatusService. */
+  status: CharacterStatus;
 }
 
 export const NAME_MIN_LENGTH = 3;
@@ -64,5 +67,6 @@ export function createCharacterData(name: string, appearance: CharacterAppearanc
     name,
     appearance: { ...appearance },
     createdAt: Date.now(),
+    status: createInitialStatus(),
   };
 }

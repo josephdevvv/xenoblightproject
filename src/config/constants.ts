@@ -27,6 +27,8 @@ export const SCENES = {
   System: 'SystemScene',
   CharacterCreation: 'CharacterCreationScene',
   Game: 'GameScene',
+  /** Screen-space gameplay UI (Status button + window) drawn above GameScene. */
+  GameUI: 'GameUIScene',
   /** Optional performance overlay (dev: toggle with F3; production: only with ?debug in the URL). */
   DebugOverlay: 'DebugOverlayScene',
 } as const;

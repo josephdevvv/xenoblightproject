@@ -41,9 +41,23 @@ Open http://localhost:5173.
 | Mouse         | Character creation UI                |
 | Enter         | Submit the name field                |
 | W / A / S / D | Move (8 directions with combinations) |
-| Esc           | Return to character creation (in game) |
+| Esc           | Close an open window; otherwise return to character creation (in game) |
+| STATUS button | Open / close the character Status window (in game, top-left) |
 
 W moves straight up on screen, D straight right; key combinations (e.g. W+D) move along the isometric tile axes.
+
+### Character Status window
+
+Click **STATUS** (under the info panel). The window shows level, available stat points, the six main stats
+(STR, DEX, INT, VIT, AGI, LUK) with **+** buttons, and every derived stat. Allocation is staged: **+** only selects
+a point; **CONFIRM** applies and saves, **CANCEL** / **X** / **Esc** discards. (S stays "move down", so there is no
+keyboard shortcut.)
+
+Status is saved in `localStorage`, one entry per character name (case-insensitive), and loaded when a character
+with that name is created again.
+
+**Test points (development only):** in `npm run dev` - or a production build opened with `?debug` - the window
+shows **DEV +10** / **DEV +100** buttons that grant free stat points. Normal players never see them.
 
 ## Project structure
 
@@ -63,8 +77,9 @@ src/
   world/                       Iso projection, map data, obstacle catalog, IsometricMap, atmosphere FX
     structures/                Walk-in buildings: blueprints (data) + StructureLayer (walls, collision, depth, fade)
   monsters/                    MonsterDefinition (data), MonsterEntity, MonsterSpawner, MonsterSpawns (per-map table), WanderBehavior
-  ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, HUD
-  scenes/                      BootScene, CharacterCreationScene, GameScene
+  status/                      Character status: stat types/rules, derived-stat formulas, staged allocation, save store, service
+  ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, ScrollArea, HUD, StatusWindow
+  scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```
 
 ## Replacing mockup art

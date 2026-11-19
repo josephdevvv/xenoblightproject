@@ -11,7 +11,9 @@ import { PlayerController } from '../player/PlayerController';
 import { MONSTER_DEFINITIONS } from '../monsters/MonsterDefinition';
 import { MonsterSpawner } from '../monsters/MonsterSpawner';
 import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
+import { CharacterStatusService } from '../status/CharacterStatusService';
 import { GameServices, type Services } from '../systems/GameServices';
+import type { GameUIScene } from './GameUIScene';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
 import { GameHud } from '../ui/GameHud';
 import { LoadingScreen } from '../ui/LoadingScreen';
@@ -55,11 +57,17 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(PALETTE.void);
     this.loading = new LoadingScreen(this).show('ENTERING');
 
-    const onEscape = (): void => this.returnToCreation();
+    const onEscape = (): void => {
+      // An open UI window (Status) closes first; otherwise ESC keeps its original meaning.
+      const ui = this.scene.get(SCENES.GameUI) as GameUIScene;
+      if (this.scene.isActive(SCENES.GameUI) && ui.closeWindows()) return;
+      this.returnToCreation();
+    };
     this.input.keyboard?.on('keydown-ESC', onEscape);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
+      this.scene.stop(SCENES.GameUI);
       const services = GameServices.tryGet();
       services?.debugSources.delete(CULLING_DEBUG_SOURCE);
       services?.debugSources.delete(MONSTER_DEBUG_SOURCE);
@@ -94,6 +102,9 @@ export class GameScene extends Phaser.Scene {
       this.loading.hide();
       this.cameras.main.fadeIn(500, 0, 0, 0);
       this.ready = true;
+      // Screen-space UI (Status button + window) lives in its own overlay scene so UI clicks never
+      // reach the world.
+      this.scene.launch(SCENES.GameUI, { characterId: character.id });
     } catch (error) {
       if (!this.sys.isActive()) return;
       console.error('[GameScene] map load failed', error);
@@ -179,6 +190,7 @@ export class GameScene extends Phaser.Scene {
     const active = CharacterStore.getActive();
     if (active) return active;
     const fallback = createCharacterData('Wanderer', createDefaultAppearance());
+    CharacterStatusService.loadInto(fallback);
     CharacterStore.add(fallback);
     CharacterStore.setActive(fallback.id);
     return fallback;
@@ -187,6 +199,7 @@ export class GameScene extends Phaser.Scene {
   private returnToCreation(): void {
     if (this.leaving || (!this.ready && !this.failed)) return;
     this.leaving = true;
+    this.scene.stop(SCENES.GameUI);
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start(SCENES.CharacterCreation);

@@ -26,6 +26,7 @@ import {
   type CharacterAppearance,
 } from '../data/CharacterData';
 import { CharacterStore } from '../data/CharacterStore';
+import { CharacterStatusService } from '../status/CharacterStatusService';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import { Button } from '../ui/Button';
 import { ColorSwatchPicker } from '../ui/ColorSwatchPicker';
@@ -318,6 +319,8 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.createButton.setEnabled(false);
 
     const character = createCharacterData(result.name, this.appearance);
+    // Prototype identity = name: an existing name continues its saved status, a new name starts at level 1.
+    CharacterStatusService.loadInto(character);
     CharacterStore.add(character);
     CharacterStore.setActive(character.id);
 

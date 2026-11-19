@@ -24,7 +24,7 @@ export interface DungeonHudOptions {
  * In-game HUD built from the dungeon HUD layer pack: layered chrome PNGs (drawn in the pack's
  * render order) with game-rendered text, code-driven HP / SP / EXP bars, a minimap and a menu bar.
  *
- * Systems that do not exist yet (quests, auto-play, chat, skills on the hotbar, the other menu
+ * Systems that do not exist yet (quests, auto-play, skills on the hotbar, the other menu
  * entries) show their frame only, as visibly inactive placeholders.
  */
 export class DungeonHud {

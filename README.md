@@ -108,7 +108,8 @@ This writes cropped, half-resolution layers to `public/assets/ui/hud/` (every 2-
 line, no blur) and `src/ui/hud/hudPack.generated.json` (crop offsets + a copy of `hud_layout.json`). After
 editing `hud_layout.json` or replacing the layer PNGs, run the script again. Each layer is pinned to its screen
 edge (left / right / centre, top / bottom), because the game view (960x480) is wider than the halved reference
-canvas (832x470). Positions the JSON does not list (menu slots, minimap, hotbar slots, chat tabs) are measured
+canvas (832x470). The chat box layer (`04_chat`) is not drawn (`HIDDEN_LAYERS` in `DungeonHud.ts`). Positions the JSON
+does not list (menu slots, minimap, hotbar slots) are measured
 from the art in `REF_ELEMENTS` (`src/ui/hud/HudLayout.ts`).
 
 ## Replacing mockup art

@@ -5,6 +5,7 @@ import { UI_COLORS } from './UITheme';
  * A clipped, vertically scrollable region for screen-space UI. Scrolls with the mouse wheel and by
  * dragging (mouse or touch). Put children in `content` using coordinates relative to the area's
  * top-left; call setContentHeight() after laying them out. The scene's camera must not scroll.
+ * With `step`, the offset snaps to multiples of it (rows stay aligned with baked row lines).
  */
 export class ScrollArea {
   readonly content: Phaser.GameObjects.Container;
@@ -14,6 +15,8 @@ export class ScrollArea {
   private readonly maskShape: Phaser.GameObjects.Graphics;
   private contentHeight = 0;
   private offset = 0;
+  /** Unsnapped offset, so slow drags still accumulate into a step. */
+  private raw = 0;
   private dragY: number | null = null;
   private visible = true;
 
@@ -24,6 +27,7 @@ export class ScrollArea {
     private readonly width: number,
     private readonly height: number,
     depth: number,
+    private readonly step = 0,
   ) {
     this.content = scene.add.container(x, y).setDepth(depth);
     this.maskShape = scene.make.graphics({}, false);
@@ -45,12 +49,13 @@ export class ScrollArea {
 
   setContentHeight(height: number): void {
     this.contentHeight = height;
-    this.scrollTo(this.offset);
+    this.scrollTo(this.raw);
   }
 
   scrollTo(offset: number): void {
     const max = Math.max(0, this.contentHeight - this.height);
-    this.offset = Phaser.Math.Clamp(offset, 0, max);
+    this.raw = Phaser.Math.Clamp(offset, 0, max);
+    this.offset = this.step > 0 ? Math.min(Math.round(this.raw / this.step) * this.step, max) : this.raw;
     this.content.y = Math.round(this.y - this.offset);
     this.refreshBar();
   }
@@ -77,12 +82,13 @@ export class ScrollArea {
   }
 
   private onWheel(pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number): void {
-    if (this.visible && this.contains(pointer.x, pointer.y)) this.scrollTo(this.offset + dy * 0.4);
+    if (!this.visible || !this.contains(pointer.x, pointer.y) || dy === 0) return;
+    this.scrollTo(this.step > 0 ? this.offset + Math.sign(dy) * this.step : this.offset + dy * 0.4);
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer): void {
     if (this.dragY === null || !pointer.isDown) return;
-    this.scrollTo(this.offset + (this.dragY - pointer.y));
+    this.scrollTo(this.raw + (this.dragY - pointer.y));
     this.dragY = pointer.y;
   }
 

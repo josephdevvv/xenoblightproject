@@ -12,12 +12,12 @@ export type StatBlock = Record<MainStat, number>;
 
 /** Short label and what each main stat affects (shown in the Status window). */
 export const MAIN_STAT_INFO: Readonly<Record<MainStat, { label: string; description: string }>> = {
-  str: { label: 'STR', description: 'Melee physical attack' },
-  dex: { label: 'DEX', description: 'Ranged physical attack, HIT' },
-  int: { label: 'INT', description: 'Magic attack, Max SP' },
+  str: { label: 'STR', description: 'Melee ATK' },
+  dex: { label: 'DEX', description: 'Ranged ATK, HIT' },
+  int: { label: 'INT', description: 'MATK, Max SP' },
   vit: { label: 'VIT', description: 'Max HP, DEF, MDEF' },
-  agi: { label: 'AGI', description: 'Attack speed bonus, FLEE' },
-  luk: { label: 'LUK', description: 'Critical rate, material find' },
+  agi: { label: 'AGI', description: 'Attack speed, FLEE' },
+  luk: { label: 'LUK', description: 'Crit, Material find' },
 };
 
 export const STATUS_RULES = {

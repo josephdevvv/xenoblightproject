@@ -17,6 +17,7 @@ import type { GameUIScene } from './GameUIScene';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
 import { GameHud } from '../ui/GameHud';
 import { DungeonHud } from '../ui/hud/DungeonHud';
+import { StatusWindow } from '../ui/StatusWindow';
 import { LoadingScreen } from '../ui/LoadingScreen';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import type { IsometricMap } from '../world/IsometricMap';
@@ -97,6 +98,7 @@ export class GameScene extends Phaser.Scene {
         AssetManager.ensureCharacterSheets(this, character.appearance, { walk: true }),
         this.loadMonsterTextures(services),
         DungeonHud.load(),
+        StatusWindow.load(),
       ]);
       if (!this.sys.isActive()) return;
       this.map = prepared.map;

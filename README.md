@@ -50,14 +50,24 @@ W moves straight up on screen, D straight right; key combinations (e.g. W+D) mov
 
 Click the **Status** icon (first slot of the HUD menu bar, top right; hover shows its name). The window shows level, available stat points, the six main stats
 (STR, DEX, INT, VIT, AGI, LUK) with **+** buttons, and every derived stat. Allocation is staged: **+** only selects
-a point; **CONFIRM** applies and saves, **CANCEL** / **X** / **Esc** discards. (S stays "move down", so there is no
+a point; **RESET** clears the selection, **CONFIRM** applies and saves, **CANCEL** / **X** / **Esc** discard and close.
+The derived list previews the result ("PREVIEW") and scrolls one row with the mouse wheel or by dragging. (S stays "move down", so there is no
 keyboard shortcut.)
 
 Status is saved in `localStorage`, one entry per character name (case-insensitive), and loaded when a character
 with that name is created again.
 
 **Test points (development only):** in `npm run dev` - or a production build opened with `?debug` - the window
-shows **DEV +10** / **DEV +100** buttons that grant free stat points. Normal players never see them.
+shows a **DEV +10** button that grants free stat points (**Shift + click**: +100). Normal players never see it.
+
+The window is drawn with the Moonsteel status kit (`art-source/ui/status_moonsteel/`, a 480x270 canvas at the
+game's pixel density, used 1:1). After replacing its layer PNGs, re-crop them:
+
+```
+powershell -ExecutionPolicy Bypass -File tools/import-status-kit.ps1
+```
+
+Text positions on the kit live in `src/ui/status/StatusKitLayout.ts`.
 
 ## Project structure
 
@@ -80,6 +90,7 @@ src/
   status/                      Character status: stat types/rules, derived-stat formulas, staged allocation, save store, service
   ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, ScrollArea, name plate, StatusWindow
     hud/                       Dungeon HUD: HudLayout (pack layout -> screen), DungeonHud, Minimap, hudPack.generated.json
+    status/                    Status window kit layout (StatusKitLayout) + statusKit.generated.json
   scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```
 

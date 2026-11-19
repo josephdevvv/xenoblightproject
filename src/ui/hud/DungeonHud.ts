@@ -11,6 +11,8 @@ import { Minimap } from './Minimap';
 
 const BAR = HUD_LAYOUT.bars;
 const TEXT = HUD_LAYOUT.dynamic_text;
+/** Pack layers not shown in game (the chat box was removed by request; the art stays in the pack). */
+const HIDDEN_LAYERS = new Set<string>(['04_chat']);
 
 export interface DungeonHudOptions {
   character: CharacterData;
@@ -30,7 +32,7 @@ export class DungeonHud {
   static async load(): Promise<void> {
     const services = await GameServices.ready();
     await Promise.all(
-      HUD_LAYERS.map((layer) =>
+      HUD_LAYERS.filter((layer) => !HIDDEN_LAYERS.has(layer.id)).map((layer) =>
         services.assets
           .load({ key: hudTextureKey(layer.id), type: 'image', url: layer.url })
           .catch((e: Error) => console.warn(`[hud] ${e.message}`)),
@@ -65,6 +67,7 @@ export class DungeonHud {
 
     // 1. Chrome layers, in the pack's render order.
     for (const layer of HUD_LAYERS) {
+      if (HIDDEN_LAYERS.has(layer.id)) continue;
       const key = hudTextureKey(layer.id);
       if (!scene.textures.exists(key)) continue;
       const id = layer.id as HudLayerId;
@@ -103,22 +106,13 @@ export class DungeonHud {
 
     // 5. Map, coordinates and menu.
     const M = '03_map_and_menu';
-    const coord = this.space.point(M, TEXT.coordinates);
-    this.coordText = this.text(coord.x, coord.y, '', 9, PALETTE.pale);
+    // Coordinates centred in their box (hud_layout.json's x/y would left-align them).
     const coordBox = this.space.frame(M, REF_ELEMENTS.coordinateBox);
+    const coord = this.space.point(M, TEXT.coordinates);
+    this.coordText = this.text(coordBox.x + coordBox.width / 2, coord.y, '', 9, PALETTE.pale).setOrigin(0.5, 0);
     this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, options.map.definition.name, 9, PALETTE.silver).setOrigin(1, 0);
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
     this.buildStatusMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]));
-
-    // 6. Chat (offline: tab labels and a placeholder line only).
-    const C = '04_chat';
-    ['ALL', 'PARTY', 'GUILD'].forEach((label, i) => {
-      // The tab is only 6 px tall inside: sit the capitals on its inner area (text box has a descender gap).
-      const tab = this.space.inner(C, REF_ELEMENTS.chatTabs[i]);
-      this.text(tab.x + tab.width / 2, tab.y - 2, label, 8, i === 0 ? PALETTE.pale : PALETTE.gray).setOrigin(0.5, 0);
-    });
-    const chat = this.space.inner(C, REF_ELEMENTS.chatInput);
-    this.text(chat.x + 3, chat.y + chat.height / 2, 'Chat is not available yet', 8, PALETTE.slate).setOrigin(0, 0.5);
 
     this.unsubscribe = CharacterStatusService.onChange((c) => {
       if (c === options.character) this.refreshStatus();

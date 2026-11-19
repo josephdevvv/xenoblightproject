@@ -120,9 +120,6 @@ export class DungeonHud {
     const chat = this.space.inner(C, REF_ELEMENTS.chatInput);
     this.text(chat.x + 3, chat.y + chat.height / 2, 'Chat is not available yet', 8, PALETTE.slate).setOrigin(0, 0.5);
 
-    // 7. Controls hint (bottom right, above the EXP bar).
-    this.text(scene.scale.width - 14, this.expArea.y - 6, 'WASD  Move     ESC  Character Creation', 9, PALETTE.gray).setOrigin(1, 1);
-
     this.unsubscribe = CharacterStatusService.onChange((c) => {
       if (c === options.character) this.refreshStatus();
     });

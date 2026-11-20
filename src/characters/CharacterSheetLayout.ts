@@ -34,7 +34,9 @@ export const CHARACTER_DIRECTION_FRAMES: Readonly<Record<Direction, number>> = {
 export const CHARACTER_ORIGIN = { x: 0.5, y: 58 / 64 } as const;
 
 /**
- * On-screen height (world px at scale 1) every character figure is normalised to, measured on its
+ * FALLBACK sizing for sheets without a known body master (see CharacterBodyMetrics: approved art is
+ * sized by its body, so hair never changes the character size). On-screen height (world px at scale 1)
+ * every such figure is normalised to, measured on its
  * front (S) frame. Art from different sources draws characters at 38-56 px inside the 64x64 cell;
  * scaling each sheet to this height makes all appearances the same size. 54 px = the original
  * reference character, which therefore renders at exactly 1:1.

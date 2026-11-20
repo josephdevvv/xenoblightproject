@@ -17,7 +17,7 @@ plus the loading & performance architecture groundwork and the Character Status 
 | Character data | `CharacterAppearance` (gender, hairstyle, hair colour, outfit IDs), `CharacterData` (+ `classId`), name validation, in-memory `CharacterStore`. New characters come only from `createCharacterData` + `StarterCharacters` (gender + hairstyle chosen; hair colour blonde / `none` for bald, outfit and class `drifter` enforced). `CharacterProfileStore`: per-name profile in localStorage (appearance + class), last-played pointer; an existing name is restored unchanged (`restoreCharacterData`). |
 | Appearance catalog | Data model: 2 genders, hairstyles per gender (design doc + Sprite Forge `bald`), 5 hair colours, outfits (basic, adventurer, drifter). Only the starter subset is selectable (`StarterCharacters`). |
 | Character asset IDs | One sprite ID + expected file path per combination (120 total). |
-| Production character art | Approved Xenoblight Sprite Forge exports only (`src/assets/SpriteForgeCharacters.ts`, files in `public/assets/characters/`): male bald, male mohawk (forge spike) blonde, female bald, female straight bangs blonde - each as Drifter and base (no outfit); static 4x2 (256x128) + walk 6x8 (384x512, 125 ms). Loaded on demand; feet anchor and 54 px figure size measured from the pixels (`SpriteMetrics`). The earlier imported sheets were removed (see the note in CHARACTER_SPRITE_INVENTORY.md). |
+| Production character art | Approved Xenoblight Sprite Forge exports only (`src/assets/SpriteForgeCharacters.ts`, files in `public/assets/characters/`): male bald, male mohawk (forge spike) blonde, female bald, female straight bangs blonde - each as Drifter and base (no outfit); static 4x2 (256x128) + walk 6x8 (384x512, 125 ms). Loaded on demand; feet anchor measured from the pixels (`SpriteMetrics`); size from the body master (`CharacterBodyMetrics`: one scale x0.982 per master for every hairstyle / outfit, static and walk - bald no longer renders ~12 % larger than haired, legs and feet match pixel for pixel). The earlier imported sheets were removed (see the note in CHARACTER_SPRITE_INVENTORY.md). |
 | Mockup character sheets | Procedural generator kept only for appearances with no art at all (not reachable from character creation). Approved art is never replaced by a mockup: a missing approved sheet is logged with its exact path and shown as the missing texture. |
 | Character rendering | `CharacterView` = one sprite per character; appearance change swaps the whole sheet. |
 | Character animator | `CharacterAnimator`: while moving plays the 8-direction walk cycle (6 frames, 8 FPS, looping; keeps stride phase when turning); when movement stops it switches immediately to the static standing frame of the last facing. No idle animation. Each sheet has its own feet origin (standing 58, walk 62). Only appearances with a walk sheet animate. |
@@ -131,9 +131,9 @@ level 50+ mutation subclasses.
 - First production sheet: body pixels have alpha 252-253 (not 255) and ~1,300 very faint (alpha 1-30) dark
   edge/speck pixels, typical of a resampled export. Not visible on the dark map; clean in the source art if needed.
   Its SW frame (7) is turned only slightly and reads close to the S frame.
-- Character size normalisation uses non-integer nearest-neighbour scaling for sheets whose figure is not 54 px
-  tall (by user decision): sprites stay sharp, but some pixels render slightly wider than others.
-  (This also resolved the walk sheet being drawn ~6 px taller than the standing sheet.)
+- Character size uses a non-integer nearest-neighbour scale (x0.982 for the Sprite Forge masters; the old
+  per-figure 54 px rule only for sheets without a body master), so an occasional pixel row / column is dropped.
+  A new body master (e.g. another body type) needs one entry in `BODY_MASTERS` (the scale test lists it).
 - UI text is rendered by Phaser and is scaled with the canvas, so it looks soft/blocky at large window sizes.
 - The HUD pack targets 1664x940; the game is 960x480, so the art is shown at half size (pinned per screen edge).
   1-px bevel details that fall between sampled pixels are kept only on dark panel areas.

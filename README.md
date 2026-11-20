@@ -149,7 +149,12 @@ Sheet format (see `src/characters/CharacterSheetLayout.ts`):
 - 64x64 frames, 4 columns x 2 rows (256x128), 8 static directional frames
 - row 0: S, SE, E, NE  /  row 1: N, NW, W, SW
 - the figure may sit anywhere in the frame and be any height: the game measures each frame's feet and
-  height from the pixels (`SpriteMetrics`), anchors it on its feet and scales it to a 54 px figure
+  height from the pixels (`SpriteMetrics`) and anchors it on its feet. Size comes from the BODY, not the full
+  figure (`src/characters/CharacterBodyMetrics.ts`): every approved sprite is built on a body master (male /
+  female, 49 px from feet to the top of the bare head), and all variants of a master - any hairstyle, any
+  outfit, static and walk - share one scale (x0.982, the size the haired male had before), so hair never
+  makes a character bigger or smaller and legs / feet line up exactly. Sheets without a master fall back to
+  sizing the full figure to 54 px
 
 Walk sheet: 6 columns x 8 rows (384x512), one direction per row in the order S, SE, E, NE, N, NW, W, SW,
 125 ms per frame (8 FPS), looping while moving. Register both files in `CHARACTER_SPRITE_MANIFEST`

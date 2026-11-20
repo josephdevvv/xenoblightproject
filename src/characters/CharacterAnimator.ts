@@ -8,6 +8,7 @@ import {
   CHARACTER_WALK_LAYOUT,
   characterFrameIndex,
 } from './CharacterSheetLayout';
+import { bodyNormalizeFor } from './CharacterBodyMetrics';
 import { getSheetMetrics, type FrameBounds } from './SpriteMetrics';
 
 export type CharacterMotion = 'stand' | 'walk';
@@ -143,7 +144,10 @@ export class CharacterAnimator {
     this.sprite.setScale(this.baseScale * p.normalize);
   }
 
-  /** Standing: anchor this frame on its own feet; size from the sheet's front (S) frame. */
+  /**
+   * Standing: anchor this frame on its own feet. Size: the body master's scale (same for every
+   * hairstyle / outfit and for the walk sheet), else the sheet's front (S) frame height.
+   */
   private standingPlacement(index: number): Placement {
     const metrics = getSheetMetrics(this.sprite.scene.textures, this.sheets.standing);
     const frame = metrics[index];
@@ -152,13 +156,14 @@ export class CharacterAnimator {
       originX: frame ? frame.feetX / CHARACTER_FRAME_WIDTH : CHARACTER_ORIGIN.x,
       // Bottom EDGE of the lowest foot row, so the soles land exactly on the anchor at any scale.
       originY: frame ? (frame.bottom + 1) / CHARACTER_FRAME_HEIGHT : CHARACTER_ORIGIN.y,
-      normalize: reference ? CHARACTER_DISPLAY_HEIGHT / reference.height : 1,
+      normalize: bodyNormalizeFor(this.sheets.standing) ?? (reference ? CHARACTER_DISPLAY_HEIGHT / reference.height : 1),
     };
   }
 
   /**
    * Walking: one anchor per direction row (average feet centre, lowest contact row) so the stride
-   * animates in place without sliding; size from the median height of the S walk row.
+   * animates in place without sliding. Size: the body master's scale (identical to standing), else
+   * the median height of the S walk row.
    */
   private walkPlacement(walkTexture: string): Placement {
     const metrics = getSheetMetrics(this.sprite.scene.textures, walkTexture);
@@ -168,15 +173,16 @@ export class CharacterAnimator {
     const row = rowFrames(this.direction);
     const front = rowFrames('S').map((f) => f.height).sort((a, b) => a - b);
     const referenceHeight = front.length > 0 ? front[Math.floor(front.length / 2)] : CHARACTER_DISPLAY_HEIGHT;
+    const bodyScale = bodyNormalizeFor(walkTexture);
     if (row.length === 0) {
-      return { originX: CHARACTER_WALK_LAYOUT.origin.x, originY: CHARACTER_WALK_LAYOUT.origin.y, normalize: 1 };
+      return { originX: CHARACTER_WALK_LAYOUT.origin.x, originY: CHARACTER_WALK_LAYOUT.origin.y, normalize: bodyScale ?? 1 };
     }
     const feetX = row.reduce((sum, f) => sum + f.feetX, 0) / row.length;
     const bottom = Math.max(...row.map((f) => f.bottom));
     return {
       originX: feetX / CHARACTER_FRAME_WIDTH,
       originY: (bottom + 1) / CHARACTER_FRAME_HEIGHT,
-      normalize: CHARACTER_DISPLAY_HEIGHT / referenceHeight,
+      normalize: bodyScale ?? CHARACTER_DISPLAY_HEIGHT / referenceHeight,
     };
   }
 }

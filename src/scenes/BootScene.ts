@@ -3,7 +3,7 @@ import { GAME_HEIGHT, GAME_WIDTH, SCENES } from '../config/constants';
 import { PALETTE } from '../config/palette';
 import { AssetManager } from '../assets/AssetManager';
 import { t } from '../i18n';
-import { textStyle } from '../ui/UITheme';
+import { typo } from '../ui/UITheme';
 
 /** Loads production assets (none yet) and generates the mockup textures. */
 export class BootScene extends Phaser.Scene {
@@ -13,7 +13,7 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     const label = this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, t('common.loading'), textStyle(12, PALETTE.gray))
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, t('common.loading'), typo('label', PALETTE.gray))
       .setOrigin(0.5);
     this.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => label.setText(t('common.loadingProgress', { percent: Math.round(p * 100) })));
     AssetManager.preload(this.load);

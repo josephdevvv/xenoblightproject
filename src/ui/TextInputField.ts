@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/palette';
-import { PIXEL_FONT_SIZE } from './text/PixelFont';
+import { TYPOGRAPHY } from './text/Typography';
 import { UI_FONT } from './UITheme';
 
 export interface TextInputOptions {
@@ -37,7 +37,8 @@ export class TextInputField {
       borderRadius: '0',
       outline: 'none',
       fontFamily: UI_FONT,
-      fontSize: `${PIXEL_FONT_SIZE}px`,
+      fontSize: `${TYPOGRAPHY.body.size}px`,
+      fontWeight: String(TYPOGRAPHY.body.weight),
       pointerEvents: 'auto',
     } satisfies Partial<CSSStyleDeclaration>);
     input.addEventListener('focus', () => this.setInvalid(false, true));

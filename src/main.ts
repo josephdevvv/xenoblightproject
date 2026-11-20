@@ -1,15 +1,14 @@
 import Phaser from 'phaser';
 import { createGameConfig } from './config/GameConfig';
 import { findMissingTranslations, initLanguage } from './i18n';
-import { installPixelTextSnap, loadPixelFont } from './ui/text/PixelFont';
+import { loadUiFonts } from './ui/text/Typography';
 
 async function start(): Promise<void> {
   // Saved language (Thai by default) and the UI font must be ready before the first text is drawn.
   initLanguage();
-  installPixelTextSnap();
-  // Dev-only switch to check the fallback fonts: ?nopixelfont
-  const skipFont = import.meta.env.DEV && new URLSearchParams(location.search).has('nopixelfont');
-  if (!skipFont) await loadPixelFont();
+  // Dev-only switch to check the fallback fonts: ?nofont
+  const skipFont = import.meta.env.DEV && new URLSearchParams(location.search).has('nofont');
+  if (!skipFont) await loadUiFonts();
 
   const game = new Phaser.Game(createGameConfig());
 

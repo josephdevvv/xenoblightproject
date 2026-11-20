@@ -36,7 +36,7 @@ plus the loading & performance architecture groundwork and the Character Status 
 
 | Localization (TH / EN) | `src/i18n`: Thai default for new players (browser language ignored), English selectable; typed keys (`Messages` from `th.ts`, `en.ts` must match), `{placeholder}` interpolation, missing key -> Thai text -> key (reported in dev), runtime switch with `onLanguageChange` / `localize()` (no restart), `<html lang>` kept in sync. Persisted in `localStorage` (`xenoblight.settings.v1`, `src/settings/SettingsStore.ts`); invalid values fall back to Thai. All player-facing text migrated: boot / loading, character creation (labels, options, hints, validation errors, directions), HUD, Status window (labels, descriptions, derived stats, messages, errors), Settings. Validation / allocation errors are message keys, translated at display time. Dev-only debug overlay stays English. |
 | Settings window | `SettingsWindow`: language selector (ไทย / English, current one highlighted), reachable from character creation (top-right button) and in game (HUD menu icon); Esc closes it first. |
-| UI font | ZF #2ndPixelus (Thai + Latin capitals) for all Phaser text and the name input. One crisp size (13.73 px = 6-px advance); text is drawn at 4x and snapped to whole pixels (`PixelFont.installPixelTextSnap`) so browser Thai shaping is kept; fixed metrics (ascent 11 / descent 4) leave room for stacked tone marks. No letter spacing (it would split Thai marks). Fallback: Leelawadee UI / Tahoma / Noto Sans Thai at 1x. Grapheme-safe text shortening (`fitText`). |
+| UI font | Kanit (Cadson Demak, SIL OFL 1.1) for Thai and English: Fontsource 5.3.0 woff2 subsets (Thai + Latin, 400/500/600, ~100 KB, unicode-range) loaded before the game (`src/ui/text/Typography.ts`). Typography roles (display 28/600, heading 16/600, section 13/600, body 12/400, button 12/500, label 12/500, number 12/500, tooltip 11/400, small 10/400) via `typo()` in `UITheme`; line height measured with Thai stacked marks; no letter spacing; smooth text (sprites stay nearest-neighbour); name input uses the same font. Replaced ZF #2ndPixelus (2026-11-20; original kept in art-source only). Fallback: Noto Sans Thai / Leelawadee UI / Tahoma. |
 
 ## Verified in browser (dev server)
 
@@ -65,7 +65,10 @@ plus the loading & performance architecture groundwork and the Character Status 
   (creation screen, Settings, input placeholder) and saves it; reload restores English; switching back to Thai in
   game updates HUD and an open Status window (incl. pending `+N`, preview caption, summary); Settings opens from the
   HUD menu icon (tooltip), Esc closes it before leaving the map; Thai text checked at 2-4x magnification (marks
-  stacked correctly, no clipping); fallback system font checked with `?nopixelfont`; `npm test` 12/12
+  stacked correctly, no clipping); fallback system font checked (`?nofont`); `npm test` 12/12
+- Kanit typography: creation screen, Settings (Thai / English), HUD, name plate and Status window checked at 2x
+  in both languages - Thai vowels / tone marks correct, button captions centred, no clipping or overlap after
+  moving stat descriptions clear of the wider labels and the panel-title underline below descenders
 
 ## Pending systems (future milestones)
 
@@ -139,9 +142,8 @@ level 50+ mutation subclasses.
   1-px bevel details that fall between sampled pixels are kept only on dark panel areas.
 - The Moonsteel status kit is 480x270, so the Status window is about half the screen width; stat descriptions were
   shortened ("Ranged ATK, HIT") to fit the kit's 126-px label zone and give way to the pending "+N" marker.
-- Font licence: ZF #2ndPixelus says "For educations used only" and asks for a download-page link when
-  redistributed - confirm before publishing (see art-source/fonts/zf2ndpixelus/FONT_LICENSE_NOTES.md).
-- The pixel font has Latin capitals only, so English text is shown in capitals. All UI text is one size.
+- UI text is rendered into the 960x480 canvas and scaled with it, so it looks soft at large window sizes
+  (the trade-off for readable, non-pixel text).
 - The map name "Ashen Crossroads" is kept in English in the Thai UI until an official Thai name exists.
 - In the Status window's derived list (11-px rows from the kit art), Thai words with stacked tone marks can
   touch the baked row line above them.

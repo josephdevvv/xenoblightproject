@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/palette';
-import { textStyle, UI_COLORS } from './UITheme';
+import type { TypographyRole } from './text/Typography';
+import { typo, UI_COLORS } from './UITheme';
 
 export interface ButtonOptions {
   width: number;
   height: number;
   label: string;
-  fontSize?: number;
+  /** Typography role of the caption (default 'button'). */
+  role?: TypographyRole;
   /** 'primary' gets the muted-purple border (used once per screen). */
   variant?: 'default' | 'primary';
   onClick: () => void;
@@ -29,7 +31,7 @@ export class Button extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.bg = scene.add.rectangle(0, 0, options.width, options.height, UI_COLORS.buttonFill);
     this.labelText = scene.add
-      .text(0, 0, options.label, textStyle(options.fontSize ?? 13, PALETTE.pale))
+      .text(0, 0, options.label, typo(options.role ?? 'button', PALETTE.pale))
       .setOrigin(0.5);
     this.add([this.bg, this.labelText]);
 

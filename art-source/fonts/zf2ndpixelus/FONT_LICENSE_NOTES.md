@@ -5,9 +5,8 @@ Files here are exactly as supplied in `ZF2ndPixelus.zip` (not modified):
 - `ZF#2ndPixelus.ttf` - TrueType, version 1.02 (30/06/2005), 2048 units/em
 - `Readme.txt` - the author's notes, encoded in TIS-620 / Windows-874 (Thai)
 
-The game serves a byte-identical copy as `public/assets/fonts/zf2ndpixelus/ZF2ndPixelus.ttf`:
-the `#` in the original file name is not served by the Vite dev server (it is a URL fragment
-character), so only the served copy was renamed.
+**No longer used by the game** (replaced by Kanit, SIL OFL, on 2026-11-20). The served copy
+`public/assets/fonts/zf2ndpixelus/` was removed; these originals are kept only as an archive.
 
 ## What the font says about itself
 
@@ -41,5 +40,4 @@ Before publishing a build that contains this font:
 1. Confirm the terms with the author / f0nt.com (or obtain permission), and
 2. add the required download-page link to the game credits.
 
-If permission cannot be obtained, delete the served copy: the game falls back to Thai-capable
-system fonts automatically (`src/ui/text/PixelFont.ts`).
+(Historical: these steps applied while the font was served. It is not served any more.)

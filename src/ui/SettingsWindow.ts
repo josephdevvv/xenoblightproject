@@ -4,7 +4,7 @@ import { getLanguage, LANGUAGES, setLanguage, t, type Language } from '../i18n';
 import { localize } from '../i18n/phaser';
 import { Button } from './Button';
 import { createPanel, setPanelTitle } from './Panel';
-import { textStyle } from './UITheme';
+import { typo } from './UITheme';
 
 const WIDTH = 320;
 const HEIGHT = 140;
@@ -38,7 +38,7 @@ export class SettingsWindow {
     // Clicks on empty panel areas must not reach anything below.
     this.panel.addAt(scene.add.zone(0, 0, WIDTH, HEIGHT).setOrigin(0, 0).setInteractive(), 0);
 
-    const languageLabel = scene.add.text(20, 44, '', textStyle(10, PALETTE.silver));
+    const languageLabel = scene.add.text(20, 42, '', typo('label', PALETTE.silver));
     this.panel.add(languageLabel);
     LANGUAGES.forEach((language, i) => {
       const button = new Button(scene, 20 + 68 + i * 144, 80, {
@@ -50,7 +50,7 @@ export class SettingsWindow {
       this.panel.add(button);
       this.languageButtons.set(language, button);
     });
-    const close = new Button(scene, WIDTH - 20 - 48, HEIGHT - 18, { width: 96, height: 22, label: '', fontSize: 10, onClick: () => this.close() });
+    const close = new Button(scene, WIDTH - 20 - 48, HEIGHT - 18, { width: 96, height: 22, label: '', role: 'small', onClick: () => this.close() });
     this.panel.add(close);
 
     localize(scene, () => {

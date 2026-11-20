@@ -83,12 +83,15 @@ missing value falls back to Thai.
   by TypeScript and the tests). Use `t('key', { value })` for text and `localize(scene, fn)` so a
   component re-renders on language change. Data with stable IDs (appearance options, directions, maps,
   stats) is named through `src/i18n/labels.ts`. Player names are never translated.
-- Font: **ZF #2ndPixelus** (pixel font with full Thai + Latin capitals), see
-  `art-source/fonts/zf2ndpixelus/FONT_LICENSE_NOTES.md` - **check the licence before publishing**.
-  It is crisp only on its own grid, so all UI text uses one size (5-px capitals) and
-  `src/ui/text/PixelFont.ts` snaps the browser-shaped text to whole pixels (Thai vowels and tone
-  marks keep their positions). Letter spacing is not used: it splits Thai combining marks.
-  If the font cannot load, Thai-capable system fonts are used (`?nopixelfont` in dev to preview).
+- Font: **Kanit** (Cadson Demak, SIL Open Font License 1.1, `public/assets/fonts/kanit/OFL.txt`) for Thai and
+  English - a sturdy loopless Thai with a matching Latin that stays readable at the game's 960x480 resolution.
+  Fontsource 5.3.0 woff2 subsets (Thai + Latin, weights 400 / 500 / 600, ~100 KB) are registered with
+  unicode-range in `src/ui/text/Typography.ts`, loaded before the game starts. Text uses named roles
+  (`typo('heading' | 'section' | 'body' | 'button' | 'label' | 'number' | 'tooltip' | 'small' | 'display')`
+  in `src/ui/UITheme.ts`) - components never pick a family or a free size. No letter spacing (it splits Thai
+  combining marks); line height is measured with Thai stacked marks, so nothing is clipped. Sprites stay
+  nearest-neighbour; text is drawn smoothly by the browser. Fallback: Noto Sans Thai / Leelawadee UI / Tahoma
+  (`?nofont` in dev to preview).
 - Tests: `npm test` (Node's test runner + esbuild from Vite, no extra dependencies) - default
   language, switching, persistence, invalid values, key parity, placeholders, interpolation, data-ID
   coverage, and the unchanged level-1 stat values.
@@ -117,7 +120,7 @@ src/
   ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, ScrollArea, name plate, StatusWindow
     hud/                       Dungeon HUD: HudLayout (pack layout -> screen), DungeonHud, Minimap, hudPack.generated.json
     status/                    Status window kit layout (StatusKitLayout) + statusKit.generated.json
-    text/                      PixelFont (load + pixel snapping), grapheme-safe fitText
+    text/                      Typography (Kanit loading + text roles), grapheme-safe fitText
   SettingsWindow.ts            Settings (language) modal, used in character creation and in game
   scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```

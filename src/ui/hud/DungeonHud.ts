@@ -7,9 +7,10 @@ import { GameServices } from '../../systems/GameServices';
 import { t, type TranslationKey } from '../../i18n';
 import { labels } from '../../i18n/labels';
 import { localize } from '../../i18n/phaser';
+import type { TypographyRole } from '../text/Typography';
 import { fitText } from '../text/fitText';
 import type { IsometricMap } from '../../world/IsometricMap';
-import { textStyle, UI_COLORS } from '../UITheme';
+import { typo, UI_COLORS } from '../UITheme';
 import { HUD_LAYERS, HUD_LAYOUT, HudSpace, hudTextureKey, REF_ELEMENTS, type HudLayerId, type ScreenRect } from './HudLayout';
 import { Minimap } from './Minimap';
 
@@ -85,13 +86,13 @@ export class DungeonHud {
     const P = '01_player_status';
     const name = this.space.point(P, TEXT.player_name);
     const level = this.space.point(P, TEXT.level);
-    this.nameText = this.text(name.x, name.y, '', 10, PALETTE.white);
-    this.levelText = this.text(level.x, level.y, '', 10, PALETTE.accentLight);
+    this.nameText = this.text(name.x, name.y, '', 'label', PALETTE.white);
+    this.levelText = this.text(level.x, level.y, '', 'label', PALETTE.accentLight);
     this.nameMaxWidth = level.x - name.x - 6;
     const hpAt = this.space.point(P, TEXT.hp_value);
     const spAt = this.space.point(P, TEXT.mp_value);
-    this.hpText = this.text(hpAt.x, hpAt.y, '', 9, PALETTE.pale);
-    this.spText = this.text(spAt.x, spAt.y, '', 9, PALETTE.pale);
+    this.hpText = this.text(hpAt.x, hpAt.y, '', 'small', PALETTE.pale);
+    this.spText = this.text(spAt.x, spAt.y, '', 'small', PALETTE.pale);
     this.hpArea = this.space.fill(P, BAR.hp.fill_rect as [number, number, number, number]);
     this.spArea = this.space.fill(P, BAR.mp.fill_rect as [number, number, number, number]);
     this.hpBar = this.bar(this.hpArea, BAR.hp.hex);
@@ -101,23 +102,23 @@ export class DungeonHud {
     const E = '06_exp_bar';
     this.expArea = this.space.fill(E, BAR.exp.fill_rect as [number, number, number, number]);
     this.expBar = this.bar(this.expArea, BAR.exp.hex);
-    this.expText = this.text(this.expArea.x + this.expArea.width / 2, this.expArea.y + this.expArea.height / 2, '', 8, PALETTE.pale, false)
+    this.expText = this.text(this.expArea.x + this.expArea.width / 2, this.expArea.y + this.expArea.height / 2, '', 'small', PALETTE.pale, false)
       .setOrigin(0.5);
 
     // 4. Quest tracker + AUTO (placeholders: no quest or auto-play system yet).
     const Q = '02_quest_auto';
     const pin = this.space.frame(Q, REF_ELEMENTS.questPins[0]);
-    const questText = this.text(pin.x + pin.width + 4, pin.y + 1, '', 9, PALETTE.gray);
+    const questText = this.text(pin.x + pin.width + 4, pin.y + 1, '', 'small', PALETTE.gray);
     const auto = this.space.point(Q, TEXT.auto_label);
-    const autoText = this.text(auto.x, auto.y, '', 9, PALETTE.slate);
+    const autoText = this.text(auto.x, auto.y, '', 'small', PALETTE.slate);
 
     // 5. Map, coordinates and menu.
     const M = '03_map_and_menu';
     // Coordinates centred in their box (hud_layout.json's x/y would left-align them).
     const coordBox = this.space.frame(M, REF_ELEMENTS.coordinateBox);
     const coord = this.space.point(M, TEXT.coordinates);
-    this.coordText = this.text(coordBox.x + coordBox.width / 2, coord.y, '', 9, PALETTE.pale).setOrigin(0.5, 0);
-    const mapName = this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, '', 9, PALETTE.silver).setOrigin(1, 0);
+    this.coordText = this.text(coordBox.x + coordBox.width / 2, coord.y, '', 'small', PALETTE.pale).setOrigin(0.5, 0);
+    const mapName = this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, '', 'small', PALETTE.silver).setOrigin(1, 0);
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
     this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]), 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
       // Tiny character-sheet glyph: head + shoulders.
@@ -194,7 +195,7 @@ export class DungeonHud {
       .setStrokeStyle(1, UI_COLORS.accentLight)
       .setDepth(this.depth + 2)
       .setVisible(false);
-    const tip = this.text(slot.x + slot.width + 1, slot.y + slot.height + 3, '', 9, PALETTE.white)
+    const tip = this.text(slot.x + slot.width + 1, slot.y + slot.height + 3, '', 'tooltip', PALETTE.white)
       .setOrigin(1, 0)
       .setBackgroundColor(PALETTE.black)
       .setPadding(3, 1, 3, 1)
@@ -219,12 +220,12 @@ export class DungeonHud {
   }
 
   /**
-   * hud_layout.json gives the top of the visible glyphs; the pixel font's text box starts higher
+   * hud_layout.json gives the top of the visible glyphs; the UI font's text box starts higher
    * (room for Thai marks), so top-anchored text is lifted by HUD_TEXT_LIFT.
    */
-  private text(x: number, y: number, value: string, size: number, color: string, anchorTop = true): Phaser.GameObjects.Text {
+  private text(x: number, y: number, value: string, role: TypographyRole, color: string, anchorTop = true): Phaser.GameObjects.Text {
     const top = anchorTop ? y - HUD_TEXT_LIFT : y;
-    return this.scene.add.text(Math.round(x), Math.round(top), value, textStyle(size, color)).setDepth(this.depth + 2);
+    return this.scene.add.text(Math.round(x), Math.round(top), value, typo(role, color)).setDepth(this.depth + 2);
   }
 
   private bar(area: ScreenRect, hex: string): Phaser.GameObjects.Rectangle {

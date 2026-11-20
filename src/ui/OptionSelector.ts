@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/palette';
 import { Button } from './Button';
-import { textStyle, UI_COLORS } from './UITheme';
+import { typo, UI_COLORS } from './UITheme';
 
 export interface OptionSelectorOptions {
   width: number;
@@ -32,8 +32,8 @@ export class OptionSelector extends Phaser.GameObjects.Container {
     const frame = scene.add.rectangle(0, 0, config.width - 64, h, UI_COLORS.buttonFill).setStrokeStyle(1, UI_COLORS.buttonBorder);
     const prev = new Button(scene, -half + 14, 0, { width: 28, height: h, label: '<', onClick: () => this.step(-1) });
     const next = new Button(scene, half - 14, 0, { width: 28, height: h, label: '>', onClick: () => this.step(1) });
-    this.valueText = scene.add.text(0, -1, '', textStyle(13, PALETTE.white)).setOrigin(0.5);
-    this.counterText = scene.add.text(half - 36, 0, '', textStyle(9, PALETTE.gray)).setOrigin(1, 0.5);
+    this.valueText = scene.add.text(0, -1, '', typo('body', PALETTE.white)).setOrigin(0.5);
+    this.counterText = scene.add.text(half - 36, 0, '', typo('small', PALETTE.gray)).setOrigin(1, 0.5);
     this.add([frame, prev, next, this.valueText, this.counterText]);
 
     scene.add.existing(this);

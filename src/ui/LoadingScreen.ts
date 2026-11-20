@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { DEPTH, GAME_HEIGHT, GAME_WIDTH } from '../config/constants';
 import { PALETTE, toColorInt } from '../config/palette';
 import { t } from '../i18n';
-import { textStyle } from './UITheme';
+import { typo } from './UITheme';
 
 const BAR_WIDTH = 220;
 
@@ -20,10 +20,10 @@ export class LoadingScreen {
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2;
     const background = scene.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, toColorInt(PALETTE.void)).setOrigin(0, 0);
-    this.label = scene.add.text(cx, cy - 14, '', textStyle(11, PALETTE.gray)).setOrigin(0.5);
+    this.label = scene.add.text(cx, cy - 14, '', typo('label', PALETTE.gray)).setOrigin(0.5);
     const track = scene.add.rectangle(cx - BAR_WIDTH / 2, cy + 6, BAR_WIDTH, 2, toColorInt(PALETTE.charcoal)).setOrigin(0, 0.5);
     this.bar = scene.add.rectangle(cx - BAR_WIDTH / 2, cy + 6, 1, 2, toColorInt(PALETTE.accent)).setOrigin(0, 0.5);
-    this.detail = scene.add.text(cx, cy + 24, '', textStyle(9, PALETTE.stone)).setOrigin(0.5);
+    this.detail = scene.add.text(cx, cy + 24, '', typo('small', PALETTE.slate)).setOrigin(0.5);
     this.root = scene.add
       .container(0, 0, [background, this.label, track, this.bar, this.detail])
       .setScrollFactor(0)

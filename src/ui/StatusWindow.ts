@@ -10,9 +10,10 @@ import { StatAllocationDraft } from '../status/StatAllocation';
 import { MAIN_STATS, totalStats, type MainStat, type StatBlock } from '../status/StatTypes';
 import { GameServices } from '../systems/GameServices';
 import { ScrollArea } from './ScrollArea';
+import type { TypographyRole } from './text/Typography';
 import { fitText } from './text/fitText';
 import { STATUS_KIT, STATUS_KIT_HEIGHT, STATUS_KIT_LAYERS, STATUS_KIT_WIDTH, statusKitTextureKey, type KitRect } from './status/StatusKitLayout';
-import { textStyle } from './UITheme';
+import { typo } from './UITheme';
 
 const ACCENT = toColorInt(PALETTE.accentLight);
 
@@ -45,7 +46,7 @@ class KitButton {
   constructor(scene: Phaser.Scene, root: Phaser.GameObjects.Container, rect: KitRect, label: string | null, onClick: () => void) {
     const [x, y, w, h] = rect;
     this.label = label !== null
-      ? scene.add.text(x + w / 2, y + h / 2, label, textStyle(9, PALETTE.pale)).setOrigin(0.5)
+      ? scene.add.text(x + w / 2, y + h / 2, label, typo('button', PALETTE.pale)).setOrigin(0.5)
       : null;
     if (this.label) this.label.setPosition(Math.round(this.label.x), Math.round(this.label.y));
     this.outline = scene.add.graphics().setVisible(false);
@@ -156,16 +157,16 @@ export class StatusWindow {
 
     // 2. Header: title next to the kit's accent bars; name + level on the right; close button.
     const H = STATUS_KIT.header;
-    const title = this.text(H.titleX, H.textY, '', 10, PALETTE.white);
+    const title = this.text(H.titleX, H.textY, '', 'section', PALETTE.white);
     this.root.add(title);
-    this.levelText = this.text(H.rightX, H.textY, '', 10, PALETTE.accentLight).setOrigin(1, 0);
-    this.nameText = this.text(H.rightX, H.textY, '', 10, PALETTE.white).setOrigin(1, 0);
+    this.levelText = this.text(H.rightX, H.textY, '', 'label', PALETTE.accentLight).setOrigin(1, 0);
+    this.nameText = this.text(H.rightX, H.textY, '', 'label', PALETTE.white).setOrigin(1, 0);
     this.root.add([this.levelText, this.nameText]);
     this.buttons.push(new KitButton(scene, this.root, STATUS_KIT.close, null, () => this.close()));
 
     // 3. Section captions under the y-37 rules.
-    this.pointsText = this.text(STATUS_KIT.sectionLeft.cx, STATUS_KIT.sectionLeft.y, '', 8, PALETTE.silver).setOrigin(0.5, 0);
-    const derivedTitle = this.text(STATUS_KIT.sectionRight.cx, STATUS_KIT.sectionRight.y, '', 8, PALETTE.silver).setOrigin(0.5, 0);
+    this.pointsText = this.text(STATUS_KIT.sectionLeft.cx, STATUS_KIT.sectionLeft.y, '', 'small', PALETTE.silver).setOrigin(0.5, 0);
+    const derivedTitle = this.text(STATUS_KIT.sectionRight.cx, STATUS_KIT.sectionRight.y, '', 'small', PALETTE.silver).setOrigin(0.5, 0);
     this.root.add([this.pointsText, derivedTitle]);
 
     // 4. Main stat rows.
@@ -173,23 +174,23 @@ export class StatusWindow {
 
     // 5. Derived panel: caption on the panel's title rule, rows between the baked lines (scrolls by one row).
     const D = STATUS_KIT.derived;
-    this.captionText = this.text(D.captionRight, D.captionY, '', 8, PALETTE.gray).setOrigin(1, 0);
+    this.captionText = this.text(D.captionRight, D.captionY, '', 'small', PALETTE.gray).setOrigin(1, 0);
     this.root.add(this.captionText);
     this.derivedArea = new ScrollArea(scene, ox + D.listX, oy + D.listY, D.listW, D.listH, depth + 2, D.rowPitch);
     const derivedLabels: { key: string; text: Phaser.GameObjects.Text }[] = [];
     DERIVED_DISPLAY.forEach((entry, i) => {
       const rowY = i * D.rowPitch + D.textOffsetY;
-      const labelText = this.text(2, rowY, '', 8, PALETTE.silver);
+      const labelText = this.text(2, rowY, '', 'small', PALETTE.silver);
       derivedLabels.push({ key: entry.key, text: labelText });
-      const value = this.text(D.valueRight - D.listX, rowY, '', 8, PALETTE.white).setOrigin(1, 0);
+      const value = this.text(D.valueRight - D.listX, rowY, '', 'small', PALETTE.white).setOrigin(1, 0);
       this.derivedArea.content.add([labelText, value]);
       this.derivedRows.push({ key: entry.key, percent: entry.percent ?? false, value });
     });
     this.derivedArea.setContentHeight(DERIVED_DISPLAY.length * D.rowPitch);
 
     // 6. Message line, footer summary and buttons.
-    this.messageText = this.text(STATUS_KIT.message.x, STATUS_KIT.message.y, '', 8, PALETTE.error);
-    this.summaryText = this.text(STATUS_KIT.summary.cx, STATUS_KIT.summary.y, '', 8, PALETTE.pale).setOrigin(0.5, 0);
+    this.messageText = this.text(STATUS_KIT.message.x, STATUS_KIT.message.y, '', 'small', PALETTE.error);
+    this.summaryText = this.text(STATUS_KIT.summary.cx, STATUS_KIT.summary.y, '', 'small', PALETTE.pale).setOrigin(0.5, 0);
     this.root.add([this.messageText, this.summaryText]);
 
     const F = STATUS_KIT.footer;
@@ -260,10 +261,10 @@ export class StatusWindow {
 
   private buildStatRow(stat: MainStat, i: number): void {
     const R = STATUS_KIT.row(i);
-    const label = this.text(R.labelX, R.textY, labels.statLabel(stat), 9, PALETTE.white);
-    const desc = this.text(R.descX, R.textY, '', 8, PALETTE.gray);
-    const suffix = this.text(R.labelZoneRight, R.textY, '', 8, PALETTE.accentLight).setOrigin(1, 0);
-    const value = this.text(R.valueRight, R.textY, '', 9, PALETTE.white).setOrigin(1, 0);
+    const label = this.text(R.labelX, R.textY, labels.statLabel(stat), 'label', PALETTE.white);
+    const desc = this.text(R.descX, R.smallTextY, '', 'small', PALETTE.gray);
+    const suffix = this.text(R.labelZoneRight, R.smallTextY, '', 'small', PALETTE.accentLight).setOrigin(1, 0);
+    const value = this.text(R.valueRight, R.textY, '', 'number', PALETTE.white).setOrigin(1, 0);
     this.root.add([label, desc, suffix, value]);
     const plus = new KitButton(this.scene, this.root, R.plus, null, () => this.addPoint(stat));
     this.buttons.push(plus);
@@ -341,8 +342,8 @@ export class StatusWindow {
     this.resetButton.setEnabled(pending);
   }
 
-  private text(x: number, y: number, value: string, size: number, color: string, extra: Phaser.Types.GameObjects.Text.TextStyle = {}): Phaser.GameObjects.Text {
-    return this.scene.add.text(Math.round(x), Math.round(y), value, textStyle(size, color, extra));
+  private text(x: number, y: number, value: string, role: TypographyRole, color: string, extra: Phaser.Types.GameObjects.Text.TextStyle = {}): Phaser.GameObjects.Text {
+    return this.scene.add.text(Math.round(x), Math.round(y), value, typo(role, color, extra));
   }
 
   private setVisible(visible: boolean): void {

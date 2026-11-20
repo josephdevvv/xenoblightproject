@@ -3,7 +3,7 @@ import { DEPTH } from '../config/constants';
 import { PALETTE } from '../config/palette';
 import type { CharacterData } from '../data/CharacterData';
 import type { PlayerController } from '../player/PlayerController';
-import { textStyle } from './UITheme';
+import { typo } from './UITheme';
 
 /**
  * World-space HUD: the name plate above the player. The screen-space HUD (status panel, minimap,
@@ -14,7 +14,7 @@ export class GameHud {
 
   constructor(scene: Phaser.Scene, character: CharacterData) {
     this.namePlate = scene.add
-      .text(0, 0, character.name, textStyle(11, PALETTE.white, { stroke: PALETTE.black, strokeThickness: 3 }))
+      .text(0, 0, character.name, typo('label', PALETTE.white, { stroke: PALETTE.black, strokeThickness: 3 }))
       .setOrigin(0.5, 1)
       .setDepth(DEPTH.NamePlate);
   }

@@ -29,7 +29,7 @@ const ROW_PITCH = 28;
 
 export const STATUS_KIT = {
   /** Header band between the window's top border and the header divider. */
-  /** Text y values are text-box tops; pixel-font capitals start 6 px below the box top. */
+  /** Text y values are text-box tops (the box includes room for Thai marks above the capitals). */
   header: { titleX: 114, textY: 11, rightX: 424 },
   close: [432, 16, 22, 22] as KitRect,
   /** Section rules at y 37 (left: stat column, right: derived column); captions sit under them. */
@@ -41,7 +41,10 @@ export const STATUS_KIT = {
     return {
       textY: y + 2,
       labelX: 66,
-      descX: 88,
+      /** Right of the widest stat label ("DEX" / "LUK" in the label font). */
+      descX: 97,
+      /** Small text (descriptions, +N) shares the label baseline: label ascent 13 - small ascent 11. */
+      smallTextY: y + 4,
       /** Right edge of the label zone (divider at x 190). */
       labelZoneRight: 187,
       /** Right edge of the value zone (191..211). */

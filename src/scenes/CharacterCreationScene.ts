@@ -38,7 +38,7 @@ import { Button } from '../ui/Button';
 import { createPanel, setPanelTitle } from '../ui/Panel';
 import { SettingsWindow } from '../ui/SettingsWindow';
 import { TextInputField } from '../ui/TextInputField';
-import { textStyle } from '../ui/UITheme';
+import { typo } from '../ui/UITheme';
 
 const PREVIEW_SCALE = 3;
 const LOGO_HEIGHT = 112;
@@ -127,11 +127,11 @@ export class CharacterCreationScene extends Phaser.Scene {
       this.add.image(14, 0, logoKey).setOrigin(0, 0);
     } else {
       // Fallback if the logo file is missing.
-      this.add.text(28, 34, 'XENOBLIGHT', textStyle(28, PALETTE.white));
+      this.add.text(28, 34, 'XENOBLIGHT', typo('display', PALETTE.white));
     }
-    const title = this.add.text(GAME_WIDTH - 28, 42, '', textStyle(12, PALETTE.silver)).setOrigin(1, 0);
+    const title = this.add.text(GAME_WIDTH - 28, 38, '', typo('heading', PALETTE.pale)).setOrigin(1, 0);
     this.add.rectangle(GAME_WIDTH - 28, 64, 36, 1, toColorInt(PALETTE.accent)).setOrigin(1, 0);
-    const subtitle = this.add.text(GAME_WIDTH - 28, 70, '', textStyle(9, PALETTE.slate)).setOrigin(1, 0);
+    const subtitle = this.add.text(GAME_WIDTH - 28, 68, '', typo('small', PALETTE.slate)).setOrigin(1, 0);
 
     // Settings (language) is reachable before entering the game.
     this.settings = new SettingsWindow(this, {
@@ -143,7 +143,7 @@ export class CharacterCreationScene extends Phaser.Scene {
       width: 96,
       height: 22,
       label: '',
-      fontSize: 10,
+      role: 'small',
       onClick: () => this.settings.toggle(),
     });
     this.input.keyboard?.on('keydown-ESC', () => this.settings.close());
@@ -161,8 +161,8 @@ export class CharacterCreationScene extends Phaser.Scene {
     const controlX = 330;
     const rowLabels: { text: Phaser.GameObjects.Text; key: TranslationKey }[] = [];
     const row = (y: number, step: string, key: TranslationKey): void => {
-      this.add.text(labelX, y, step, textStyle(10, PALETTE.accentLight)).setOrigin(0, 0.5);
-      rowLabels.push({ text: this.add.text(labelX + 26, y, '', textStyle(11, PALETTE.silver)).setOrigin(0, 0.5), key });
+      this.add.text(labelX, y, step, typo('label', PALETTE.accentLight)).setOrigin(0, 0.5);
+      rowLabels.push({ text: this.add.text(labelX + 26, y, '', typo('label', PALETTE.silver)).setOrigin(0, 0.5), key });
     };
 
     // 01 Gender
@@ -192,7 +192,7 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     // 03 Outfit preview: always the Drifter starter outfit (not selectable)
     row(254, '03', 'creation.outfitPreview');
-    const outfitName = this.add.text(202, 254, '', textStyle(12, PALETTE.white)).setOrigin(0, 0.5);
+    const outfitName = this.add.text(202, 254, '', typo('body', PALETTE.white)).setOrigin(0, 0.5);
 
     // 04 Name
     row(306, '04', 'creation.name');
@@ -204,14 +204,14 @@ export class CharacterCreationScene extends Phaser.Scene {
     });
     this.nameInput.onSubmit(() => this.submit());
     this.nameInput.onInput(() => this.showMessage(HINT, false));
-    this.messageText = this.add.text(200, 332, '', textStyle(10, PALETTE.gray)).setOrigin(0, 0.5);
+    this.messageText = this.add.text(200, 332, '', typo('small', PALETTE.gray)).setOrigin(0, 0.5);
 
     // Create
     this.createButton = new Button(this, 252, 424, {
       width: 408,
       height: 38,
       label: '',
-      fontSize: 14,
+      role: 'section',
       variant: 'primary',
       onClick: () => this.submit(),
     });
@@ -232,7 +232,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     const cx = 716;
     const feetY = 332;
 
-    this.spriteIdText = this.add.text(cx, 150, '', textStyle(9, PALETTE.gray)).setOrigin(0.5);
+    this.spriteIdText = this.add.text(cx, 150, '', typo('small', PALETTE.slate)).setOrigin(0.5);
 
     this.add
       .image(cx, feetY - 10, TextureKeys.fx.glow)
@@ -249,8 +249,8 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     new Button(this, cx - 84, 408, { width: 32, height: 26, label: '<', onClick: () => this.rotatePreview(-1) });
     new Button(this, cx + 84, 408, { width: 32, height: 26, label: '>', onClick: () => this.rotatePreview(1) });
-    this.directionText = this.add.text(cx, 408, '', textStyle(11, PALETTE.silver)).setOrigin(0.5);
-    const rotateHint = this.add.text(cx, 440, '', textStyle(9, PALETTE.gray)).setOrigin(0.5);
+    this.directionText = this.add.text(cx, 408, '', typo('label', PALETTE.silver)).setOrigin(0.5);
+    const rotateHint = this.add.text(cx, 440, '', typo('small', PALETTE.gray)).setOrigin(0.5);
 
     localize(this, () => {
       setPanelTitle(panel, t('creation.preview'));

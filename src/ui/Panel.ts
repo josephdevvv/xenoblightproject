@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/palette';
-import { textStyle, UI_COLORS } from './UITheme';
+import { typo, UI_COLORS } from './UITheme';
 
 /** Dark translucent frame with corner brackets. Returns the container so callers can add children. */
 export function createPanel(
@@ -38,8 +38,9 @@ export function createPanel(
   container.add(g);
 
   if (title) {
-    const t = scene.add.text(16, 10, title, textStyle(11, PALETTE.silver));
-    const underline = scene.add.rectangle(16, 28, 24, 1, UI_COLORS.accent).setOrigin(0, 0);
+    // Title box 19 px (Thai marks + descenders); the underline sits 2 px below the descenders.
+    const t = scene.add.text(16, 7, title, typo('section', PALETTE.silver));
+    const underline = scene.add.rectangle(16, 29, 24, 1, UI_COLORS.accent).setOrigin(0, 0);
     container.add([t, underline]);
     container.setData('titleText', t);
   }

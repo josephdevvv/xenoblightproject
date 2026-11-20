@@ -4,7 +4,7 @@ import { PALETTE } from '../config/palette';
 import { GameServices } from '../systems/GameServices';
 import { collectDebugSnapshot } from '../systems/performance/DebugSnapshot';
 import { PERFORMANCE_CONFIG } from '../systems/performance/PerformanceConfig';
-import { textStyle } from '../ui/UITheme';
+import { typo } from '../ui/UITheme';
 
 const REFRESH_MS = 250;
 
@@ -22,7 +22,7 @@ export class DebugOverlayScene extends Phaser.Scene {
     this.elapsed = REFRESH_MS;
     this.background = this.add.rectangle(this.scale.width - 8, 8, 236, 10, 0x000000, 0.72).setOrigin(1, 0);
     this.text = this.add
-      .text(this.scale.width - 236, 14, '', textStyle(9, PALETTE.pale, { lineSpacing: 2 }))
+      .text(this.scale.width - 236, 14, '', typo('small', PALETTE.pale))
       .setOrigin(0, 0);
   }
 

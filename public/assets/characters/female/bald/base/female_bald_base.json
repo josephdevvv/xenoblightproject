@@ -1,0 +1,152 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-20T05:08:52.970Z",
+  "key": "female_bald_base",
+  "displayName": {
+    "en": "Female Bald (base)",
+    "th": "หญิง หัวโล้น (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "female",
+    "hairstyleId": "bald",
+    "hairColorId": "none",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "bald",
+    "hairColor": "none",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_female_bald_none_basic",
+  "aliasSpriteIds": [
+    "char_female_bald_blonde_basic",
+    "char_female_bald_black_basic",
+    "char_female_bald_silver_basic",
+    "char_female_bald_brown_basic",
+    "char_female_bald_red_basic"
+  ],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/female/bald/base/female_bald_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "8c3921595484f6aac613efe38856c421385b766958c70393e229b2224d74a34b",
+    "directions": {
+      "S": {
+        "asset": "female_bald_none_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "female_bald_none_white-tee-black-shorts_south-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "E": {
+        "asset": "female_bald_none_white-tee-black-shorts_east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NE": {
+        "asset": "female_bald_none_white-tee-black-shorts_north-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "N": {
+        "asset": "female_bald_none_white-tee-black-shorts_north",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NW": {
+        "asset": "female_bald_none_white-tee-black-shorts_north-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "W": {
+        "asset": "female_bald_none_white-tee-black-shorts_west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SW": {
+        "asset": "female_bald_none_white-tee-black-shorts_south-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/female/bald/base/female_bald_base_walk_8dir.png",
+    "metadata": "assets/characters/female/bald/base/female_bald_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "c004b2bfffefa1a260f49f4f87a015d880327cb35e2f765f2be860d88d8e3732",
+    "directions": {
+      "S": {
+        "asset": "female_bald_none_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "female_bald_none_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_bald_none_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_bald_none_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_bald_none_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_bald_none_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_bald_none_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_bald_none_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 11
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

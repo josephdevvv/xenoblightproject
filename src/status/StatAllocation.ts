@@ -1,6 +1,7 @@
 import { cloneStatus, createStatBlock, MAIN_STATS, STATUS_RULES, type CharacterStatus, type MainStat, type StatBlock } from './StatTypes';
+import type { LocalizedMessage } from '../data/CharacterData';
 
-export type AllocationResult = { ok: true; status: CharacterStatus; spent: number } | { ok: false; error: string };
+export type AllocationResult = { ok: true; status: CharacterStatus; spent: number } | { ok: false; error: LocalizedMessage };
 
 /**
  * Staged ("pending") stat allocation for the Status window. Nothing touches the character until
@@ -69,15 +70,15 @@ export class StatAllocationDraft {
   /** Validates against `current` and returns the new status. Does not mutate anything. */
   commit(current: CharacterStatus): AllocationResult {
     const spent = this.selected;
-    if (spent === 0) return { ok: false, error: 'No points selected.' };
+    if (spent === 0) return { ok: false, error: { key: 'status.errors.noPointsSelected' } };
     for (const stat of MAIN_STATS) {
       const p = this.pending[stat];
-      if (!Number.isInteger(p) || p < 0) return { ok: false, error: `Invalid pending value for ${stat}.` };
+      if (!Number.isInteger(p) || p < 0) return { ok: false, error: { key: 'status.errors.invalidPending', params: { stat: stat.toUpperCase() } } };
       if (current.base[stat] + p > STATUS_RULES.maxBaseStat) {
-        return { ok: false, error: `${stat.toUpperCase()} cannot exceed ${STATUS_RULES.maxBaseStat}.` };
+        return { ok: false, error: { key: 'status.errors.exceedsMax', params: { stat: stat.toUpperCase(), max: STATUS_RULES.maxBaseStat } } };
       }
     }
-    if (spent > current.statPoints) return { ok: false, error: 'Not enough stat points.' };
+    if (spent > current.statPoints) return { ok: false, error: { key: 'status.errors.notEnoughPoints' } };
 
     const next = cloneStatus(current);
     for (const stat of MAIN_STATS) next.base[stat] += this.pending[stat];

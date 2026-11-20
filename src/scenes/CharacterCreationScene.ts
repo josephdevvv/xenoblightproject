@@ -9,29 +9,34 @@ import { DIRECTIONS } from '../core/Direction';
 import { TextureKeys } from '../assets/TextureKeys';
 import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
 import { CharacterView } from '../characters/CharacterView';
-import {
-  GENDERS,
-  getHairstyles,
-  HAIR_COLORS,
-  indexOfOption,
-  OUTFITS,
-  type Gender,
-} from '../data/AppearanceCatalog';
+import { GENDERS, type Gender } from '../data/AppearanceCatalog';
 import {
   createCharacterData,
-  createDefaultAppearance,
   NAME_MAX_LENGTH,
   NAME_MIN_LENGTH,
+  restoreCharacterData,
   validateCharacterName,
   type CharacterAppearance,
+  type CharacterData,
+  type LocalizedMessage,
 } from '../data/CharacterData';
+import { CharacterProfileStore } from '../data/CharacterProfileStore';
+import {
+  allStarterAppearances,
+  DEFAULT_STARTER_CHOICE,
+  STARTER_HAIRSTYLE_IDS,
+  STARTER_OUTFIT_ID,
+  starterAppearance,
+} from '../data/StarterCharacters';
 import { CharacterStore } from '../data/CharacterStore';
+import { t, translate, type TranslationKey, type TranslationParams } from '../i18n';
+import { labels } from '../i18n/labels';
+import { localize } from '../i18n/phaser';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import { Button } from '../ui/Button';
-import { ColorSwatchPicker } from '../ui/ColorSwatchPicker';
-import { OptionSelector } from '../ui/OptionSelector';
-import { createPanel } from '../ui/Panel';
+import { createPanel, setPanelTitle } from '../ui/Panel';
+import { SettingsWindow } from '../ui/SettingsWindow';
 import { TextInputField } from '../ui/TextInputField';
 import { textStyle } from '../ui/UITheme';
 
@@ -40,20 +45,26 @@ const LOGO_HEIGHT = 112;
 /** Top of the two main panels (below the logo header). */
 const PANEL_TOP = 112;
 const PANEL_HEIGHT = 356;
-const HINT_TEXT = `${NAME_MIN_LENGTH}-${NAME_MAX_LENGTH} letters or numbers`;
+const HINT: LocalizedMessage = { key: 'creation.nameHint', params: { min: NAME_MIN_LENGTH, max: NAME_MAX_LENGTH } };
 
 /**
- * Character creation: Gender -> Hairstyle -> Hair Colour -> Outfit -> Name -> Create.
+ * Character creation: Gender -> Hairstyle -> Name -> Create. The player only picks gender and
+ * hairstyle (Bald or that gender's starter hairstyle); hair colour, the Drifter outfit and the
+ * Drifter class are fixed by StarterCharacters. The outfit row is a preview, not a choice.
  * The preview always shows the single complete sprite sheet resolved for the current selection.
  */
 export class CharacterCreationScene extends Phaser.Scene {
   private appearance!: CharacterAppearance;
-  private preview!: CharacterView;
+  /** Null until this run's UI is built (the scene object is reused when it restarts). */
+  private preview: CharacterView | null = null;
   private previewDirection = DIRECTIONS.indexOf('S');
 
   private genderButtons!: Map<Gender, Button>;
-  private hairstyleSelector!: OptionSelector;
-  private hairColorName!: Phaser.GameObjects.Text;
+  /** One button per starter hairstyle slot (Bald + the gender's hairstyle). */
+  private hairstyleButtons: Button[] = [];
+  private settings!: SettingsWindow;
+  /** The message under the name field, kept as a key so it can be re-translated. */
+  private message: { text: LocalizedMessage; isError: boolean } = { text: HINT, isError: false };
   private nameInput!: TextInputField;
   private messageText!: Phaser.GameObjects.Text;
   private spriteIdText!: Phaser.GameObjects.Text;
@@ -61,19 +72,21 @@ export class CharacterCreationScene extends Phaser.Scene {
   private createButton!: Button;
   private atmosphere!: AtmosphereEffects;
   private submitting = false;
-  /** Genders whose full sheet set has been queued for background prefetch in this visit. */
-  private readonly prefetchedGenders = new Set<Gender>();
 
   constructor() {
     super(SCENES.CharacterCreation);
   }
 
   create(): void {
-    const previous = CharacterStore.getActive();
-    this.appearance = previous ? { ...previous.appearance } : createDefaultAppearance();
+    // Pre-fill with the character from this session, else the last one played (saved), else defaults.
+    // Only gender + hairstyle carry over: the preview always shows a selectable starter look.
+    const previous: { name: string; appearance: CharacterAppearance } | null = CharacterStore.getActive() ?? CharacterProfileStore.loadLastPlayed();
+    this.appearance = starterAppearance(previous ? previous.appearance : DEFAULT_STARTER_CHOICE);
     this.previewDirection = DIRECTIONS.indexOf('S');
     this.submitting = false;
-    this.prefetchedGenders.clear();
+    // Drop references from the previous run (its objects were destroyed on shutdown).
+    this.preview = null;
+    this.hairstyleButtons = [];
 
     this.createBackdrop();
     const loading = new LoadingScreen(this).show();
@@ -114,98 +127,108 @@ export class CharacterCreationScene extends Phaser.Scene {
       this.add.image(14, 0, logoKey).setOrigin(0, 0);
     } else {
       // Fallback if the logo file is missing.
-      this.add.text(28, 34, 'XENOBLIGHT', textStyle(28, PALETTE.white, { letterSpacing: 6, fontStyle: 'bold' }));
+      this.add.text(28, 34, 'XENOBLIGHT', textStyle(28, PALETTE.white));
     }
-    this.add.text(GAME_WIDTH - 28, 44, 'CHARACTER CREATION', textStyle(12, PALETTE.silver, { letterSpacing: 3 })).setOrigin(1, 0);
+    const title = this.add.text(GAME_WIDTH - 28, 42, '', textStyle(12, PALETTE.silver)).setOrigin(1, 0);
     this.add.rectangle(GAME_WIDTH - 28, 64, 36, 1, toColorInt(PALETTE.accent)).setOrigin(1, 0);
-    this.add.text(GAME_WIDTH - 28, 74, 'MILESTONE 01  ·  PROTOTYPE', textStyle(9, PALETTE.stone, { letterSpacing: 2 })).setOrigin(1, 0);
+    const subtitle = this.add.text(GAME_WIDTH - 28, 70, '', textStyle(9, PALETTE.slate)).setOrigin(1, 0);
+
+    // Settings (language) is reachable before entering the game.
+    this.settings = new SettingsWindow(this, {
+      depth: 1000,
+      onOpen: () => this.nameInput?.setVisible(false),
+      onClose: () => this.nameInput?.setVisible(true),
+    });
+    const settingsButton = new Button(this, GAME_WIDTH - 28 - 48, 18, {
+      width: 96,
+      height: 22,
+      label: '',
+      fontSize: 10,
+      onClick: () => this.settings.toggle(),
+    });
+    this.input.keyboard?.on('keydown-ESC', () => this.settings.close());
+
+    localize(this, () => {
+      title.setText(t('creation.title'));
+      subtitle.setText(t('creation.subtitle'));
+      settingsButton.setLabel(t('common.settings'));
+    });
   }
 
   private createOptionsPanel(initialName: string): void {
     createPanel(this, 24, PANEL_TOP, 456, PANEL_HEIGHT);
     const labelX = 48;
     const controlX = 330;
-    const row = (y: number, step: string, label: string): void => {
+    const rowLabels: { text: Phaser.GameObjects.Text; key: TranslationKey }[] = [];
+    const row = (y: number, step: string, key: TranslationKey): void => {
       this.add.text(labelX, y, step, textStyle(10, PALETTE.accentLight)).setOrigin(0, 0.5);
-      this.add.text(labelX + 26, y, label, textStyle(11, PALETTE.silver, { letterSpacing: 2 })).setOrigin(0, 0.5);
+      rowLabels.push({ text: this.add.text(labelX + 26, y, '', textStyle(11, PALETTE.silver)).setOrigin(0, 0.5), key });
     };
 
     // 01 Gender
-    row(150, '01', 'GENDER');
+    row(150, '01', 'creation.gender');
     this.genderButtons = new Map();
     GENDERS.forEach((g, i) => {
       const button = new Button(this, 264 + i * 132, 150, {
         width: 124,
         height: 28,
-        label: g.label.toUpperCase(),
+        label: '',
         onClick: () => this.selectGender(g.id),
       });
       this.genderButtons.set(g.id, button);
     });
 
-    // 02 Hairstyle
-    row(198, '02', 'HAIRSTYLE');
-    this.hairstyleSelector = new OptionSelector(this, controlX, 198, {
-      width: 260,
-      options: getHairstyles(this.appearance.gender).map((h) => h.label),
-      index: indexOfOption(getHairstyles(this.appearance.gender), this.appearance.hairstyleId),
-      onChange: (i) => {
-        this.appearance.hairstyleId = getHairstyles(this.appearance.gender)[i].id;
-        this.refreshAll();
-      },
-    });
+    // 02 Hairstyle (two choices per gender, labels follow the gender)
+    row(202, '02', 'creation.hairstyle');
+    this.hairstyleButtons = [0, 1].map(
+      (slot) =>
+        new Button(this, 264 + slot * 132, 202, {
+          width: 124,
+          height: 28,
+          label: '',
+          onClick: () => this.selectHairstyle(slot),
+        }),
+    );
 
-    // 03 Hair colour
-    row(246, '03', 'HAIR COLOR');
-    new ColorSwatchPicker(this, 200, 246, {
-      colors: HAIR_COLORS.map((c) => c.hex),
-      index: indexOfOption(HAIR_COLORS, this.appearance.hairColorId),
-      size: 22,
-      gap: 12,
-      onChange: (i) => {
-        this.appearance.hairColorId = HAIR_COLORS[i].id;
-        this.refreshAll();
-      },
-    });
-    this.hairColorName = this.add.text(380, 246, '', textStyle(12, PALETTE.white)).setOrigin(0, 0.5);
+    // 03 Outfit preview: always the Drifter starter outfit (not selectable)
+    row(254, '03', 'creation.outfitPreview');
+    const outfitName = this.add.text(202, 254, '', textStyle(12, PALETTE.white)).setOrigin(0, 0.5);
 
-    // 04 Outfit
-    row(294, '04', 'OUTFIT');
-    new OptionSelector(this, controlX, 294, {
+    // 04 Name
+    row(306, '04', 'creation.name');
+    this.nameInput = new TextInputField(this, controlX, 306, {
       width: 260,
-      options: OUTFITS.map((o) => o.label),
-      index: indexOfOption(OUTFITS, this.appearance.outfitId),
-      onChange: (i) => {
-        this.appearance.outfitId = OUTFITS[i].id;
-        this.refreshAll();
-      },
-    });
-
-    // 05 Name
-    row(342, '05', 'NAME');
-    this.nameInput = new TextInputField(this, controlX, 342, {
-      width: 260,
-      placeholder: 'Enter character name',
+      placeholder: t('creation.namePlaceholder'),
       maxLength: NAME_MAX_LENGTH,
       value: initialName,
     });
     this.nameInput.onSubmit(() => this.submit());
-    this.nameInput.onInput(() => this.showMessage(HINT_TEXT, false));
-    this.messageText = this.add.text(200, 368, HINT_TEXT, textStyle(10, PALETTE.gray)).setOrigin(0, 0.5);
+    this.nameInput.onInput(() => this.showMessage(HINT, false));
+    this.messageText = this.add.text(200, 332, '', textStyle(10, PALETTE.gray)).setOrigin(0, 0.5);
 
     // Create
     this.createButton = new Button(this, 252, 424, {
       width: 408,
       height: 38,
-      label: 'CREATE CHARACTER',
+      label: '',
       fontSize: 14,
       variant: 'primary',
       onClick: () => this.submit(),
     });
+
+    localize(this, () => {
+      for (const r of rowLabels) r.text.setText(t(r.key));
+      for (const [gender, button] of this.genderButtons) button.setLabel(labels.gender(gender));
+      outfitName.setText(labels.outfit(STARTER_OUTFIT_ID));
+      this.nameInput.setPlaceholder(t('creation.namePlaceholder'));
+      this.createButton.setLabel(t('creation.create'));
+      this.showMessage(this.message.text, this.message.isError);
+      if (this.preview) this.refreshAll();
+    });
   }
 
   private createPreviewPanel(): void {
-    createPanel(this, 496, PANEL_TOP, 440, PANEL_HEIGHT, 'PREVIEW');
+    const panel = createPanel(this, 496, PANEL_TOP, 440, PANEL_HEIGHT, ' ');
     const cx = 716;
     const feetY = 332;
 
@@ -226,8 +249,14 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     new Button(this, cx - 84, 408, { width: 32, height: 26, label: '<', onClick: () => this.rotatePreview(-1) });
     new Button(this, cx + 84, 408, { width: 32, height: 26, label: '>', onClick: () => this.rotatePreview(1) });
-    this.directionText = this.add.text(cx, 408, '', textStyle(11, PALETTE.silver, { letterSpacing: 2 })).setOrigin(0.5);
-    this.add.text(cx, 440, 'ROTATE TO CHECK ALL 8 DIRECTIONS', textStyle(9, PALETTE.gray, { letterSpacing: 1 })).setOrigin(0.5);
+    this.directionText = this.add.text(cx, 408, '', textStyle(11, PALETTE.silver)).setOrigin(0.5);
+    const rotateHint = this.add.text(cx, 440, '', textStyle(9, PALETTE.gray)).setOrigin(0.5);
+
+    localize(this, () => {
+      setPanelTitle(panel, t('creation.preview'));
+      rotateHint.setText(t('creation.rotateHint'));
+      if (this.preview) this.refreshPreviewDirection();
+    });
   }
 
   // -------------------------------------------------------------------------------------------
@@ -236,15 +265,16 @@ export class CharacterCreationScene extends Phaser.Scene {
 
   private selectGender(gender: Gender): void {
     if (gender === this.appearance.gender) return;
-    // Keep the same slot index so switching gender feels stable.
-    const slot = indexOfOption(getHairstyles(this.appearance.gender), this.appearance.hairstyleId);
-    const styles = getHairstyles(gender);
-    this.appearance.gender = gender;
-    this.appearance.hairstyleId = styles[Math.min(slot, styles.length - 1)].id;
-    this.hairstyleSelector.setOptions(
-      styles.map((h) => h.label),
-      indexOfOption(styles, this.appearance.hairstyleId),
-    );
+    // Keep the slot (Bald stays Bald, hair stays hair) so switching gender feels stable.
+    const slot = Math.max(0, STARTER_HAIRSTYLE_IDS[this.appearance.gender].indexOf(this.appearance.hairstyleId));
+    this.appearance = starterAppearance({ gender, hairstyleId: STARTER_HAIRSTYLE_IDS[gender][slot] });
+    this.refreshAll();
+  }
+
+  private selectHairstyle(slot: number): void {
+    const hairstyleId = STARTER_HAIRSTYLE_IDS[this.appearance.gender][slot];
+    if (!hairstyleId || hairstyleId === this.appearance.hairstyleId) return;
+    this.appearance = starterAppearance({ gender: this.appearance.gender, hairstyleId });
     this.refreshAll();
   }
 
@@ -256,57 +286,34 @@ export class CharacterCreationScene extends Phaser.Scene {
 
   private refreshAll(): void {
     for (const [gender, button] of this.genderButtons) button.setSelected(gender === this.appearance.gender);
-    const color = HAIR_COLORS[indexOfOption(HAIR_COLORS, this.appearance.hairColorId)];
-    this.hairColorName.setText(color.label);
+    const styles = STARTER_HAIRSTYLE_IDS[this.appearance.gender];
+    this.hairstyleButtons.forEach((button, slot) => {
+      const id = styles[slot];
+      button.setVisible(Boolean(id));
+      if (id) button.setLabel(labels.hairstyle(id)).setSelected(id === this.appearance.hairstyleId);
+    });
 
-    this.preview.setAppearance(this.appearance);
+    this.preview?.setAppearance(this.appearance);
     this.spriteIdText.setText(getCharacterSpriteId(this.appearance));
     this.refreshPreviewDirection();
-    this.prefetchLikelyAppearances();
-  }
-
-  /**
-   * Background-loads the sheets the player can reach next, so changing an option shows the new
-   * sprite immediately: first everything one click away, then the rest of the current gender.
-   * Already-loaded sheets are skipped, so calling this after every change is cheap.
-   */
-  private prefetchLikelyAppearances(): void {
-    const a = this.appearance;
-    const near: CharacterAppearance[] = [];
-    for (const color of HAIR_COLORS) near.push({ ...a, hairColorId: color.id });
-    for (const style of getHairstyles(a.gender)) near.push({ ...a, hairstyleId: style.id });
-    for (const outfit of OUTFITS) near.push({ ...a, outfitId: outfit.id });
-    const otherGender: Gender = a.gender === 'male' ? 'female' : 'male';
-    const slot = indexOfOption(getHairstyles(a.gender), a.hairstyleId);
-    near.push({ ...a, gender: otherGender, hairstyleId: getHairstyles(otherGender)[slot].id });
-
-    const gender = a.gender;
-    void AssetManager.prefetchStandingSheets(this, near).then(() => {
-      if (!this.sys.isActive() || this.prefetchedGenders.has(gender)) return;
-      this.prefetchedGenders.add(gender);
-      const all: CharacterAppearance[] = [];
-      for (const outfit of OUTFITS) {
-        for (const style of getHairstyles(gender)) {
-          for (const color of HAIR_COLORS) all.push({ gender, hairstyleId: style.id, hairColorId: color.id, outfitId: outfit.id });
-        }
-      }
-      void AssetManager.prefetchStandingSheets(this, all);
-    });
+    // The four starter looks are small: load them all so every switch is instant.
+    void AssetManager.prefetchStandingSheets(this, allStarterAppearances());
   }
 
   private refreshPreviewDirection(): void {
     const direction = DIRECTIONS[this.previewDirection];
-    this.preview.animator.setMotion('stand', direction);
-    this.directionText.setText(direction);
+    this.preview?.animator.setMotion('stand', direction);
+    this.directionText.setText(labels.direction(direction));
   }
 
-  private showMessage(text: string, isError: boolean): void {
-    this.messageText.setText(text).setColor(isError ? PALETTE.error : PALETTE.gray);
+  private showMessage(text: LocalizedMessage, isError: boolean): void {
+    this.message = { text, isError };
+    this.messageText.setText(translate(text.key, text.params as TranslationParams | undefined)).setColor(isError ? PALETTE.error : PALETTE.gray);
     this.nameInput.setInvalid(isError);
   }
 
   private submit(): void {
-    if (this.submitting) return;
+    if (this.submitting || this.settings.isOpen) return;
     const result = validateCharacterName(this.nameInput.value);
     if (!result.valid) {
       this.showMessage(result.error, true);
@@ -318,7 +325,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.nameInput.blur();
     this.createButton.setEnabled(false);
 
-    const character = createCharacterData(result.name, this.appearance);
+    const character = this.resolveCharacter(result.name);
     // Prototype identity = name: an existing name continues its saved status, a new name starts at level 1.
     CharacterStatusService.loadInto(character);
     CharacterStore.add(character);
@@ -328,5 +335,26 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start(SCENES.Game);
     });
+  }
+
+  /**
+   * A name with a saved profile continues that character unchanged (appearance, class, outfit are
+   * never overwritten here). A new name becomes a new Drifter with the chosen gender + hairstyle.
+   */
+  private resolveCharacter(name: string): CharacterData {
+    const saved = CharacterProfileStore.load(name);
+    let character: CharacterData;
+    if (saved.kind === 'loaded') {
+      character = restoreCharacterData(saved.profile);
+    } else {
+      if (saved.kind === 'invalid') {
+        console.warn(`[character] unreadable profile for "${name}" (${saved.reason}); kept a backup and created a new one`);
+        CharacterProfileStore.backupInvalid(name);
+      }
+      character = createCharacterData(name, { gender: this.appearance.gender, hairstyleId: this.appearance.hairstyleId });
+      CharacterProfileStore.save({ name: character.name, appearance: character.appearance, classId: character.classId, createdAt: character.createdAt });
+    }
+    CharacterProfileStore.setLastPlayed(character.name);
+    return character;
   }
 }

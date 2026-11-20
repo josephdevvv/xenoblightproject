@@ -29,16 +29,17 @@ const ROW_PITCH = 28;
 
 export const STATUS_KIT = {
   /** Header band between the window's top border and the header divider. */
-  header: { titleX: 114, textY: 15, rightX: 424 },
+  /** Text y values are text-box tops; pixel-font capitals start 6 px below the box top. */
+  header: { titleX: 114, textY: 11, rightX: 424 },
   close: [432, 16, 22, 22] as KitRect,
   /** Section rules at y 37 (left: stat column, right: derived column); captions sit under them. */
-  sectionLeft: { cx: 110, y: 39 },
-  sectionRight: { cx: 365, y: 39 },
+  sectionLeft: { cx: 110, y: 37 },
+  sectionRight: { cx: 365, y: 37 },
   /** Stat row i: frame y = 51 + 28 i. */
   row(i: number) {
     const y = 51 + i * ROW_PITCH;
     return {
-      textY: y + 6,
+      textY: y + 2,
       labelX: 66,
       descX: 88,
       /** Right edge of the label zone (divider at x 190). */
@@ -49,11 +50,11 @@ export const STATUS_KIT = {
     };
   },
   /** Derived panel: caption right of the title rule (x 292..396, y 61), rows between the baked lines (pitch 11). */
-  derived: { captionRight: 438, captionY: 56, listX: 286, listY: 67, listW: 156, listH: 132, rowPitch: 11, valueRight: 436 },
+  derived: { captionRight: 438, captionY: 53, listX: 286, listY: 67, listW: 156, listH: 132, rowPitch: 11, textOffsetY: -2, valueRight: 436 },
   /** Between the last row and the footer divider. */
-  message: { x: 34, y: 216 },
+  message: { x: 34, y: 212 },
   /** Footer centre, under the accent bracket. */
-  summary: { cx: 241, y: 243 },
+  summary: { cx: 241, y: 240 },
   footer: {
     reset: [32, 236, 72, 20] as KitRect,
     dev: [112, 236, 72, 20] as KitRect,

@@ -4,6 +4,10 @@ import type { Point } from '../../core/types';
 import type { CharacterData } from '../../data/CharacterData';
 import { CharacterStatusService } from '../../status/CharacterStatusService';
 import { GameServices } from '../../systems/GameServices';
+import { t, type TranslationKey } from '../../i18n';
+import { labels } from '../../i18n/labels';
+import { localize } from '../../i18n/phaser';
+import { fitText } from '../text/fitText';
 import type { IsometricMap } from '../../world/IsometricMap';
 import { textStyle, UI_COLORS } from '../UITheme';
 import { HUD_LAYERS, HUD_LAYOUT, HudSpace, hudTextureKey, REF_ELEMENTS, type HudLayerId, type ScreenRect } from './HudLayout';
@@ -13,11 +17,14 @@ const BAR = HUD_LAYOUT.bars;
 const TEXT = HUD_LAYOUT.dynamic_text;
 /** Pack layers not shown in game (the chat box was removed by request; the art stays in the pack). */
 const HIDDEN_LAYERS = new Set<string>(['04_chat']);
+/** Lift for top-anchored text (see text()). */
+const HUD_TEXT_LIFT = 4;
 
 export interface DungeonHudOptions {
   character: CharacterData;
   map: IsometricMap;
   onStatus: () => void;
+  onSettings: () => void;
 }
 
 /**
@@ -94,15 +101,15 @@ export class DungeonHud {
     const E = '06_exp_bar';
     this.expArea = this.space.fill(E, BAR.exp.fill_rect as [number, number, number, number]);
     this.expBar = this.bar(this.expArea, BAR.exp.hex);
-    this.expText = this.text(this.expArea.x + this.expArea.width / 2, this.expArea.y + this.expArea.height / 2, '', 8, PALETTE.pale)
+    this.expText = this.text(this.expArea.x + this.expArea.width / 2, this.expArea.y + this.expArea.height / 2, '', 8, PALETTE.pale, false)
       .setOrigin(0.5);
 
     // 4. Quest tracker + AUTO (placeholders: no quest or auto-play system yet).
     const Q = '02_quest_auto';
     const pin = this.space.frame(Q, REF_ELEMENTS.questPins[0]);
-    this.text(pin.x + pin.width + 4, pin.y + 1, 'No active quest', 9, PALETTE.gray);
+    const questText = this.text(pin.x + pin.width + 4, pin.y + 1, '', 9, PALETTE.gray);
     const auto = this.space.point(Q, TEXT.auto_label);
-    this.text(auto.x, auto.y, 'AUTO', 9, PALETTE.slate);
+    const autoText = this.text(auto.x, auto.y, '', 9, PALETTE.slate);
 
     // 5. Map, coordinates and menu.
     const M = '03_map_and_menu';
@@ -110,15 +117,30 @@ export class DungeonHud {
     const coordBox = this.space.frame(M, REF_ELEMENTS.coordinateBox);
     const coord = this.space.point(M, TEXT.coordinates);
     this.coordText = this.text(coordBox.x + coordBox.width / 2, coord.y, '', 9, PALETTE.pale).setOrigin(0.5, 0);
-    this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, options.map.definition.name, 9, PALETTE.silver).setOrigin(1, 0);
+    const mapName = this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, '', 9, PALETTE.silver).setOrigin(1, 0);
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
-    this.buildStatusMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]));
+    this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]), 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
+      // Tiny character-sheet glyph: head + shoulders.
+      const cx = slot.x + Math.floor(slot.width / 2);
+      g.fillStyle(toColorInt(color), 1);
+      g.fillRect(cx - 1, slot.y + 2, 3, 3);
+      g.fillRect(cx - 3, slot.y + 6, 7, 2);
+      g.fillRect(cx - 4, slot.y + 8, 9, 3);
+    });
+    // The pack's menu button (three bars, baked into the art) opens Settings.
+    this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuMore), 'hud.menuSettings', () => this.options.onSettings(), null);
 
     this.unsubscribe = CharacterStatusService.onChange((c) => {
       if (c === options.character) this.refreshStatus();
     });
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribe());
-    this.refreshStatus();
+
+    localize(scene, () => {
+      questText.setText(t('hud.noActiveQuest'));
+      autoText.setText(t('hud.auto'));
+      mapName.setText(labels.map(options.map.definition.id));
+      this.refreshStatus();
+    });
   }
 
   /** Per-frame: coordinates and minimap. */
@@ -135,29 +157,36 @@ export class DungeonHud {
   refreshStatus(): void {
     const c = this.options.character;
     const derived = CharacterStatusService.derived(c);
-    this.fitText(this.nameText, c.name, this.nameMaxWidth);
-    this.levelText.setText(`Lv ${c.status.level}`);
+    fitText(this.nameText, c.name, this.nameMaxWidth);
+    this.levelText.setText(t('hud.level', { level: c.status.level }));
     const hp = Math.round(derived.maxHp);
     const sp = Math.round(derived.maxSp);
-    this.hpText.setText(`HP ${hp}/${hp}`);
-    this.spText.setText(`SP ${sp}/${sp}`);
+    this.hpText.setText(t('hud.hp', { current: hp, max: hp }));
+    this.spText.setText(t('hud.sp', { current: sp, max: sp }));
     this.setBar(this.hpBar, this.hpArea, hp, hp);
     this.setBar(this.spBar, this.spArea, sp, sp);
     this.setBar(this.expBar, this.expArea, 0, 1);
-    this.expText.setText('EXP 0.00%');
+    // No EXP system yet: the bar and value show 0 %.
+    this.expText.setText(t('hud.exp', { percent: (0).toFixed(2) }));
   }
 
-  private buildStatusMenuButton(slot: ScreenRect): void {
-    const cx = slot.x + Math.floor(slot.width / 2);
-    const icon = this.scene.add.graphics().setDepth(this.depth + 1);
-    const drawIcon = (color: string): void => {
-      // Tiny character-sheet glyph: head + shoulders.
-      icon.clear().fillStyle(toColorInt(color), 1);
-      icon.fillRect(cx - 1, slot.y + 2, 3, 3);
-      icon.fillRect(cx - 3, slot.y + 6, 7, 2);
-      icon.fillRect(cx - 4, slot.y + 8, 9, 3);
+  /**
+   * A menu-bar slot: hover outline + translated tooltip, click callback, optional procedural icon
+   * (null when the icon is baked into the art).
+   */
+  private buildMenuButton(
+    slot: ScreenRect,
+    tooltipKey: TranslationKey,
+    onClick: () => void,
+    drawIcon: ((g: Phaser.GameObjects.Graphics, slot: ScreenRect, color: string) => void) | null,
+  ): void {
+    const icon = drawIcon ? this.scene.add.graphics().setDepth(this.depth + 1) : null;
+    const paintIcon = (color: string): void => {
+      if (!icon || !drawIcon) return;
+      icon.clear();
+      drawIcon(icon, slot, color);
     };
-    drawIcon(PALETTE.silver);
+    paintIcon(PALETTE.silver);
 
     const highlight = this.scene.add
       .rectangle(slot.x - 1, slot.y - 1, slot.width + 2, slot.height + 2)
@@ -165,31 +194,37 @@ export class DungeonHud {
       .setStrokeStyle(1, UI_COLORS.accentLight)
       .setDepth(this.depth + 2)
       .setVisible(false);
-    const tip = this.text(slot.x + slot.width + 1, slot.y + slot.height + 3, 'Status', 9, PALETTE.white)
+    const tip = this.text(slot.x + slot.width + 1, slot.y + slot.height + 3, '', 9, PALETTE.white)
       .setOrigin(1, 0)
       .setBackgroundColor(PALETTE.black)
       .setPadding(3, 1, 3, 1)
       .setDepth(this.depth + 3)
       .setVisible(false);
+    localize(this.scene, () => tip.setText(t(tooltipKey)));
 
     const zone = this.scene.add.zone(slot.x, slot.y, slot.width, slot.height).setOrigin(0, 0).setDepth(this.depth + 4);
     zone.setInteractive({ useHandCursor: true });
     const setHover = (on: boolean): void => {
       highlight.setVisible(on);
       tip.setVisible(on);
-      drawIcon(on ? PALETTE.white : PALETTE.silver);
+      paintIcon(on ? PALETTE.white : PALETTE.silver);
     };
     zone.on('pointerover', () => setHover(true));
     zone.on('pointerout', () => setHover(false));
     zone.on('pointerup', () => {
-      // The window's modal blocker swallows the following pointerout, so clear the hover now.
+      // A modal window's blocker swallows the following pointerout, so clear the hover now.
       setHover(false);
-      this.options.onStatus();
+      onClick();
     });
   }
 
-  private text(x: number, y: number, value: string, size: number, color: string): Phaser.GameObjects.Text {
-    return this.scene.add.text(Math.round(x), Math.round(y), value, textStyle(size, color)).setDepth(this.depth + 2);
+  /**
+   * hud_layout.json gives the top of the visible glyphs; the pixel font's text box starts higher
+   * (room for Thai marks), so top-anchored text is lifted by HUD_TEXT_LIFT.
+   */
+  private text(x: number, y: number, value: string, size: number, color: string, anchorTop = true): Phaser.GameObjects.Text {
+    const top = anchorTop ? y - HUD_TEXT_LIFT : y;
+    return this.scene.add.text(Math.round(x), Math.round(top), value, textStyle(size, color)).setDepth(this.depth + 2);
   }
 
   private bar(area: ScreenRect, hex: string): Phaser.GameObjects.Rectangle {
@@ -201,12 +236,5 @@ export class DungeonHud {
     const width = Math.round(area.width * ratio);
     bar.setVisible(width > 0);
     bar.setSize(Math.max(width, 1), area.height);
-  }
-
-  private fitText(text: Phaser.GameObjects.Text, value: string, maxWidth: number): void {
-    text.setText(value);
-    if (text.width <= maxWidth) return;
-    let n = value.length;
-    while (n > 1 && text.width > maxWidth) text.setText(`${value.slice(0, --n)}..`);
   }
 }

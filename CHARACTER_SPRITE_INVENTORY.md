@@ -1,5 +1,10 @@
 # Character Sprite Inventory
 
+> **Superseded (2026-11-20).** The sheets audited below were removed from `public/assets/characters/` and from
+> the manifest. The game now uses only the approved Xenoblight Sprite Forge exports listed in
+> `src/assets/SpriteForgeCharacters.ts` (male bald, male mohawk/spike blonde, female bald, female straight bangs
+> blonde - each as Drifter and base, static 256x128 + walk 384x512, 125 ms). This file is kept as history.
+
 Audit date: 2026-11-18. All figures come from the actual files (pixel data, dimensions, hashes), cross-checked
 with project metadata and the pack's own metadata. Nothing was generated or guessed from file names alone.
 

@@ -43,6 +43,8 @@ Open http://localhost:5173.
 | W / A / S / D | Move (8 directions with combinations) |
 | Esc           | Close an open window; otherwise return to character creation (in game) |
 | Status icon   | First slot of the HUD menu bar (top right): open / close the character Status window |
+| Menu icon (three bars) | Last slot of the HUD menu bar: Settings (language) |
+| Settings button | Character creation, top right: Settings (language) before entering the game |
 
 W moves straight up on screen, D straight right; key combinations (e.g. W+D) move along the isometric tile axes.
 
@@ -69,6 +71,28 @@ powershell -ExecutionPolicy Bypass -File tools/import-status-kit.ps1
 
 Text positions on the kit live in `src/ui/status/StatusKitLayout.ts`.
 
+## Languages and font
+
+The game is bilingual: **Thai (default)** and English. New players always start in Thai (the browser /
+OS language is ignored). Change the language in **Settings** - the button at the top right of character
+creation, or the menu icon (three bars) at the end of the in-game HUD menu bar. The switch applies
+immediately (no restart) and is saved in `localStorage` (`xenoblight.settings.v1`); an invalid or
+missing value falls back to Thai.
+
+- Translations: `src/i18n/th.ts` (primary, defines the keys) and `src/i18n/en.ts` (same keys, enforced
+  by TypeScript and the tests). Use `t('key', { value })` for text and `localize(scene, fn)` so a
+  component re-renders on language change. Data with stable IDs (appearance options, directions, maps,
+  stats) is named through `src/i18n/labels.ts`. Player names are never translated.
+- Font: **ZF #2ndPixelus** (pixel font with full Thai + Latin capitals), see
+  `art-source/fonts/zf2ndpixelus/FONT_LICENSE_NOTES.md` - **check the licence before publishing**.
+  It is crisp only on its own grid, so all UI text uses one size (5-px capitals) and
+  `src/ui/text/PixelFont.ts` snaps the browser-shaped text to whole pixels (Thai vowels and tone
+  marks keep their positions). Letter spacing is not used: it splits Thai combining marks.
+  If the font cannot load, Thai-capable system fonts are used (`?nopixelfont` in dev to preview).
+- Tests: `npm test` (Node's test runner + esbuild from Vite, no extra dependencies) - default
+  language, switching, persistence, invalid values, key parity, placeholders, interpolation, data-ID
+  coverage, and the unchanged level-1 stat values.
+
 ## Project structure
 
 ```
@@ -88,9 +112,13 @@ src/
     structures/                Walk-in buildings: blueprints (data) + StructureLayer (walls, collision, depth, fade)
   monsters/                    MonsterDefinition (data), MonsterEntity, MonsterSpawner, MonsterSpawns (per-map table), WanderBehavior
   status/                      Character status: stat types/rules, derived-stat formulas, staged allocation, save store, service
+  i18n/                        Localization: th.ts (default), en.ts, t()/setLanguage(), labels for data IDs, Phaser localize()
+  settings/                    Player settings store (language), localStorage
   ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, ScrollArea, name plate, StatusWindow
     hud/                       Dungeon HUD: HudLayout (pack layout -> screen), DungeonHud, Minimap, hudPack.generated.json
     status/                    Status window kit layout (StatusKitLayout) + statusKit.generated.json
+    text/                      PixelFont (load + pixel snapping), grapheme-safe fitText
+  SettingsWindow.ts            Settings (language) modal, used in character creation and in game
   scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```
 
@@ -118,21 +146,30 @@ from the art in `REF_ELEMENTS` (`src/ui/hud/HudLayout.ts`).
 (`char_<gender>_<hairstyle>_<color>_<outfit>`, e.g. `char_female_ponytail_red_adventurer`).
 Sheet format (see `src/characters/CharacterSheetLayout.ts`):
 
-- 64x64 frames, 4 columns x 2 rows (256x128), 8 static directional frames (no animation yet)
+- 64x64 frames, 4 columns x 2 rows (256x128), 8 static directional frames
 - row 0: S, SE, E, NE  /  row 1: N, NW, W, SW
 - the figure may sit anywhere in the frame and be any height: the game measures each frame's feet and
   height from the pixels (`SpriteMetrics`), anchors it on its feet and scales it to a 54 px figure
 
-Optional walk sheet (`<color>_<outfit>_walk.png`): 6 columns x 8 rows (384x512), one direction per row in
-the order S, SE, E, NE, N, NW, W, SW, played at 8 FPS while moving; feet at y = 62. Register both files in
-`CHARACTER_SPRITE_MANIFEST` (`standing` and `walk`). Appearances without a walk sheet stay static while moving.
+Walk sheet: 6 columns x 8 rows (384x512), one direction per row in the order S, SE, E, NE, N, NW, W, SW,
+125 ms per frame (8 FPS), looping while moving. Register both files in `CHARACTER_SPRITE_MANIFEST`
+(`standing` and `walk`).
 
-Production art: 114 static sheets (all male appearances, 54 female) plus one walk sheet
-(male / long_middle_part / blonde / adventurer, also the default appearance). See
-`CHARACTER_SPRITE_INVENTORY.md` for the full list, missing combinations and known art issues.
+**Approved art only (Sprite Forge).** `public/assets/characters/` holds the approved exports from Xenoblight
+Sprite Forge, registered in `src/assets/SpriteForgeCharacters.ts` (generated by the forge's export script - re-export,
+do not edit): for each of male bald, male mohawk (forge "spike") blonde, female bald, female straight bangs
+blonde, a Drifter sheet pair (static + walk) and a base (no outfit) pair, plus `<key>.json` / walk metadata.
+The earlier imported sheets were removed, so the manifest lists only these files. A missing or unreadable
+approved sheet is reported in the console with its exact path and shown as Phaser's missing texture - never
+replaced by a mockup. The procedural mockup generator remains only for appearances that have no art at all.
 
-Put the PNG under `public/assets/characters/<gender>/<hairstyle>/<color>_<outfit>.png` and add it to
-`CHARACTER_SPRITE_MANIFEST`. The mockup generator is skipped automatically for that ID.
+**Character creation (starters).** The player picks name, gender and hairstyle only
+(`src/data/StarterCharacters.ts`): male Bald / Mohawk, female Bald / Straight Bangs. Hair colour is fixed
+(blonde, or `none` for bald), and every new character is a **Drifter** wearing the Drifter outfit - the outfit
+row is a preview. These rules are applied in `createCharacterData`, not just the UI. Characters are saved per
+name in `localStorage` (`xenoblight.character.v1.<name>`: appearance + class; stats stay in the status save);
+the last played one pre-fills character creation after a reload, and a saved name continues that character
+unchanged.
 
 **App icons and logo.** `public/icons/` holds the app icon set: `XENOBLIGHT_App.ico` (multi-size 16-256 px,
 browser tab favicon) and PNGs from 16 to 512 px. `index.html` links the ICO as favicon, the 256 px PNG as

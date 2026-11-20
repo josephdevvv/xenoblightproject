@@ -1,0 +1,4595 @@
+{
+  "schema": "xenoblight-sprite-forge/animation@1",
+  "animation": "walk",
+  "jobId": "job_20261120_003248_129d04",
+  "character": {
+    "gender": "male",
+    "hairstyle": "bald",
+    "hairColor": "none",
+    "outfit": "drifter"
+  },
+  "master": {
+    "masterId": "MALE_MASTER",
+    "version": "v002"
+  },
+  "layerRole": "starter-outfit character reference (flattened skin + clothing; not a reusable under-clothing body layer)",
+  "frameSize": {
+    "width": 64,
+    "height": 64
+  },
+  "layout": {
+    "columns": 6,
+    "rows": 8,
+    "order": [
+      "S",
+      "SE",
+      "E",
+      "NE",
+      "N",
+      "NW",
+      "W",
+      "SW"
+    ],
+    "sheet": "male_bald_drifter_walk_8dir.png"
+  },
+  "frameMs": 125,
+  "loop": true,
+  "anchorConvention": "edge coordinates: pixel centre = x + 0.5; root = feet centre at the bottom edge of the lowest solid row (alpha >= 128, lowest 4 rows); head = centre of the top 4 solid rows at the top edge; groundContact = root; hairAnchor = centre of the topmost solid row (scalp top) at its top edge; outfitAnchor = centre of the first row with >= 4 neckline-coloured px (#ffffff/#cbdbfc) at its top edge; mirrored x' = frameWidth - x",
+  "directionPolicy": {
+    "id": "mirror5-v1",
+    "sources": {
+      "S": "original",
+      "SE": "original",
+      "E": "original",
+      "NE": "original",
+      "N": "original",
+      "NW": "mirror(NE)",
+      "W": "mirror(E)",
+      "SW": "mirror(SE)"
+    },
+    "exceptions": []
+  },
+  "masterAnchors": {
+    "S": {
+      "root": {
+        "x": 30.319,
+        "y": 57
+      },
+      "head": {
+        "x": 31,
+        "y": 8
+      }
+    },
+    "SE": {
+      "root": {
+        "x": 30.786,
+        "y": 57
+      },
+      "head": {
+        "x": 32.5,
+        "y": 8
+      }
+    },
+    "E": {
+      "root": {
+        "x": 31.384,
+        "y": 57
+      },
+      "head": {
+        "x": 32.662,
+        "y": 8
+      }
+    },
+    "NE": {
+      "root": {
+        "x": 33.67,
+        "y": 57
+      },
+      "head": {
+        "x": 32.423,
+        "y": 8
+      }
+    },
+    "N": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 31,
+        "y": 8
+      }
+    },
+    "NW": {
+      "root": {
+        "x": 30.33,
+        "y": 57
+      },
+      "head": {
+        "x": 31.577,
+        "y": 8
+      }
+    },
+    "W": {
+      "root": {
+        "x": 32.616,
+        "y": 57
+      },
+      "head": {
+        "x": 31.338,
+        "y": 8
+      }
+    },
+    "SW": {
+      "root": {
+        "x": 33.214,
+        "y": 57
+      },
+      "head": {
+        "x": 31.5,
+        "y": 8
+      }
+    }
+  },
+  "crop": null,
+  "provenance": {
+    "composer": "characterComposer",
+    "tool": "local:outfit-recolor",
+    "pixellabJobs": {
+      "S": "c26b079c-f4e7-4e7a-8549-9102035866a5",
+      "SE": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244",
+      "E": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5",
+      "NE": "8ee094fe-a081-43e2-b458-d9681a592a1c",
+      "N": "50799a87-7a91-4814-8302-8bf2c790a5ec"
+    },
+    "layers": [
+      "base",
+      "outfit:drifter (replace)"
+    ],
+    "remote": {
+      "startedAt": "2026-11-19T23:08:08.725Z",
+      "remoteJobId": "c26b079c-f4e7-4e7a-8549-9102035866a5,58b710e8-d0a6-4bf8-a4a8-a97c47ff7244,a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5,8ee094fe-a081-43e2-b458-d9681a592a1c,50799a87-7a91-4814-8302-8bf2c790a5ec"
+    }
+  },
+  "outlineExceptions": [],
+  "validation": "WARNING",
+  "frames": [
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south_walk",
+        "frame": 0
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.955,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.955,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south/frame_000.png",
+        "pixellabJob": "c26b079c-f4e7-4e7a-8549-9102035866a5"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 0
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south_00.png",
+          "zoneFile": "male_drifter_zone_walk_south_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 633
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 633,
+        "layerPixels": 633,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 40,
+        "attachments": [
+          {
+            "x": -1.5,
+            "y": 25.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -4
+      },
+      "file": "male_bald_drifter_walk_south_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south_walk",
+        "frame": 1
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.9,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.9,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 6
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south/frame_001.png",
+        "pixellabJob": "c26b079c-f4e7-4e7a-8549-9102035866a5"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 1
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south_01.png",
+          "zoneFile": "male_drifter_zone_walk_south_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 624
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 625,
+        "layerPixels": 624,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 40,
+        "attachments": [
+          {
+            "x": -1.5,
+            "y": 26.5,
+            "n": 1
+          },
+          {
+            "x": 8.5,
+            "y": 29.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -5
+      },
+      "file": "male_bald_drifter_walk_south_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south_walk",
+        "frame": 2
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.765,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.765,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south/frame_002.png",
+        "pixellabJob": "c26b079c-f4e7-4e7a-8549-9102035866a5"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 2
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south_02.png",
+          "zoneFile": "male_drifter_zone_walk_south_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 623
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 624,
+        "layerPixels": 623,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 38,
+        "attachments": [
+          {
+            "x": -0.5,
+            "y": 26.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -5
+      },
+      "file": "male_bald_drifter_walk_south_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south_walk",
+        "frame": 3
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.953,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.953,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south/frame_003.png",
+        "pixellabJob": "c26b079c-f4e7-4e7a-8549-9102035866a5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 3
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south_03.png",
+          "zoneFile": "male_drifter_zone_walk_south_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 621
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 625,
+        "layerPixels": 621,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 4,
+        "addedPixels": 56,
+        "attachments": [
+          {
+            "x": -1.5,
+            "y": 26,
+            "n": 2
+          },
+          {
+            "x": 7,
+            "y": 28.5,
+            "n": 2
+          }
+        ],
+        "hemRow": -5
+      },
+      "file": "male_bald_drifter_walk_south_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south_walk",
+        "frame": 4
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.762,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.762,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south/frame_004.png",
+        "pixellabJob": "c26b079c-f4e7-4e7a-8549-9102035866a5"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 4
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south_04.png",
+          "zoneFile": "male_drifter_zone_walk_south_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 615
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 615,
+        "layerPixels": 615,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 42,
+        "attachments": [
+          {
+            "x": -1.5,
+            "y": 26,
+            "n": 2
+          }
+        ],
+        "hemRow": -5
+      },
+      "file": "male_bald_drifter_walk_south_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south_walk",
+        "frame": 5
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.28,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.28,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30,
+        "y": 6
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south/frame_005.png",
+        "pixellabJob": "c26b079c-f4e7-4e7a-8549-9102035866a5"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 5
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south_05.png",
+          "zoneFile": "male_drifter_zone_walk_south_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 637
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 637,
+        "layerPixels": 637,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 41,
+        "attachments": [
+          {
+            "x": 0.5,
+            "y": 17.5,
+            "n": 1
+          },
+          {
+            "x": -1.5,
+            "y": 26.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -8
+      },
+      "file": "male_bald_drifter_walk_south_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 0
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.114,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.114,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_000.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-east_00.png",
+          "zoneFile": "male_drifter_zone_walk_south-east_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 523
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 523,
+        "layerPixels": 523,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 32,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0.3,
+            "y": 26.2,
+            "n": 3
+          }
+        ],
+        "hemRow": -3
+      },
+      "file": "male_bald_drifter_walk_south-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 1
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.478,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.478,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 10
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_001.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 24,
+        "headLockRow": 23,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-east_01.png",
+          "zoneFile": "male_drifter_zone_walk_south-east_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 497
+        }
+      ],
+      "outfitStats": {
+        "neckY": 23,
+        "neckMeasured": true,
+        "zonePixels": 500,
+        "layerPixels": 497,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 3,
+        "addedPixels": 29,
+        "attachments": [
+          {
+            "x": 2,
+            "y": 15.5,
+            "n": 1
+          },
+          {
+            "x": -8,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 25.5,
+            "n": 1
+          },
+          {
+            "x": -2,
+            "y": 30.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -4
+      },
+      "file": "male_bald_drifter_walk_south-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 2
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.069,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.069,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_002.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-east_02.png",
+          "zoneFile": "male_drifter_zone_walk_south-east_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 501
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 502,
+        "layerPixels": 501,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 34,
+        "attachments": [
+          {
+            "x": -1,
+            "y": 13.5,
+            "n": 1
+          },
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 26.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -3
+      },
+      "file": "male_bald_drifter_walk_south-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 3
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.113,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.113,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_003.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-east_03.png",
+          "zoneFile": "male_drifter_zone_walk_south-east_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 504
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 504,
+        "layerPixels": 504,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 51,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 25.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -7
+      },
+      "file": "male_bald_drifter_walk_south-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 4
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.885,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.885,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_004.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-east_04.png",
+          "zoneFile": "male_drifter_zone_walk_south-east_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 592
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 592,
+        "layerPixels": 592,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 61,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 25.5,
+            "n": 1
+          },
+          {
+            "x": 2,
+            "y": 25.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -4
+      },
+      "file": "male_bald_drifter_walk_south-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 5
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.825,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.825,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 9
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_005.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-east_05.png",
+          "zoneFile": "male_drifter_zone_walk_south-east_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 593
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 593,
+        "layerPixels": 593,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 59,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 26,
+            "n": 2
+          },
+          {
+            "x": 2,
+            "y": 26,
+            "n": 2
+          }
+        ],
+        "hemRow": -5
+      },
+      "file": "male_bald_drifter_walk_south-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 0
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.134,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.134,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_000.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_east_00.png",
+          "zoneFile": "male_drifter_zone_walk_east_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 422
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 427,
+        "layerPixels": 422,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 5,
+        "addedPixels": 72,
+        "attachments": [],
+        "hemRow": -7
+      },
+      "file": "male_bald_drifter_walk_east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 1
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.219,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.219,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_001.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_east_01.png",
+          "zoneFile": "male_drifter_zone_walk_east_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 505
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 507,
+        "layerPixels": 505,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 2,
+        "addedPixels": 66,
+        "attachments": [],
+        "hemRow": -9
+      },
+      "file": "male_bald_drifter_walk_east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 2
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.87,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.87,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_002.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_east_02.png",
+          "zoneFile": "male_drifter_zone_walk_east_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 472
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 472,
+        "layerPixels": 472,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 50,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "file": "male_bald_drifter_walk_east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 3
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.797,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.797,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_003.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_east_03.png",
+          "zoneFile": "male_drifter_zone_walk_east_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 404
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 405,
+        "layerPixels": 404,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 58,
+        "attachments": [
+          {
+            "x": 0.8,
+            "y": 16.5,
+            "n": 1
+          },
+          {
+            "x": 1.8,
+            "y": 26.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -8
+      },
+      "file": "male_bald_drifter_walk_east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 4
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.709,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.709,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_004.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_east_04.png",
+          "zoneFile": "male_drifter_zone_walk_east_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 481
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 481,
+        "layerPixels": 481,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 30,
+        "attachments": [
+          {
+            "x": 2.3,
+            "y": 27,
+            "n": 2
+          }
+        ],
+        "hemRow": -5
+      },
+      "file": "male_bald_drifter_walk_east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 5
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.241,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.241,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_005.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_east_05.png",
+          "zoneFile": "male_drifter_zone_walk_east_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 410
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 410,
+        "layerPixels": 410,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 43,
+        "attachments": [
+          {
+            "x": 2.8,
+            "y": 27.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -12
+      },
+      "file": "male_bald_drifter_walk_east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 0
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.333,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.333,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_000.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-east_00.png",
+          "zoneFile": "male_drifter_zone_walk_north-east_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 590
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 591,
+        "layerPixels": 590,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 41,
+        "attachments": [],
+        "hemRow": -7
+      },
+      "file": "male_bald_drifter_walk_north-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 1
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_001.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-east_01.png",
+          "zoneFile": "male_drifter_zone_walk_north-east_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 556
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 556,
+        "layerPixels": 556,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 60,
+        "attachments": [
+          {
+            "x": -10.6,
+            "y": 30.2,
+            "n": 3
+          }
+        ],
+        "hemRow": -2
+      },
+      "file": "male_bald_drifter_walk_north-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 2
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.141,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.141,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_002.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-east_02.png",
+          "zoneFile": "male_drifter_zone_walk_north-east_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 559
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 561,
+        "layerPixels": 559,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 2,
+        "addedPixels": 47,
+        "attachments": [],
+        "hemRow": -10
+      },
+      "file": "male_bald_drifter_walk_north-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 3
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.476,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.476,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_003.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-east_03.png",
+          "zoneFile": "male_drifter_zone_walk_north-east_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 538
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 540,
+        "layerPixels": 538,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 2,
+        "addedPixels": 41,
+        "attachments": [
+          {
+            "x": 1.1,
+            "y": 28.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -2
+      },
+      "file": "male_bald_drifter_walk_north-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 4
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.647,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.647,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_004.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-east_04.png",
+          "zoneFile": "male_drifter_zone_walk_north-east_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 498
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 498,
+        "layerPixels": 498,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 34,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "file": "male_bald_drifter_walk_north-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 5
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.391,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.391,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_005.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-east_05.png",
+          "zoneFile": "male_drifter_zone_walk_north-east_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 488
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 489,
+        "layerPixels": 488,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 23,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "file": "male_bald_drifter_walk_north-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north_walk",
+        "frame": 0
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north/frame_000.png",
+        "pixellabJob": "50799a87-7a91-4814-8302-8bf2c790a5ec"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 0
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north_00.png",
+          "zoneFile": "male_drifter_zone_walk_north_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 588
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 588,
+        "layerPixels": 588,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 10,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "file": "male_bald_drifter_walk_north_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north_walk",
+        "frame": 1
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.109,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.109,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north/frame_001.png",
+        "pixellabJob": "50799a87-7a91-4814-8302-8bf2c790a5ec"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 1
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north_01.png",
+          "zoneFile": "male_drifter_zone_walk_north_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 558
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 558,
+        "layerPixels": 558,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 11,
+        "attachments": [],
+        "hemRow": -7
+      },
+      "file": "male_bald_drifter_walk_north_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north_walk",
+        "frame": 2
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.75,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north/frame_002.png",
+        "pixellabJob": "50799a87-7a91-4814-8302-8bf2c790a5ec"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 2
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north_02.png",
+          "zoneFile": "male_drifter_zone_walk_north_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 569
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 569,
+        "layerPixels": 569,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 8,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "file": "male_bald_drifter_walk_north_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north_walk",
+        "frame": 3
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north/frame_003.png",
+        "pixellabJob": "50799a87-7a91-4814-8302-8bf2c790a5ec"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 3
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north_03.png",
+          "zoneFile": "male_drifter_zone_walk_north_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 596
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 598,
+        "layerPixels": 596,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 2,
+        "addedPixels": 23,
+        "attachments": [],
+        "hemRow": -2
+      },
+      "file": "male_bald_drifter_walk_north_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north_walk",
+        "frame": 4
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 26.891,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 26.891,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north/frame_004.png",
+        "pixellabJob": "50799a87-7a91-4814-8302-8bf2c790a5ec"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 4
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north_04.png",
+          "zoneFile": "male_drifter_zone_walk_north_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 557
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 557,
+        "layerPixels": 557,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 9,
+        "attachments": [],
+        "hemRow": -4
+      },
+      "file": "male_bald_drifter_walk_north_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north_walk",
+        "frame": 5
+      },
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.75,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north/frame_005.png",
+        "pixellabJob": "50799a87-7a91-4814-8302-8bf2c790a5ec"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 5
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north_05.png",
+          "zoneFile": "male_drifter_zone_walk_north_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 605
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 605,
+        "layerPixels": 605,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 21,
+        "attachments": [],
+        "hemRow": -9
+      },
+      "file": "male_bald_drifter_walk_north_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 0
+      },
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.667,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.667,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_000.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-west_00.png",
+          "zoneFile": "male_drifter_zone_walk_north-west_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 590,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 591,
+        "layerPixels": 590,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 41,
+        "attachments": [],
+        "hemRow": -7
+      },
+      "mirroredFrom": "NE",
+      "file": "male_bald_drifter_walk_north-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 1
+      },
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_001.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-west_01.png",
+          "zoneFile": "male_drifter_zone_walk_north-west_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 556,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 556,
+        "layerPixels": 556,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 60,
+        "attachments": [
+          {
+            "x": -10.6,
+            "y": 30.2,
+            "n": 3
+          }
+        ],
+        "hemRow": -2
+      },
+      "mirroredFrom": "NE",
+      "file": "male_bald_drifter_walk_north-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 2
+      },
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.859,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.859,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_002.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-west_02.png",
+          "zoneFile": "male_drifter_zone_walk_north-west_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 559,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 561,
+        "layerPixels": 559,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 2,
+        "addedPixels": 47,
+        "attachments": [],
+        "hemRow": -10
+      },
+      "mirroredFrom": "NE",
+      "file": "male_bald_drifter_walk_north-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 3
+      },
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.524,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.524,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_003.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-west_03.png",
+          "zoneFile": "male_drifter_zone_walk_north-west_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 538,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 540,
+        "layerPixels": 538,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 2,
+        "addedPixels": 41,
+        "attachments": [
+          {
+            "x": 1.1,
+            "y": 28.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -2
+      },
+      "mirroredFrom": "NE",
+      "file": "male_bald_drifter_walk_north-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 4
+      },
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.353,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.353,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_004.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-west_04.png",
+          "zoneFile": "male_drifter_zone_walk_north-west_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 498,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 498,
+        "layerPixels": 498,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 34,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "mirroredFrom": "NE",
+      "file": "male_bald_drifter_walk_north-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "frame": 5
+      },
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.609,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.609,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_north-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/north-east/frame_005.png",
+        "pixellabJob": "8ee094fe-a081-43e2-b458-d9681a592a1c"
+      },
+      "outfitAttachment": {
+        "neckline": 20,
+        "headLockRow": 19,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_north-west_05.png",
+          "zoneFile": "male_drifter_zone_walk_north-west_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 488,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 19,
+        "neckMeasured": true,
+        "zonePixels": 489,
+        "layerPixels": 488,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 23,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "mirroredFrom": "NE",
+      "file": "male_bald_drifter_walk_north-west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 0
+      },
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.866,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.866,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_000.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_west_00.png",
+          "zoneFile": "male_drifter_zone_walk_west_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 422,
+          "mirroredFrom": "E"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 427,
+        "layerPixels": 422,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 5,
+        "addedPixels": 72,
+        "attachments": [],
+        "hemRow": -7
+      },
+      "mirroredFrom": "E",
+      "file": "male_bald_drifter_walk_west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 1
+      },
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.781,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.781,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_001.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_west_01.png",
+          "zoneFile": "male_drifter_zone_walk_west_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 505,
+          "mirroredFrom": "E"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 507,
+        "layerPixels": 505,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 2,
+        "addedPixels": 66,
+        "attachments": [],
+        "hemRow": -9
+      },
+      "mirroredFrom": "E",
+      "file": "male_bald_drifter_walk_west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 2
+      },
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.13,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.13,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_002.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_west_02.png",
+          "zoneFile": "male_drifter_zone_walk_west_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 472,
+          "mirroredFrom": "E"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 472,
+        "layerPixels": 472,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 50,
+        "attachments": [],
+        "hemRow": -8
+      },
+      "mirroredFrom": "E",
+      "file": "male_bald_drifter_walk_west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 3
+      },
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.203,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.203,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_003.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_west_03.png",
+          "zoneFile": "male_drifter_zone_walk_west_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 404,
+          "mirroredFrom": "E"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 405,
+        "layerPixels": 404,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 58,
+        "attachments": [
+          {
+            "x": 0.8,
+            "y": 16.5,
+            "n": 1
+          },
+          {
+            "x": 1.8,
+            "y": 26.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -8
+      },
+      "mirroredFrom": "E",
+      "file": "male_bald_drifter_walk_west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 4
+      },
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.291,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.291,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_004.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_west_04.png",
+          "zoneFile": "male_drifter_zone_walk_west_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 481,
+          "mirroredFrom": "E"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 481,
+        "layerPixels": 481,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 30,
+        "attachments": [
+          {
+            "x": 2.3,
+            "y": 27,
+            "n": 2
+          }
+        ],
+        "hemRow": -5
+      },
+      "mirroredFrom": "E",
+      "file": "male_bald_drifter_walk_west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "frame": 5
+      },
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.759,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.759,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/east/frame_005.png",
+        "pixellabJob": "a139bb93-d2f8-48ab-b306-0eb6d4d0f5b5"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_west_05.png",
+          "zoneFile": "male_drifter_zone_walk_west_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 410,
+          "mirroredFrom": "E"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 410,
+        "layerPixels": 410,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 43,
+        "attachments": [
+          {
+            "x": 2.8,
+            "y": 27.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -12
+      },
+      "mirroredFrom": "E",
+      "file": "male_bald_drifter_walk_west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 0
+      },
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.886,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.886,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 9
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_000.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-west_00.png",
+          "zoneFile": "male_drifter_zone_walk_south-west_00.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 523,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 523,
+        "layerPixels": 523,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 32,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0.3,
+            "y": 26.2,
+            "n": 3
+          }
+        ],
+        "hemRow": -3
+      },
+      "mirroredFrom": "SE",
+      "file": "male_bald_drifter_walk_south-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 1
+      },
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.522,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.522,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 10
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_001.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 24,
+        "headLockRow": 23,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-west_01.png",
+          "zoneFile": "male_drifter_zone_walk_south-west_01.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 497,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 23,
+        "neckMeasured": true,
+        "zonePixels": 500,
+        "layerPixels": 497,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 3,
+        "addedPixels": 29,
+        "attachments": [
+          {
+            "x": 2,
+            "y": 15.5,
+            "n": 1
+          },
+          {
+            "x": -8,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 25.5,
+            "n": 1
+          },
+          {
+            "x": -2,
+            "y": 30.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -4
+      },
+      "mirroredFrom": "SE",
+      "file": "male_bald_drifter_walk_south-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 2
+      },
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.931,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.931,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_002.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-west_02.png",
+          "zoneFile": "male_drifter_zone_walk_south-west_02.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 501,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 502,
+        "layerPixels": 501,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 1,
+        "addedPixels": 34,
+        "attachments": [
+          {
+            "x": -1,
+            "y": 13.5,
+            "n": 1
+          },
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 26.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -3
+      },
+      "mirroredFrom": "SE",
+      "file": "male_bald_drifter_walk_south-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 3
+      },
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.887,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.887,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 7
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_003.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 21,
+        "headLockRow": 20,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-west_03.png",
+          "zoneFile": "male_drifter_zone_walk_south-west_03.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 504,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 20,
+        "neckMeasured": true,
+        "zonePixels": 504,
+        "layerPixels": 504,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 51,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 25.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -7
+      },
+      "mirroredFrom": "SE",
+      "file": "male_bald_drifter_walk_south-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 4
+      },
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.115,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.115,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_004.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 22,
+        "headLockRow": 21,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-west_04.png",
+          "zoneFile": "male_drifter_zone_walk_south-west_04.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 592,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 21,
+        "neckMeasured": true,
+        "zonePixels": 592,
+        "layerPixels": 592,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 61,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 25.5,
+            "n": 1
+          },
+          {
+            "x": 2,
+            "y": 25.5,
+            "n": 1
+          }
+        ],
+        "hemRow": -4
+      },
+      "mirroredFrom": "SE",
+      "file": "male_bald_drifter_walk_south-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "frame": 5
+      },
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.175,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.175,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "outfitAnchor": null,
+      "outfitSource": {
+        "staticAsset": "male_bald_none_drifter_south-east",
+        "rawTransferFrame": "candidates/male/job_20261120_003248_129d04/raw_transfer/south-east/frame_005.png",
+        "pixellabJob": "58b710e8-d0a6-4bf8-a4a8-a97c47ff7244"
+      },
+      "outfitAttachment": {
+        "neckline": 23,
+        "headLockRow": 22,
+        "collarRows": 1,
+        "necklineMeasured": true,
+        "offset": {
+          "dx": 0,
+          "dy": 0
+        },
+        "note": "frame-specific outfit art; no offset"
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "outfit:drifter",
+          "kind": "outfit",
+          "order": 10,
+          "occlusion": "replace",
+          "layerFile": "male_drifter_outfit_walk_south-west_05.png",
+          "zoneFile": "male_drifter_zone_walk_south-west_05.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 593,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "outfitStats": {
+        "neckY": 22,
+        "neckMeasured": true,
+        "zonePixels": 593,
+        "layerPixels": 593,
+        "headChanged": 0,
+        "composeExact": true,
+        "starterShirtLeft": 0,
+        "bareLowerLeg": 0,
+        "frontColorPixels": 0,
+        "lostBodyPixels": 0,
+        "addedPixels": 59,
+        "attachments": [
+          {
+            "x": 1,
+            "y": 23.5,
+            "n": 1
+          },
+          {
+            "x": 0,
+            "y": 26,
+            "n": 2
+          },
+          {
+            "x": 2,
+            "y": 26,
+            "n": 2
+          }
+        ],
+        "hemRow": -5
+      },
+      "mirroredFrom": "SE",
+      "file": "male_bald_drifter_walk_south-west_05.png"
+    }
+  ]
+}

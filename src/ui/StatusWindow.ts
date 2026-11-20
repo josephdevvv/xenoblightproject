@@ -1,18 +1,23 @@
 import Phaser from 'phaser';
 import { PALETTE, toColorInt } from '../config/palette';
-import type { CharacterData } from '../data/CharacterData';
+import type { CharacterData, LocalizedMessage } from '../data/CharacterData';
+import { t, translate, type TranslationParams } from '../i18n';
+import { labels } from '../i18n/labels';
+import { localize } from '../i18n/phaser';
 import { CharacterStatusService, STATUS_DEV_TOOLS_ENABLED } from '../status/CharacterStatusService';
 import { computeDerivedStats, DERIVED_DISPLAY, formatStatValue, type DerivedStats } from '../status/DerivedStats';
 import { StatAllocationDraft } from '../status/StatAllocation';
-import { MAIN_STAT_INFO, MAIN_STATS, totalStats, type MainStat, type StatBlock } from '../status/StatTypes';
+import { MAIN_STATS, totalStats, type MainStat, type StatBlock } from '../status/StatTypes';
 import { GameServices } from '../systems/GameServices';
 import { ScrollArea } from './ScrollArea';
+import { fitText } from './text/fitText';
 import { STATUS_KIT, STATUS_KIT_HEIGHT, STATUS_KIT_LAYERS, STATUS_KIT_WIDTH, statusKitTextureKey, type KitRect } from './status/StatusKitLayout';
 import { textStyle } from './UITheme';
 
 const ACCENT = toColorInt(PALETTE.accentLight);
 
 interface StatRow {
+  label: Phaser.GameObjects.Text;
   value: Phaser.GameObjects.Text;
   desc: Phaser.GameObjects.Text;
   suffix: Phaser.GameObjects.Text;
@@ -39,8 +44,8 @@ class KitButton {
 
   constructor(scene: Phaser.Scene, root: Phaser.GameObjects.Container, rect: KitRect, label: string | null, onClick: () => void) {
     const [x, y, w, h] = rect;
-    this.label = label
-      ? scene.add.text(x + w / 2, y + h / 2, label, textStyle(9, PALETTE.pale, { letterSpacing: 1 })).setOrigin(0.5)
+    this.label = label !== null
+      ? scene.add.text(x + w / 2, y + h / 2, label, textStyle(9, PALETTE.pale)).setOrigin(0.5)
       : null;
     if (this.label) this.label.setPosition(Math.round(this.label.x), Math.round(this.label.y));
     this.outline = scene.add.graphics().setVisible(false);
@@ -123,6 +128,8 @@ export class StatusWindow {
   private readonly resetButton: KitButton;
   private readonly buttons: KitButton[] = [];
   private readonly unsubscribe: () => void;
+  /** Last result message, kept as a key so it follows language changes. */
+  private message: { text: LocalizedMessage; color: string } | null = null;
   private open = false;
 
   constructor(
@@ -149,15 +156,16 @@ export class StatusWindow {
 
     // 2. Header: title next to the kit's accent bars; name + level on the right; close button.
     const H = STATUS_KIT.header;
-    this.root.add(this.text(H.titleX, H.textY, 'STATUS', 10, PALETTE.white, { letterSpacing: 2 }));
+    const title = this.text(H.titleX, H.textY, '', 10, PALETTE.white);
+    this.root.add(title);
     this.levelText = this.text(H.rightX, H.textY, '', 10, PALETTE.accentLight).setOrigin(1, 0);
     this.nameText = this.text(H.rightX, H.textY, '', 10, PALETTE.white).setOrigin(1, 0);
     this.root.add([this.levelText, this.nameText]);
     this.buttons.push(new KitButton(scene, this.root, STATUS_KIT.close, null, () => this.close()));
 
     // 3. Section captions under the y-37 rules.
-    this.pointsText = this.text(STATUS_KIT.sectionLeft.cx, STATUS_KIT.sectionLeft.y, '', 8, PALETTE.silver, { letterSpacing: 1 }).setOrigin(0.5, 0);
-    const derivedTitle = this.text(STATUS_KIT.sectionRight.cx, STATUS_KIT.sectionRight.y, 'DERIVED STATS', 8, PALETTE.silver, { letterSpacing: 1 }).setOrigin(0.5, 0);
+    this.pointsText = this.text(STATUS_KIT.sectionLeft.cx, STATUS_KIT.sectionLeft.y, '', 8, PALETTE.silver).setOrigin(0.5, 0);
+    const derivedTitle = this.text(STATUS_KIT.sectionRight.cx, STATUS_KIT.sectionRight.y, '', 8, PALETTE.silver).setOrigin(0.5, 0);
     this.root.add([this.pointsText, derivedTitle]);
 
     // 4. Main stat rows.
@@ -168,10 +176,11 @@ export class StatusWindow {
     this.captionText = this.text(D.captionRight, D.captionY, '', 8, PALETTE.gray).setOrigin(1, 0);
     this.root.add(this.captionText);
     this.derivedArea = new ScrollArea(scene, ox + D.listX, oy + D.listY, D.listW, D.listH, depth + 2, D.rowPitch);
+    const derivedLabels: { key: string; text: Phaser.GameObjects.Text }[] = [];
     DERIVED_DISPLAY.forEach((entry, i) => {
-      const rowY = i * D.rowPitch + 2;
-      const label = entry.note ? `${entry.label} (${entry.note})` : entry.label;
-      const labelText = this.text(2, rowY, label, 8, PALETTE.silver);
+      const rowY = i * D.rowPitch + D.textOffsetY;
+      const labelText = this.text(2, rowY, '', 8, PALETTE.silver);
+      derivedLabels.push({ key: entry.key, text: labelText });
       const value = this.text(D.valueRight - D.listX, rowY, '', 8, PALETTE.white).setOrigin(1, 0);
       this.derivedArea.content.add([labelText, value]);
       this.derivedRows.push({ key: entry.key, percent: entry.percent ?? false, value });
@@ -184,11 +193,11 @@ export class StatusWindow {
     this.root.add([this.messageText, this.summaryText]);
 
     const F = STATUS_KIT.footer;
-    this.resetButton = new KitButton(scene, this.root, F.reset, 'RESET', () => this.reset());
+    this.resetButton = new KitButton(scene, this.root, F.reset, '', () => this.reset());
     if (STATUS_DEV_TOOLS_ENABLED) {
       // DEV ONLY: +10 test points (Shift + click: +100).
       this.buttons.push(
-        new KitButton(scene, this.root, F.dev, 'DEV +10', () => {
+        new KitButton(scene, this.root, F.dev, t('status.devGrant'), () => {
           const shift = this.scene.input.activePointer.event?.shiftKey ?? false;
           CharacterStatusService.devGrantPoints(this.character, shift ? 100 : 10);
         }),
@@ -198,8 +207,8 @@ export class StatusWindow {
       const [x, y, w, h] = F.dev;
       this.root.add(scene.add.rectangle(x, y, w, h, STATUS_KIT.fill).setOrigin(0, 0));
     }
-    const cancel = new KitButton(scene, this.root, F.cancel, 'CANCEL', () => this.close());
-    this.confirmButton = new KitButton(scene, this.root, F.confirm, 'CONFIRM', () => this.confirm());
+    const cancel = new KitButton(scene, this.root, F.cancel, '', () => this.close());
+    this.confirmButton = new KitButton(scene, this.root, F.confirm, '', () => this.confirm());
     this.confirmButton.label?.setColor(PALETTE.white);
     this.buttons.push(this.resetButton, cancel, this.confirmButton);
 
@@ -210,6 +219,18 @@ export class StatusWindow {
     });
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribe());
 
+    localize(scene, () => {
+      title.setText(t('status.title'));
+      derivedTitle.setText(t('status.derivedTitle'));
+      for (const d of derivedLabels) d.text.setText(labels.derived(d.key));
+      for (const [stat, row] of this.statRows) row.label.setText(labels.statLabel(stat));
+      this.resetButton.label?.setText(t('common.reset'));
+      cancel.label?.setText(t('common.cancel'));
+      this.confirmButton.label?.setText(t('common.confirm'));
+      this.showMessage(this.message);
+      this.refresh();
+    });
+
     this.setVisible(false);
   }
 
@@ -219,7 +240,7 @@ export class StatusWindow {
 
   show(): void {
     this.draft.reset(this.character.status);
-    this.messageText.setText('');
+    this.showMessage(null);
     this.derivedArea.scrollTo(0);
     this.setVisible(true);
     this.refresh();
@@ -238,27 +259,26 @@ export class StatusWindow {
   }
 
   private buildStatRow(stat: MainStat, i: number): void {
-    const info = MAIN_STAT_INFO[stat];
     const R = STATUS_KIT.row(i);
-    const label = this.text(R.labelX, R.textY, info.label, 9, PALETTE.white);
-    const desc = this.text(R.descX, R.textY + 1, '', 8, PALETTE.gray);
-    const suffix = this.text(R.labelZoneRight, R.textY + 1, '', 8, PALETTE.accentLight).setOrigin(1, 0);
+    const label = this.text(R.labelX, R.textY, labels.statLabel(stat), 9, PALETTE.white);
+    const desc = this.text(R.descX, R.textY, '', 8, PALETTE.gray);
+    const suffix = this.text(R.labelZoneRight, R.textY, '', 8, PALETTE.accentLight).setOrigin(1, 0);
     const value = this.text(R.valueRight, R.textY, '', 9, PALETTE.white).setOrigin(1, 0);
     this.root.add([label, desc, suffix, value]);
     const plus = new KitButton(this.scene, this.root, R.plus, null, () => this.addPoint(stat));
     this.buttons.push(plus);
-    this.statRows.set(stat, { value, desc, suffix, plus });
+    this.statRows.set(stat, { label, value, desc, suffix, plus });
   }
 
   private addPoint(stat: MainStat): void {
     if (!this.draft.add(stat)) return;
-    this.messageText.setText('');
+    this.showMessage(null);
     this.refresh();
   }
 
   private reset(): void {
     this.draft.clear();
-    this.messageText.setText('');
+    this.showMessage(null);
     this.refresh();
   }
 
@@ -266,21 +286,27 @@ export class StatusWindow {
     if (!this.draft.hasPending()) return;
     const error = CharacterStatusService.confirmAllocation(this.character, this.draft);
     if (error) {
-      this.messageText.setColor(PALETTE.error).setText(error);
+      this.showMessage({ text: error, color: PALETTE.error });
       return;
     }
     this.draft.reset(this.character.status);
-    this.messageText.setColor(PALETTE.silver).setText('Stat points applied.');
+    this.showMessage({ text: { key: 'status.applied' }, color: PALETTE.silver });
     this.refresh();
+  }
+
+  private showMessage(message: { text: LocalizedMessage; color: string } | null): void {
+    this.message = message;
+    if (!message) this.messageText.setText('');
+    else this.messageText.setColor(message.color).setText(translate(message.text.key, message.text.params as TranslationParams | undefined));
   }
 
   private refresh(): void {
     if (!this.open) return;
     const status = this.character.status;
-    this.levelText.setText(`Lv ${status.level}`);
+    this.levelText.setText(t('status.level', { level: status.level }));
     this.nameText.setX(this.levelText.x - this.levelText.width - 8);
     fitText(this.nameText, this.character.name, 180);
-    this.pointsText.setText(`STAT POINTS  ${status.statPoints}`);
+    this.pointsText.setText(t('status.statPoints', { points: status.statPoints }));
 
     const preview: StatBlock = { ...status.base };
     for (const stat of MAIN_STATS) {
@@ -295,7 +321,7 @@ export class StatusWindow {
       row.suffix.setText(parts.join(' '));
       // The description gives way to the pending / bonus marker when space runs out.
       const descRight = parts.length > 0 ? row.suffix.x - row.suffix.width - 4 : row.suffix.x;
-      fitText(row.desc, MAIN_STAT_INFO[stat].description, descRight - row.desc.x);
+      fitText(row.desc, labels.statDescription(stat), descRight - row.desc.x);
       row.plus.setEnabled(this.draft.canAdd(stat));
     }
 
@@ -309,8 +335,8 @@ export class StatusWindow {
     }
 
     const pending = this.draft.hasPending();
-    this.captionText.setText(pending ? 'PREVIEW' : 'CURRENT').setColor(pending ? PALETTE.accentLight : PALETTE.gray);
-    this.summaryText.setText(`Selected ${this.draft.selected}  Left ${this.draft.remainingAfterConfirm}`);
+    this.captionText.setText(t(pending ? 'status.captionPreview' : 'status.captionCurrent')).setColor(pending ? PALETTE.accentLight : PALETTE.gray);
+    this.summaryText.setText(t('status.summary', { selected: this.draft.selected, left: this.draft.remainingAfterConfirm }));
     this.confirmButton.setEnabled(pending);
     this.resetButton.setEnabled(pending);
   }
@@ -331,11 +357,4 @@ export class StatusWindow {
       if (child.input) child.input.enabled = visible;
     });
   }
-}
-
-/** Sets `value`, shortened with ".." until it fits `maxWidth`. */
-function fitText(text: Phaser.GameObjects.Text, value: string, maxWidth: number): void {
-  text.setText(value);
-  let n = value.length;
-  while (n > 1 && text.width > maxWidth) text.setText(`${value.slice(0, --n)}..`);
 }

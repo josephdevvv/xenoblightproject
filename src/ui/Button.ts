@@ -29,7 +29,7 @@ export class Button extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.bg = scene.add.rectangle(0, 0, options.width, options.height, UI_COLORS.buttonFill);
     this.labelText = scene.add
-      .text(0, 0, options.label, textStyle(options.fontSize ?? 13, PALETTE.pale, { letterSpacing: 1 }))
+      .text(0, 0, options.label, textStyle(options.fontSize ?? 13, PALETTE.pale))
       .setOrigin(0.5);
     this.add([this.bg, this.labelText]);
 

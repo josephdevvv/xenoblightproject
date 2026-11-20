@@ -51,21 +51,24 @@ export function computeDerivedStats(level: number, total: StatBlock): DerivedSta
   return out;
 }
 
-/** Display order, labels and units for the Status window. */
-export const DERIVED_DISPLAY: ReadonlyArray<{ key: keyof DerivedStats; label: string; percent?: boolean; note?: string }> = [
-  { key: 'meleeAtk', label: 'Melee ATK' },
-  { key: 'rangedAtk', label: 'Ranged ATK' },
-  { key: 'matk', label: 'MATK' },
-  { key: 'maxHp', label: 'Max HP' },
-  { key: 'maxSp', label: 'Max SP' },
-  { key: 'def', label: 'DEF' },
-  { key: 'mdef', label: 'MDEF' },
-  { key: 'hit', label: 'HIT' },
-  { key: 'flee', label: 'FLEE' },
-  { key: 'attackSpeedBonus', label: 'Attack Speed', percent: true, note: 'bonus' },
-  { key: 'critRate', label: 'Critical Rate', percent: true },
-  { key: 'critDamage', label: 'Critical Damage', percent: true },
-  { key: 'materialFindBonus', label: 'Material Find', percent: true, note: 'relative' },
+/**
+ * Display order and units for the Status window. Labels are translated (status.derived.<key> in
+ * src/i18n); Attack Speed is labelled as a bonus and Material Find as a relative bonus there.
+ */
+export const DERIVED_DISPLAY: ReadonlyArray<{ key: keyof DerivedStats; percent?: boolean }> = [
+  { key: 'meleeAtk' },
+  { key: 'rangedAtk' },
+  { key: 'matk' },
+  { key: 'maxHp' },
+  { key: 'maxSp' },
+  { key: 'def' },
+  { key: 'mdef' },
+  { key: 'hit' },
+  { key: 'flee' },
+  { key: 'attackSpeedBonus', percent: true },
+  { key: 'critRate', percent: true },
+  { key: 'critDamage', percent: true },
+  { key: 'materialFindBonus', percent: true },
 ];
 
 /** At most two decimals, no trailing zeros, no floating-point noise (5.1, 0.05, 120). */

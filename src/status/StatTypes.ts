@@ -10,16 +10,6 @@ export const MAIN_STATS = ['str', 'dex', 'int', 'vit', 'agi', 'luk'] as const;
 export type MainStat = (typeof MAIN_STATS)[number];
 export type StatBlock = Record<MainStat, number>;
 
-/** Short label and what each main stat affects (shown in the Status window). */
-export const MAIN_STAT_INFO: Readonly<Record<MainStat, { label: string; description: string }>> = {
-  str: { label: 'STR', description: 'Melee ATK' },
-  dex: { label: 'DEX', description: 'Ranged ATK, HIT' },
-  int: { label: 'INT', description: 'MATK, Max SP' },
-  vit: { label: 'VIT', description: 'Max HP, DEF, MDEF' },
-  agi: { label: 'AGI', description: 'Attack speed, FLEE' },
-  luk: { label: 'LUK', description: 'Crit, Material find' },
-};
-
 export const STATUS_RULES = {
   startingLevel: 1,
   maxLevel: 99,

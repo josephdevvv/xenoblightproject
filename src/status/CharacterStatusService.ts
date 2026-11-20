@@ -1,4 +1,4 @@
-import type { CharacterData } from '../data/CharacterData';
+import type { CharacterData, LocalizedMessage } from '../data/CharacterData';
 import { DEBUG_AVAILABLE } from '../systems/performance/DebugSnapshot';
 import { computeDerivedStats, type DerivedStats } from './DerivedStats';
 import type { StatAllocationDraft } from './StatAllocation';
@@ -45,8 +45,8 @@ export const CharacterStatusService = {
     return computeDerivedStats(character.status.level, totalStats(character.status));
   },
 
-  /** Validates and applies a staged allocation; returns an error message on failure. */
-  confirmAllocation(character: CharacterData, draft: StatAllocationDraft): string | null {
+  /** Validates and applies a staged allocation; returns a localizable error on failure. */
+  confirmAllocation(character: CharacterData, draft: StatAllocationDraft): LocalizedMessage | null {
     const result = draft.commit(character.status);
     if (!result.ok) return result.error;
     character.status = result.status;

@@ -37,7 +37,12 @@ export type LoadResult =
 
 /** Stable save key for a character name (trimmed, Unicode-normalised, case-insensitive). */
 export function characterSaveKey(name: string): string {
-  return KEY_PREFIX + encodeURIComponent(name.trim().normalize('NFC').toLocaleLowerCase());
+  return KEY_PREFIX + characterNameKey(name);
+}
+
+/** Prototype character identity: the name, trimmed, Unicode-normalised and case-insensitive. */
+export function characterNameKey(name: string): string {
+  return encodeURIComponent(name.trim().normalize('NFC').toLocaleLowerCase());
 }
 
 function storage(): Storage | null {

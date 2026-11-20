@@ -1,5 +1,6 @@
 import { createInitialStatus, type CharacterStatus } from '../status/StatTypes';
 import type { Gender } from './AppearanceCatalog';
+import { DEFAULT_STARTER_CHOICE, STARTER_CLASS_ID, starterAppearance, type StarterChoice } from './StarterCharacters';
 
 /**
  * Appearance selections. These are IDs only; how they are drawn is decided by the
@@ -16,6 +17,8 @@ export interface CharacterData {
   id: string;
   name: string;
   appearance: CharacterAppearance;
+  /** Class ID. Every new character starts as a Drifter. */
+  classId: string;
   createdAt: number;
   /** Level, main stats and stat points. Loaded/saved by CharacterStatusService. */
   status: CharacterStatus;
@@ -27,46 +30,70 @@ export const NAME_MAX_LENGTH = 16;
 /** Letters (any script, incl. Thai combining marks) and digits, single spaces between words. */
 const NAME_PATTERN = /^[\p{L}\p{M}\p{N}]+(?: [\p{L}\p{M}\p{N}]+)*$/u;
 
-export type NameValidationResult = { valid: true; name: string } | { valid: false; error: string };
+/** A localizable message: translation key + values for its {placeholders}. */
+export interface LocalizedMessage {
+  key: string;
+  params?: Record<string, string | number>;
+}
+
+export type NameValidationResult = { valid: true; name: string } | { valid: false; error: LocalizedMessage };
 
 export function validateCharacterName(raw: string): NameValidationResult {
   const name = raw.trim();
   const length = [...name].length;
 
   if (length === 0) {
-    return { valid: false, error: 'Please enter a character name.' };
+    return { valid: false, error: { key: 'validation.nameEmpty' } };
   }
   if (length < NAME_MIN_LENGTH) {
-    return { valid: false, error: `Name must be at least ${NAME_MIN_LENGTH} characters.` };
+    return { valid: false, error: { key: 'validation.nameTooShort', params: { min: NAME_MIN_LENGTH } } };
   }
   if (length > NAME_MAX_LENGTH) {
-    return { valid: false, error: `Name must be at most ${NAME_MAX_LENGTH} characters.` };
+    return { valid: false, error: { key: 'validation.nameTooLong', params: { max: NAME_MAX_LENGTH } } };
   }
   if (!NAME_PATTERN.test(name)) {
-    return { valid: false, error: 'Letters, numbers and single spaces only.' };
+    return { valid: false, error: { key: 'validation.nameInvalid' } };
   }
   return { valid: true, name };
 }
 
-/** Default look: the first appearance with production art (char_male_long_middle_part_blonde_adventurer). */
-const DEFAULT_APPEARANCE: Readonly<CharacterAppearance> = {
-  gender: 'male',
-  hairstyleId: 'long_middle_part',
-  hairColorId: 'blonde',
-  outfitId: 'adventurer',
-};
-
+/** Default look for a brand-new player (male, mohawk, blonde, Drifter outfit). */
 export function createDefaultAppearance(): CharacterAppearance {
-  return { ...DEFAULT_APPEARANCE };
+  return starterAppearance(DEFAULT_STARTER_CHOICE);
 }
 
-export function createCharacterData(name: string, appearance: CharacterAppearance): CharacterData {
-  const random = Math.random().toString(36).slice(2, 8);
+/**
+ * Creates a NEW character. Only gender and hairstyle come from the player; hair colour, outfit and
+ * class are fixed by the starter rules (StarterCharacters.ts) - whatever else the caller passes is
+ * ignored, and an unavailable gender / hairstyle is replaced by a supported one.
+ */
+export function createCharacterData(name: string, choice: StarterChoice): CharacterData {
   return {
-    id: `char_${Date.now().toString(36)}_${random}`,
+    id: newCharacterId(),
     name,
-    appearance: { ...appearance },
+    appearance: starterAppearance({ gender: choice.gender, hairstyleId: choice.hairstyleId }),
+    classId: STARTER_CLASS_ID,
     createdAt: Date.now(),
     status: createInitialStatus(),
   };
+}
+
+/**
+ * Rebuilds an EXISTING character from its saved profile, unchanged (appearance, class, creation
+ * time). Starter rules are not applied, so later appearances / classes keep working.
+ */
+export function restoreCharacterData(saved: { name: string; appearance: CharacterAppearance; classId: string; createdAt: number }): CharacterData {
+  return {
+    id: newCharacterId(),
+    name: saved.name,
+    appearance: { ...saved.appearance },
+    classId: saved.classId,
+    createdAt: saved.createdAt,
+    status: createInitialStatus(),
+  };
+}
+
+function newCharacterId(): string {
+  const random = Math.random().toString(36).slice(2, 8);
+  return `char_${Date.now().toString(36)}_${random}`;
 }

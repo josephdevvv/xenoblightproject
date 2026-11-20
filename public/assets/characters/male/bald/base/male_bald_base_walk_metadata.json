@@ -1,0 +1,1107 @@
+{
+  "schema": "xenoblight-sprite-forge/animation@1",
+  "animation": "walk",
+  "jobId": "job_20261119_060731_e36b1a",
+  "character": {
+    "gender": "male",
+    "hairstyle": "bald",
+    "hairColor": "none",
+    "outfit": "base_tee_shorts"
+  },
+  "master": {
+    "masterId": "MALE_MASTER",
+    "version": "v002"
+  },
+  "layerRole": "starter-outfit character reference (flattened skin + clothing; not a reusable under-clothing body layer)",
+  "frameSize": {
+    "width": 64,
+    "height": 64
+  },
+  "layout": {
+    "columns": 6,
+    "rows": 8,
+    "order": [
+      "S",
+      "SE",
+      "E",
+      "NE",
+      "N",
+      "NW",
+      "W",
+      "SW"
+    ],
+    "sheet": "male_bald_base_walk_8dir.png"
+  },
+  "frameMs": 125,
+  "loop": true,
+  "anchorConvention": "edge coordinates: pixel centre = x + 0.5; root = feet centre at the bottom edge of the lowest solid row (alpha >= 128, lowest 4 rows); head = centre of the top 4 solid rows at the top edge; mirrored x' = frameWidth - x",
+  "directionPolicy": {
+    "id": "mirror5-v1",
+    "sources": {
+      "S": "original",
+      "SE": "original",
+      "E": "original",
+      "NE": "original",
+      "N": "original",
+      "NW": "mirror(NE)",
+      "W": "mirror(E)",
+      "SW": "mirror(SE)"
+    },
+    "exceptions": []
+  },
+  "masterAnchors": {
+    "S": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 31,
+        "y": 8
+      }
+    },
+    "SE": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 32.5,
+        "y": 8
+      }
+    },
+    "E": {
+      "root": {
+        "x": 31.262,
+        "y": 57
+      },
+      "head": {
+        "x": 32.662,
+        "y": 8
+      }
+    },
+    "NE": {
+      "root": {
+        "x": 32.746,
+        "y": 57
+      },
+      "head": {
+        "x": 32.423,
+        "y": 8
+      }
+    },
+    "N": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 31,
+        "y": 8
+      }
+    },
+    "NW": {
+      "root": {
+        "x": 29.882,
+        "y": 57
+      },
+      "head": {
+        "x": 30.346,
+        "y": 8
+      }
+    },
+    "W": {
+      "root": {
+        "x": 31.738,
+        "y": 57
+      },
+      "head": {
+        "x": 30,
+        "y": 8
+      }
+    },
+    "SW": {
+      "root": {
+        "x": 32,
+        "y": 57
+      },
+      "head": {
+        "x": 30.5,
+        "y": 8
+      }
+    }
+  },
+  "crop": null,
+  "provenance": {
+    "derivedFrom": "job_20261119_060528_ad7e6b",
+    "op": "crisp-outline #222034 on canonical frames (no pinhole fill); mirrored directions re-flipped",
+    "remote": {
+      "startedAt": "2026-11-19T06:05:28.571Z",
+      "remoteJobId": "group 295eca97-932e-42ad-a8e2-cc425683c6ec; east=7ec4a612-9009-4e73-8445-03d9844f8fe9 north=c054015e-ed37-4fda-a7fd-c8f6ad60410d",
+      "note": "targeted regeneration of E/N"
+    }
+  },
+  "validation": "WARNING",
+  "frames": [
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.955,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.9,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 6
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.765,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.464,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.05,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.551,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30,
+        "y": 6
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.114,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.478,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 10
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.069,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.113,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.885,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.825,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.813,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.219,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.87,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.861,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.709,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.241,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.662,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.333,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.141,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.476,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.773,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.391,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 32.423,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.109,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 26.891,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#0",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.667,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#1",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#2",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.859,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#3",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.524,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#4",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.227,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#5",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.609,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.577,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_north-west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#0",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.187,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#1",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.781,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#2",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.13,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#3",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.139,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#4",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.291,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#5",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.759,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.338,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#0",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.886,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#1",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.522,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 10
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#2",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.931,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#3",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.887,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 7
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#4",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.115,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#5",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.175,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "file": "male_bald_base_walk_south-west_05.png"
+    }
+  ]
+}

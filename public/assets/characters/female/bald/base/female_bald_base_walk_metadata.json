@@ -1,0 +1,1761 @@
+{
+  "schema": "xenoblight-sprite-forge/animation@1",
+  "animation": "walk",
+  "jobId": "job_20261119_105919_1f48e9",
+  "character": {
+    "gender": "female",
+    "hairstyle": "bald",
+    "hairColor": "none",
+    "outfit": "base_tee_shorts"
+  },
+  "master": {
+    "masterId": "FEMALE_MASTER",
+    "version": "v002"
+  },
+  "layerRole": "starter-outfit character reference (flattened skin + clothing; not a reusable under-clothing body layer)",
+  "frameSize": {
+    "width": 64,
+    "height": 64
+  },
+  "layout": {
+    "columns": 6,
+    "rows": 8,
+    "order": [
+      "S",
+      "SE",
+      "E",
+      "NE",
+      "N",
+      "NW",
+      "W",
+      "SW"
+    ],
+    "sheet": "female_bald_base_walk_8dir.png"
+  },
+  "frameMs": 125,
+  "loop": true,
+  "anchorConvention": "edge coordinates: pixel centre = x + 0.5; root = feet centre at the bottom edge of the lowest solid row (alpha >= 128, lowest 4 rows); head = centre of the top 4 solid rows at the top edge; groundContact = root; hairAnchor = centre of the topmost solid row (scalp top) at its top edge; outfitAnchor = centre of the first row with >= 4 neckline-coloured px (#ffffff/#cbdbfc) at its top edge; mirrored x' = frameWidth - x",
+  "directionPolicy": {
+    "id": "mirror5-v1",
+    "sources": {
+      "S": "original",
+      "SE": "original",
+      "E": "original",
+      "NE": "original",
+      "N": "original",
+      "NW": "mirror(NE)",
+      "W": "mirror(E)",
+      "SW": "mirror(SE)"
+    },
+    "exceptions": []
+  },
+  "masterAnchors": {
+    "S": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 31.5,
+        "y": 8
+      }
+    },
+    "SE": {
+      "root": {
+        "x": 31.675,
+        "y": 57
+      },
+      "head": {
+        "x": 31.765,
+        "y": 8
+      }
+    },
+    "E": {
+      "root": {
+        "x": 31.397,
+        "y": 57
+      },
+      "head": {
+        "x": 31.765,
+        "y": 8
+      }
+    },
+    "NE": {
+      "root": {
+        "x": 32.84,
+        "y": 57
+      },
+      "head": {
+        "x": 30.765,
+        "y": 8
+      }
+    },
+    "N": {
+      "root": {
+        "x": 31.5,
+        "y": 57
+      },
+      "head": {
+        "x": 31.235,
+        "y": 8
+      }
+    },
+    "NW": {
+      "root": {
+        "x": 30.34,
+        "y": 57
+      },
+      "head": {
+        "x": 32.157,
+        "y": 8
+      }
+    },
+    "W": {
+      "root": {
+        "x": 30.947,
+        "y": 57
+      },
+      "head": {
+        "x": 31.157,
+        "y": 8
+      }
+    },
+    "SW": {
+      "root": {
+        "x": 31.45,
+        "y": 57
+      },
+      "head": {
+        "x": 31.235,
+        "y": 8
+      }
+    }
+  },
+  "crop": null,
+  "provenance": {
+    "derivedFrom": "job_20261119_105113_cf3892",
+    "op": "whole-frame shifts SE#5 0,-1; NE#4 0,1; NE#5 0,2; other frames kept; mirrors re-flipped",
+    "remote": {
+      "startedAt": "2026-11-19T06:16:46.312Z",
+      "remoteJobId": "v3 group 426fc778-f5e7-4353-a0a5-68d44b2a4e2b (S=6571219b SE=a5c075aa NE=6f60e898); skeleton-v3 group 2cc9f2ae-a3d6-42ac-8e83-d97962a510e9 (E=3743fcda N=442744ef); cost 9"
+    }
+  },
+  "outlineExceptions": [
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 30,
+      "y": 11,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 29,
+      "y": 12,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 19,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 20,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 37,
+      "y": 21,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 52,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 37,
+      "y": 31,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 38,
+      "y": 32,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 39,
+      "y": 33,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "NE",
+      "frame": 0,
+      "x": 27,
+      "y": 10,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "N",
+      "frame": 4,
+      "x": 33,
+      "y": 9,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    }
+  ],
+  "validation": "WARNING",
+  "frames": [
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 30.333,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_south_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.306,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.5,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.306,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 31.214,
+        "y": 21
+      },
+      "file": "female_bald_base_walk_south_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.786,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.786,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_south_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.389,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.389,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "outfitAnchor": {
+        "x": 31.214,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_south_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.389,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.389,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 31.214,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_south_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.5,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 30.786,
+        "y": 21
+      },
+      "file": "female_bald_base_walk_south_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.056,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.056,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 30.75,
+        "y": 25
+      },
+      "file": "female_bald_base_walk_south-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.63,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 11
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.63,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 11
+      },
+      "outfitAnchor": {
+        "x": 31.357,
+        "y": 26
+      },
+      "file": "female_bald_base_walk_south-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.643,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.643,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "outfitAnchor": {
+        "x": 31.357,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_south-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.7,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.7,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31.357,
+        "y": 23
+      },
+      "file": "female_bald_base_walk_south-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.462,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.462,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "outfitAnchor": {
+        "x": 32.125,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_south-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.348,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.348,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 9
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_south-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.871,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.671,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.871,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.735,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.765,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.735,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.855,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.855,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.638,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.638,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.349,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.765,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.349,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 37.597,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.765,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 37.597,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.7,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.878,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.7,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.824,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.765,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.824,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 21
+      },
+      "file": "female_bald_base_walk_north-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.9,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.765,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.9,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 21
+      },
+      "file": "female_bald_base_walk_north-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.342,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.765,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.342,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.553,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.765,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.553,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.113,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.765,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.113,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.474,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.474,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.308,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.765,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.308,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.607,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.765,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.607,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.419,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.419,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.2,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.088,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.2,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.962,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.962,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#0",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.3,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.122,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.3,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 33.5,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#1",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.176,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.235,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.176,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 33.5,
+        "y": 21
+      },
+      "file": "female_bald_base_walk_north-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#2",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.1,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.235,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.1,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 33.5,
+        "y": 21
+      },
+      "file": "female_bald_base_walk_north-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#3",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.658,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.235,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.658,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#4",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.447,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.235,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.447,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#5",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.887,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.235,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.887,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 22
+      },
+      "file": "female_bald_base_walk_north-west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#0",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.129,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.329,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.129,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#1",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.265,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.235,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.265,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#2",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.145,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.145,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#3",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.362,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.362,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#4",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.651,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.235,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.651,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#5",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 26.403,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 26.403,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#0",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.944,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 10
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.944,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 10
+      },
+      "outfitAnchor": {
+        "x": 33.25,
+        "y": 25
+      },
+      "file": "female_bald_base_walk_south-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#1",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.37,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 11
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.37,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 11
+      },
+      "outfitAnchor": {
+        "x": 32.643,
+        "y": 26
+      },
+      "file": "female_bald_base_walk_south-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#2",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.357,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.357,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 9
+      },
+      "outfitAnchor": {
+        "x": 32.643,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_south-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#3",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.3,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.3,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 32.643,
+        "y": 23
+      },
+      "file": "female_bald_base_walk_south-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#4",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.538,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.538,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 9
+      },
+      "outfitAnchor": {
+        "x": 31.875,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_south-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#5",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.652,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.235,
+        "y": 9
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.652,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 9
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 24
+      },
+      "file": "female_bald_base_walk_south-west_05.png"
+    }
+  ]
+}

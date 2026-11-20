@@ -14,14 +14,14 @@ plus the loading & performance architecture groundwork and the Character Status 
 | Loading & performance architecture | Persistent `SystemScene` hosting `GameServices`: `AssetLoadingManager` (on-demand, deduplicated, failure-safe), `ResourceCacheManager` (ref-counted texture ownership, grace-period GC), `MapLoadingManager` (PRELOAD -> PREPARE -> time-sliced BUILD -> TRANSITION -> CLEANUP), `PerformanceManager` (frame stats, budgets, distance priorities), `VisibilityCuller` (off-screen static objects hidden, off-screen smoke paused), `LoadingScreen`, optional debug overlay (F3 in dev, `?debug` in production). See PERFORMANCE_GUIDELINES.md. |
 | Lazy character loading | Character sheets load when a scene needs them (creation: standing only; game: standing + walk); views hold cache references; failed art falls back to a mockup. |
 | Multiplayer preparation | Interfaces only (`src/multiplayer/contracts.ts`): character snapshots, appearance loader, remote renderer, interest manager, nearby query; `CharacterRegistry` tracks live views. No networking. |
-| Character data | `CharacterAppearance` (gender, hairstyle, hair colour, outfit IDs), `CharacterData`, name validation, in-memory `CharacterStore`. |
-| Appearance catalog | 2 genders, 6 hairstyles per gender (from the design doc), 5 hair colours, 2 outfits (Basic Wraps = "unclothed", Adventurer). |
+| Character data | `CharacterAppearance` (gender, hairstyle, hair colour, outfit IDs), `CharacterData` (+ `classId`), name validation, in-memory `CharacterStore`. New characters come only from `createCharacterData` + `StarterCharacters` (gender + hairstyle chosen; hair colour blonde / `none` for bald, outfit and class `drifter` enforced). `CharacterProfileStore`: per-name profile in localStorage (appearance + class), last-played pointer; an existing name is restored unchanged (`restoreCharacterData`). |
+| Appearance catalog | Data model: 2 genders, hairstyles per gender (design doc + Sprite Forge `bald`), 5 hair colours, outfits (basic, adventurer, drifter). Only the starter subset is selectable (`StarterCharacters`). |
 | Character asset IDs | One sprite ID + expected file path per combination (120 total). |
-| Production character art | 114 of 120 appearances have full pre-rendered static 8-direction sheets (male 60/60, female 54/60), loaded on demand (character creation prefetches likely choices in the background). Every sheet is measured at runtime (`SpriteMetrics`): anchored on its feet and normalised to a 54 px figure height, so all appearances are the same size and do not jump when options change. Walk animation for male / long_middle_part / blonde / adventurer (also the default appearance); others use their static directional frame while moving. Inventory: CHARACTER_SPRITE_INVENTORY.md. |
-| Mockup character sheets | Generated on demand only for the 6 appearances without production art (female adventurer long_side_part x5, straight_bangs red); same 4x2 static layout. |
+| Production character art | Approved Xenoblight Sprite Forge exports only (`src/assets/SpriteForgeCharacters.ts`, files in `public/assets/characters/`): male bald, male mohawk (forge spike) blonde, female bald, female straight bangs blonde - each as Drifter and base (no outfit); static 4x2 (256x128) + walk 6x8 (384x512, 125 ms). Loaded on demand; feet anchor and 54 px figure size measured from the pixels (`SpriteMetrics`). The earlier imported sheets were removed (see the note in CHARACTER_SPRITE_INVENTORY.md). |
+| Mockup character sheets | Procedural generator kept only for appearances with no art at all (not reachable from character creation). Approved art is never replaced by a mockup: a missing approved sheet is logged with its exact path and shown as the missing texture. |
 | Character rendering | `CharacterView` = one sprite per character; appearance change swaps the whole sheet. |
 | Character animator | `CharacterAnimator`: while moving plays the 8-direction walk cycle (6 frames, 8 FPS, looping; keeps stride phase when turning); when movement stops it switches immediately to the static standing frame of the last facing. No idle animation. Each sheet has its own feet origin (standing 58, walk 62). Only appearances with a walk sheet animate. |
-| Character creation screen | Gender, hairstyle, hair colour, outfit, name, live preview (rotate 8 directions, shows sprite ID). |
+| Character creation screen | Gender (Male / Female), hairstyle (Bald + Mohawk for male, Bald + Straight Bangs for female, two buttons), Drifter outfit preview (not selectable), name, live preview (rotate 8 directions, shows sprite ID). No hair-colour or outfit selector. Pre-filled with the last played character. |
 | Name validation | Trimmed, 3-16 characters, letters (any script incl. Thai) / digits / single spaces. Inline error message. |
 | Isometric map | 30x30 diamond tiles (64x32), correct iso <-> tile conversion, ground/path/vent tiles, 7 prop types, depth sorting by screen Y. |
 | Collision + bounds | Blocked tiles from props; thin wall boxes from structures; map edges are walls; axis-separated sliding, flush contact. |
@@ -33,6 +33,10 @@ plus the loading & performance architecture groundwork and the Character Status 
 | Monster system | `src/monsters/`: `MonsterDefinition` (data: id, name, sprite frame/anchor/optional URL, future animation clips, footprint), `MonsterEntity` (one static full-sprite image, feet-anchored, depth-sorted once), `MonsterSpawner` (validates bounds, blocked tiles, buildings, walls, distance from player spawn in world px, overlaps; reports and skips invalid points), `MonsterSpawns` (deterministic per-map spawn table). First monster: **Voidmite**, 64x32 procedural mockup (`MockupMonsterFactory`), 10 spawned on Ashen Crossroads. Idle **wandering** (`WanderBehavior`): walks to random reachable points within 3 tiles of its spawn at 0.9 tiles/s, pauses 0.9-2.8 s, uses the same tile collision as the player, never enters buildings or overlaps other monsters, gives up on destinations it stops approaching (0.6 s), skipped when in the "dormant" distance band. No AI decisions, chasing, combat, HP, or collision with the player. |
 | HUD | Dungeon HUD layer pack (`art-source/ui/dungeon_hud`), converted by `tools/import-hud-pack.ps1` to half-resolution cropped layers (2-px lines -> crisp 1-px, no blur) and drawn by `DungeonHud` in `GameUIScene` in the pack's render order, each layer pinned to its screen edge. Game-rendered: name (truncated to fit), level, HP / SP values with code-driven fill bars (`#D74A51` / `#5699E2`, current = max until combat exists), EXP bar (`#AB71D5`, 0 % - no EXP system), tile coordinates (centred in their box), map name, minimap (terrain baked per map + live player / monster dots), Status icon in the menu bar (hover tooltip). The pack's chat box (`04_chat`) is not shown (removed by request; listed in `HIDDEN_LAYERS`). Placeholders with no system behind them: quest tracker, AUTO, hotbar, the other 4 menu slots and the menu button. World-space name plate above the player. Esc returns to character creation. |
 | Character Status (foundation) | `src/status/`. `CharacterData.status` = level (1-99), BASE stats (STR/DEX/INT/VIT/AGI/LUK, start 1, max 99 from points), BONUS stats (future equipment/passives, 0 for now, not saved), TOTAL = base + bonus (may exceed 99), unspent stat points. 3 points per level from 2 to 99 (294 total), 1 point = +1 base. `DerivedStats.ts` holds every TEMPORARY formula in one table (Melee/Ranged ATK, MATK, Max HP/SP, DEF, MDEF, HIT, FLEE, Attack Speed bonus, Crit Rate/Damage, Material Find as a relative bonus), computed from TOTAL stats, shown with at most 2 decimals. `StatAllocationDraft` stages points and re-validates on confirm. `StatusSaveStore`: localStorage, one key per character name (`xenoblight.status.v1.<name>`), saves level/base/points only and recalculates derived stats; invalid fields are clamped individually, unreadable records are backed up (`.invalid-backup`) and replaced with a fresh status; missing level points are granted retroactively, extra points are never removed. `CharacterStatusService` is the single entry point (load, confirm, `setLevel` hook, dev grant, change events). UI: `GameUIScene` overlay, opened from the HUD menu's Status icon, with a modal `StatusWindow` drawn with the Moonsteel status kit (`art-source/ui/status_moonsteel`, 480x270 at 1:1, cropped by `tools/import-status-kit.ps1`): header with name / level, stat points, 6 stat rows with baked + buttons (dimmed when unavailable), derived list with live PREVIEW (scrolls by one baked row), RESET / CANCEL / CONFIRM, DEV +10 (Shift: +100) in dev builds only - the unused kit button is covered in production. Not applied to gameplay yet: no combat, EXP or leveling. |
+
+| Localization (TH / EN) | `src/i18n`: Thai default for new players (browser language ignored), English selectable; typed keys (`Messages` from `th.ts`, `en.ts` must match), `{placeholder}` interpolation, missing key -> Thai text -> key (reported in dev), runtime switch with `onLanguageChange` / `localize()` (no restart), `<html lang>` kept in sync. Persisted in `localStorage` (`xenoblight.settings.v1`, `src/settings/SettingsStore.ts`); invalid values fall back to Thai. All player-facing text migrated: boot / loading, character creation (labels, options, hints, validation errors, directions), HUD, Status window (labels, descriptions, derived stats, messages, errors), Settings. Validation / allocation errors are message keys, translated at display time. Dev-only debug overlay stays English. |
+| Settings window | `SettingsWindow`: language selector (ไทย / English, current one highlighted), reachable from character creation (top-right button) and in game (HUD menu icon); Esc closes it first. |
+| UI font | ZF #2ndPixelus (Thai + Latin capitals) for all Phaser text and the name input. One crisp size (13.73 px = 6-px advance); text is drawn at 4x and snapped to whole pixels (`PixelFont.installPixelTextSnap`) so browser Thai shaping is kept; fixed metrics (ascent 11 / descent 4) leave room for stacked tone marks. No letter spacing (it would split Thai marks). Fallback: Leelawadee UI / Tahoma / Noto Sans Thai at 1x. Grapheme-safe text shortening (`fitText`). |
 
 ## Verified in browser (dev server)
 
@@ -56,6 +60,12 @@ plus the loading & performance architecture groundwork and the Character Status 
   page reload (same name, any letter case); corrupted / out-of-range saves are repaired or backed up; UI clicks
   never move the player and Esc closes the window before leaving the map; DEV buttons absent in a production
   build without `?debug`
+
+- Localization: new player starts in Thai (`lang="th"`); Settings -> English switches every visible text at once
+  (creation screen, Settings, input placeholder) and saves it; reload restores English; switching back to Thai in
+  game updates HUD and an open Status window (incl. pending `+N`, preview caption, summary); Settings opens from the
+  HUD menu icon (tooltip), Esc closes it before leaving the map; Thai text checked at 2-4x magnification (marks
+  stacked correctly, no clipping); fallback system font checked with `?nopixelfont`; `npm test` 12/12
 
 ## Pending systems (future milestones)
 
@@ -105,6 +115,12 @@ level 50+ mutation subclasses.
   confirmed VIT / INT allocation; coordinates and minimap follow the player; 10 monster dots tracked; leaving and
   re-entering the map rebuilds the HUD with the same object and texture counts (no leaks)
 
+- Starter characters (Sprite Forge): all four Drifter looks (male bald / mohawk, female bald / straight bangs) load
+  their approved static sheets (only those four requests, all 200) and show the right art in all 8 directions in the
+  preview; in game the walk sheet plays 6 frames per direction at 125 ms on the matching row in all 8 directions and
+  returns to the static frame of the last facing on release; new characters save as Drifter (profile in localStorage),
+  a reload pre-fills creation, an existing name is restored unchanged; Esc -> creation -> re-enter works
+
 ## Known issues
 
 - The dev-only Vite 5 / esbuild dev server has an npm audit advisory (moderate). Production dependencies report
@@ -123,6 +139,13 @@ level 50+ mutation subclasses.
   1-px bevel details that fall between sampled pixels are kept only on dark panel areas.
 - The Moonsteel status kit is 480x270, so the Status window is about half the screen width; stat descriptions were
   shortened ("Ranged ATK, HIT") to fit the kit's 126-px label zone and give way to the pending "+N" marker.
+- Font licence: ZF #2ndPixelus says "For educations used only" and asks for a download-page link when
+  redistributed - confirm before publishing (see art-source/fonts/zf2ndpixelus/FONT_LICENSE_NOTES.md).
+- The pixel font has Latin capitals only, so English text is shown in capitals. All UI text is one size.
+- The map name "Ashen Crossroads" is kept in English in the Thai UI until an official Thai name exists.
+- In the Status window's derived list (11-px rows from the kit art), Thai words with stacked tone marks can
+  touch the baked row line above them.
+- The DOM name input uses the font through CSS (smooth browser rendering, not pixel-snapped).
 - Status saves are keyed by character name in the browser's localStorage (prototype): two characters with the
   same name share one status, and clearing site data resets it. A server-side character ID replaces this later.
 

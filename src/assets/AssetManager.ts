@@ -10,7 +10,7 @@ import {
 } from '../characters/CharacterSheetLayout';
 import { GameServices } from '../systems/GameServices';
 import { forgetSheetMetrics } from '../characters/SpriteMetrics';
-import { CHARACTER_SPRITE_MANIFEST } from './CharacterSpriteManifest';
+import { CHARACTER_SPRITE_MANIFEST, isApprovedCharacterSprite } from './CharacterSpriteManifest';
 import { LOGO_URL } from './LogoTexture';
 import { TextureKeys } from './TextureKeys';
 import type { MonsterDefinition } from '../monsters/MonsterDefinition';
@@ -25,6 +25,18 @@ export interface CharacterSheetOptions {
 
 /** Suffix for the mockup shown when an appearance's real art is still loading or failed to load. */
 const FALLBACK_SUFFIX = '__fallback';
+/** Transparent sheet shown while APPROVED art loads (approved art is never replaced by a mockup). */
+const BLANK_SHEET_KEY = 'char__blank_sheet';
+/** Phaser's built-in "missing texture" image: makes a missing approved sheet visible instead of hiding it. */
+const MISSING_SHEETS: CharacterSheets = { standing: '__MISSING', walk: null };
+const reportedMissing = new Set<string>();
+
+/** Approved art that fails to load is an error (exact path reported once), not a silent mockup. */
+function reportMissingApproved(id: string, url: string): void {
+  if (reportedMissing.has(id)) return;
+  reportedMissing.add(id);
+  console.error(`[assets] approved character sheet missing or unreadable: public/${url} (sprite ${id})`);
+}
 
 /**
  * Single entry point for obtaining textures.
@@ -81,7 +93,13 @@ export const AssetManager = {
     const failures = GameServices.get().assets.getFailures();
     const textures = scene.textures;
     if (!textures.exists(id)) {
-      if (failures.has(id)) return { standing: ensureMockupSheet(scene, id + FALLBACK_SUFFIX, appearance), walk: null };
+      if (failures.has(id)) {
+        if (isApprovedCharacterSprite(id)) {
+          reportMissingApproved(id, entry.standing);
+          return MISSING_SHEETS;
+        }
+        return { standing: ensureMockupSheet(scene, id + FALLBACK_SUFFIX, appearance), walk: null };
+      }
       return null;
     }
     const standing = id;
@@ -89,7 +107,10 @@ export const AssetManager = {
     if (!options.walk || !entry.walk) return { standing, walk: null };
     const walkId = walkSpriteIdOf(id);
     if (textures.exists(walkId)) return { standing, walk: walkId };
-    if (failures.has(walkId)) return { standing, walk: null };
+    if (failures.has(walkId)) {
+      if (isApprovedCharacterSprite(id)) reportMissingApproved(walkId, entry.walk);
+      return { standing, walk: null };
+    }
     return null;
   },
 
@@ -119,7 +140,10 @@ export const AssetManager = {
     const id = getCharacterSpriteId(appearance);
     const entry = CHARACTER_SPRITE_MANIFEST[id];
     const jobs: Promise<unknown>[] = [
-      loadStandingSheet(id).catch((e: Error) => console.warn(`[assets] ${e.message} - using mockup for ${id}`)),
+      loadStandingSheet(id).catch((e: Error) => {
+        if (isApprovedCharacterSprite(id)) reportMissingApproved(id, entry.standing);
+        else console.warn(`[assets] ${e.message} - using mockup for ${id}`);
+      }),
     ];
     if (options.walk && entry.walk) {
       const walkId = walkSpriteIdOf(id);
@@ -130,7 +154,10 @@ export const AssetManager = {
               removeWalkAnimations(scene.game.anims, walkId);
               forgetSheetMetrics(walkId);
             }),
-          (e: Error) => console.warn(`[assets] ${e.message} - ${id} will not animate while walking`),
+          (e: Error) => {
+            if (isApprovedCharacterSprite(id)) reportMissingApproved(walkId, entry.walk ?? walkId);
+            else console.warn(`[assets] ${e.message} - ${id} will not animate while walking`);
+          },
         ),
       );
     }
@@ -138,9 +165,13 @@ export const AssetManager = {
     return AssetManager.peekCharacterSheets(scene, appearance, options) ?? AssetManager.placeholderSheets(scene, appearance);
   },
 
-  /** Temporary mockup sheets shown while an appearance's real art is loading. */
+  /**
+   * Temporary sheets shown while an appearance's real art is loading: transparent for approved art,
+   * a mockup for appearances that have no art.
+   */
   placeholderSheets(scene: Phaser.Scene, appearance: CharacterAppearance): CharacterSheets {
     const id = getCharacterSpriteId(appearance);
+    if (isApprovedCharacterSprite(id)) return { standing: ensureBlankSheet(scene), walk: null };
     const key = CHARACTER_SPRITE_MANIFEST[id] ? id + FALLBACK_SUFFIX : id;
     return { standing: ensureMockupSheet(scene, key, appearance), walk: null };
   },
@@ -157,23 +188,32 @@ function loadStandingSheet(id: string): Promise<void> {
     .then(() => services.cache.track(id, () => forgetSheetMetrics(id)));
 }
 
+/** A transparent 4 x 2 sheet (same frames as a standing sheet), created once and kept. */
+function ensureBlankSheet(scene: Phaser.Scene): string {
+  if (scene.textures.exists(BLANK_SHEET_KEY)) return BLANK_SHEET_KEY;
+  const canvas = document.createElement('canvas');
+  canvas.width = CHARACTER_SHEET_COLUMNS * CHARACTER_FRAME_WIDTH;
+  canvas.height = CHARACTER_SHEET_ROWS * CHARACTER_FRAME_HEIGHT;
+  const texture = scene.textures.addCanvas(BLANK_SHEET_KEY, canvas);
+  if (!texture) throw new Error('Failed to create the blank character sheet.');
+  addSheetFrames(texture);
+  return BLANK_SHEET_KEY;
+}
+
+function addSheetFrames(texture: Phaser.Textures.CanvasTexture): void {
+  for (let row = 0; row < CHARACTER_SHEET_ROWS; row++) {
+    for (let col = 0; col < CHARACTER_SHEET_COLUMNS; col++) {
+      texture.add(row * CHARACTER_SHEET_COLUMNS + col, 0, col * CHARACTER_FRAME_WIDTH, row * CHARACTER_FRAME_HEIGHT, CHARACTER_FRAME_WIDTH, CHARACTER_FRAME_HEIGHT);
+    }
+  }
+}
+
 /** Generates (once) a mockup standing sheet under `key` and tracks it as an evictable texture. */
 function ensureMockupSheet(scene: Phaser.Scene, key: string, appearance: CharacterAppearance): string {
   if (scene.textures.exists(key)) return key;
   const texture = scene.textures.addCanvas(key, createMockupCharacterSheet(appearance));
   if (!texture) throw new Error(`Failed to create mockup texture "${key}".`);
-  for (let row = 0; row < CHARACTER_SHEET_ROWS; row++) {
-    for (let col = 0; col < CHARACTER_SHEET_COLUMNS; col++) {
-      texture.add(
-        row * CHARACTER_SHEET_COLUMNS + col,
-        0,
-        col * CHARACTER_FRAME_WIDTH,
-        row * CHARACTER_FRAME_HEIGHT,
-        CHARACTER_FRAME_WIDTH,
-        CHARACTER_FRAME_HEIGHT,
-      );
-    }
-  }
+  addSheetFrames(texture);
   GameServices.get().cache.track(key, () => forgetSheetMetrics(key));
   return key;
 }

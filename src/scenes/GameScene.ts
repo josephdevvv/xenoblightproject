@@ -12,6 +12,7 @@ import { MONSTER_DEFINITIONS } from '../monsters/MonsterDefinition';
 import { MonsterSpawner } from '../monsters/MonsterSpawner';
 import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
 import { CharacterStatusService } from '../status/CharacterStatusService';
+import { t } from '../i18n';
 import { GameServices, type Services } from '../systems/GameServices';
 import type { GameUIScene } from './GameUIScene';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
@@ -57,7 +58,7 @@ export class GameScene extends Phaser.Scene {
     const character = this.resolveCharacter();
 
     this.cameras.main.setBackgroundColor(PALETTE.void);
-    this.loading = new LoadingScreen(this).show('ENTERING');
+    this.loading = new LoadingScreen(this).show(t('world.entering'));
 
     const onEscape = (): void => {
       // An open UI window (Status) closes first; otherwise ESC keeps its original meaning.
@@ -113,7 +114,7 @@ export class GameScene extends Phaser.Scene {
       if (!this.sys.isActive()) return;
       console.error('[GameScene] map load failed', error);
       this.failed = true;
-      this.loading.showError('FAILED TO LOAD MAP', 'Press ESC to return to character creation');
+      this.loading.showError(t('world.mapLoadFailed'), t('world.mapLoadFailedHint'));
     }
   }
 

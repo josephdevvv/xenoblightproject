@@ -1,0 +1,217 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-20T05:08:53.027Z",
+  "key": "female_bald_drifter",
+  "displayName": {
+    "en": "Female Bald Drifter",
+    "th": "หญิง หัวโล้น ดริฟเตอร์"
+  },
+  "appearance": {
+    "gender": "female",
+    "hairstyleId": "bald",
+    "hairColorId": "none",
+    "outfitId": "drifter"
+  },
+  "forge": {
+    "hairstyle": "bald",
+    "hairColor": "none",
+    "outfit": "drifter"
+  },
+  "spriteId": "char_female_bald_none_drifter",
+  "aliasSpriteIds": [
+    "char_female_bald_blonde_drifter",
+    "char_female_bald_black_drifter",
+    "char_female_bald_silver_drifter",
+    "char_female_bald_brown_drifter",
+    "char_female_bald_red_drifter"
+  ],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/female/bald/drifter/female_bald_drifter_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "approved sheet approved/female/layers/drifter/female_drifter_static_8dir.png (= the approved per-direction assets, 0 px)",
+    "sha256": "698cf07b8c0e4656a2accf70d33ae9559b53ccb884860484fd4036f8da7b0596",
+    "directions": {
+      "S": {
+        "asset": "female_bald_none_drifter_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "female_bald_none_drifter_south-east",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_bald_none_drifter_east",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_bald_none_drifter_north-east",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_bald_none_drifter_north",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_bald_none_drifter_north-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_bald_none_drifter_west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_bald_none_drifter_south-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/female/bald/drifter/female_bald_drifter_walk_8dir.png",
+    "metadata": "assets/characters/female/bald/drifter/female_bald_drifter_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "4789faecff642a2d2360e49905674fca81d092bfad91d00031169373f3608fc5",
+    "directions": {
+      "S": {
+        "asset": "female_bald_none_drifter_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "female_bald_none_drifter_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_bald_none_drifter_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_bald_none_drifter_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_bald_none_drifter_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_bald_none_drifter_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_bald_none_drifter_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_bald_none_drifter_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 7
+  },
+  "acceptedExceptions": [
+    {
+      "id": "outline-NW-collar",
+      "where": "NW (36,21) Bald+Drifter sheet",
+      "detail": "1 silhouette-edge px #306082 instead of #222034 (crisp_outline FAIL on the sheet, reported as FAIL)",
+      "record": "approved/female/layers/drifter/female_drifter_static_8dir_set.json"
+    },
+    {
+      "id": "outline-NE-hair-edge",
+      "where": "NE (24,22) Straight Bangs+Drifter sheet",
+      "detail": "1 hair px #8a6f30 on a silhouette edge (crisp_outline FAIL on the sheet, reported as FAIL)",
+      "record": "approved/female/layers/drifter/female_drifter_static_8dir_set.json"
+    },
+    {
+      "id": "starter-shirt-E-W",
+      "where": "E (27-28,27), mirrored into W",
+      "detail": "2 px #cbdbfc left from the starter shirt",
+      "record": "approved/female/layers/drifter/female_drifter_static_8dir_set.json"
+    },
+    {
+      "id": "boot-height-SE-SW",
+      "where": "SE, mirrored into SW",
+      "detail": "boot sole 1 row below the master ground (feet y58 vs 57, height 50 vs 49)",
+      "record": "approved/female/layers/drifter/female_drifter_static_8dir_set.json"
+    },
+    {
+      "id": "hip-vial-side",
+      "where": "SE/E (and mirrors)",
+      "detail": "hip vial drawn on her right hip in SE/E while S/NE/N have it on her left",
+      "record": "approved/female/layers/drifter/female_drifter_static_8dir_set.json"
+    },
+    {
+      "id": "cream-hem-skin-colour",
+      "where": "all directions",
+      "detail": "torn cream hem uses #eec39a (same as skin), accepted with South Fix B",
+      "record": "approved/female/layers/drifter/female_drifter_static_8dir_set.json"
+    },
+    {
+      "id": "hip-vial-missing",
+      "detail": "no glowing vial in S0-S5, SE2, E0, E3",
+      "record": "approved/female/animations/female_drifter_walk_approved.json"
+    },
+    {
+      "id": "pale-hem-E",
+      "detail": "E coat hem pale #9badb7/#cbdbfc (mirrored into W)",
+      "record": "approved/female/animations/female_drifter_walk_approved.json"
+    },
+    {
+      "id": "outline-SE4-SW4",
+      "detail": "Straight Bangs+Drifter crisp_outline FAIL 1 px at SE4 (38,23) #8a6f30 and mirrored SW4 - reported as FAIL",
+      "record": "approved/female/animations/female_drifter_walk_approved.json"
+    },
+    {
+      "id": "vial-partial-N",
+      "detail": "vial visible in N0/N3/N5 only",
+      "record": "approved/female/animations/female_drifter_walk_approved.json"
+    },
+    {
+      "id": "vial-jitter-NE",
+      "detail": "NE vial step 3.5 px at the loop 5>0",
+      "record": "approved/female/animations/female_drifter_walk_approved.json"
+    }
+  ],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

@@ -38,9 +38,16 @@ export function createPanel(
   container.add(g);
 
   if (title) {
-    const t = scene.add.text(16, 12, title, textStyle(11, PALETTE.silver, { letterSpacing: 2 }));
+    const t = scene.add.text(16, 10, title, textStyle(11, PALETTE.silver));
     const underline = scene.add.rectangle(16, 28, 24, 1, UI_COLORS.accent).setOrigin(0, 0);
     container.add([t, underline]);
+    container.setData('titleText', t);
   }
   return container;
+}
+
+/** Changes the title of a panel created with a title (used when the language changes). */
+export function setPanelTitle(panel: Phaser.GameObjects.Container, title: string): void {
+  const text = panel.getData('titleText') as Phaser.GameObjects.Text | undefined;
+  text?.setText(title);
 }

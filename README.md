@@ -111,8 +111,10 @@ src/
     mockup/                    TEMPORARY procedural art generators (delete when real art lands)
   characters/                  Sheet layout contract, asset IDs, CharacterView, AnimationController
   player/                      Keyboard input, pure movement/collision, PlayerController
-  world/                       Iso projection, map data, obstacle catalog, IsometricMap, atmosphere FX
-    structures/                Walk-in buildings: blueprints (data) + StructureLayer (walls, collision, depth, fade)
+  world/                       Iso projection, map data types, MapLayout (pure ground/collision model), IsometricMap (rendering), obstacle catalog, atmosphere FX
+    maps/                      Map definitions (AshenCrossroads: the original map + the ruined city expansion, five zones)
+    objects/                   MapObjectCatalog (prop footprints, blocking vs decorative), HandmadeArt (file-based prop sprites)
+    structures/                Walk-in buildings: blueprints (data), StructureGeometry (wall boxes), StructureLayer (walls, depth, fade)
   monsters/                    MonsterDefinition (data), MonsterEntity, MonsterSpawner, MonsterSpawns (per-map table), WanderBehavior
   status/                      Character status: stat types/rules, derived-stat formulas, staged allocation, save store, service
   i18n/                        Localization: th.ts (default), en.ts, t()/setLanguage(), labels for data IDs, Phaser localize()
@@ -124,6 +126,19 @@ src/
   SettingsWindow.ts            Settings (language) modal, used in character creation and in game
   scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```
+
+## Zone 5 city wall art (PixelLab kit)
+
+The city wall, towers, gatehouse and bell tower at the far end of the first map are hand-made sprites built
+from a PixelLab isometric building kit plus a PixelLab-painted wooden gate (sources and generation log in
+`art-source/pixellab/README.md`). Rebuild them with:
+
+```
+node tools/compose-city-wall.mjs
+```
+
+It writes `public/assets/environment/city_wall/*.png` (loaded with the map) and
+`src/world/objects/handmadeArt.generated.json` (sizes + footprint anchors used by `HandmadeArt`).
 
 ## In-game HUD (dungeon HUD layer pack)
 

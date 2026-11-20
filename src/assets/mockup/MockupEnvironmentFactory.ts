@@ -3,6 +3,7 @@ import { GAME_HEIGHT, GAME_WIDTH, MOCKUP_PIXEL_SCALE, TILE_HEIGHT, TILE_SIDE_HEI
 import { PALETTE } from '../../config/palette';
 import { TextureKeys, type ObjectTextureId } from '../TextureKeys';
 import { bayerThreshold, createRng, mixHex, PixelCanvas } from './PixelCanvas';
+import { createRuinTextures, RUIN_OBJECT_ART } from './MockupRuinFactory';
 
 /**
  * TEMPORARY procedural tiles, props and FX textures for Milestone 01.
@@ -30,6 +31,7 @@ export const OBJECT_ART: Readonly<Record<ObjectTextureId, ObjectArtSpec>> = {
   pillar_broken: { width: 22, height: 28, anchorX: 11, anchorY: 24 },
   brazier: { width: 16, height: 20, anchorX: 8, anchorY: 17 },
   shrine: { width: 16, height: 40, anchorX: 8, anchorY: 36 },
+  ...RUIN_OBJECT_ART,
 };
 
 export function createEnvironmentTextures(textures: Phaser.Textures.TextureManager): void {
@@ -37,6 +39,11 @@ export function createEnvironmentTextures(textures: Phaser.Textures.TextureManag
   TextureKeys.pathTiles.forEach((key, i) => register(textures, key, () => drawPathTile(100 + i)));
   register(textures, TextureKeys.ventTile, drawVentTile);
   TextureKeys.floorTiles.forEach((key, i) => register(textures, key, () => drawFloorTile(i)));
+  TextureKeys.brokenCobbleTiles.forEach((key, i) => register(textures, key, () => drawBrokenCobbleTile(i)));
+  TextureKeys.plazaTiles.forEach((key, i) => register(textures, key, () => drawFlagstoneTile(i, PLAZA_TONES)));
+  TextureKeys.stoneFloorTiles.forEach((key, i) => register(textures, key, () => drawFlagstoneTile(i, STONE_FLOOR_TONES)));
+  TextureKeys.rubbleFloorTiles.forEach((key, i) => register(textures, key, () => drawRubbleFloorTile(i)));
+  createRuinTextures(textures);
 
   const o = TextureKeys.objects;
   register(textures, o.rock, () => drawRock(OBJECT_ART.rock, 7));
@@ -227,6 +234,112 @@ function drawFloorTile(variant: number): HTMLCanvasElement {
     if (r < 0.1) return '#423d39';
     return tones[plank % tones.length];
   });
+  paintSides(pc, rng);
+  return pc.upscale(MOCKUP_PIXEL_SCALE);
+}
+
+/** Cobble street with sunken / missing stones showing dark earth, and a crack or two. */
+function drawBrokenCobbleTile(variant: number): HTMLCanvasElement {
+  const pc = newTileCanvas();
+  const rng = createRng(700 + variant * 19);
+  const seeds: { x: number; y: number; tone: string; missing: boolean }[] = [];
+  const tones = ['#3a3a40', '#36363c', '#3f3f46', '#333339'];
+  while (seeds.length < 8) {
+    const x = rng() * TW;
+    const y = rng() * TH;
+    if (inDiamond(Math.floor(x), Math.floor(y))) {
+      seeds.push({ x, y, tone: tones[Math.floor(rng() * tones.length)], missing: rng() < 0.22 + variant * 0.08 });
+    }
+  }
+  const cellAt = (x: number, y: number): number => {
+    let best = 0;
+    let bestDist = Infinity;
+    seeds.forEach((s, i) => {
+      const d = (x - s.x) ** 2 + ((y - s.y) * 2) ** 2;
+      if (d < bestDist) {
+        bestDist = d;
+        best = i;
+      }
+    });
+    return best;
+  };
+  paintDiamond(pc, (x, y) => {
+    const cell = cellAt(x, y);
+    const s = seeds[cell];
+    if (s.missing) return rng() < 0.15 ? '#1e1e22' : rng() < 0.1 ? '#2f382c' : '#202024'; // earth, a little moss
+    if (cellAt(x + 1, y) !== cell || cellAt(x, y + 1) !== cell) return '#202024';
+    if (cellAt(x, y - 1) !== cell) return '#47474e';
+    return rng() < 0.09 ? '#2e2e33' : s.tone;
+  });
+  if (variant === 2) {
+    let x = 6;
+    let y = 9;
+    for (let i = 0; i < 18; i++) {
+      if (inDiamond(x, y)) pc.pixel(x, y, '#141416');
+      x += 1;
+      y += rng() < 0.55 ? 0 : -1;
+    }
+  }
+  paintSides(pc, rng);
+  return pc.upscale(MOCKUP_PIXEL_SCALE);
+}
+
+const PLAZA_TONES = ['#3d3d44', '#393940', '#42424a'];
+const STONE_FLOOR_TONES = ['#34343a', '#303036', '#38383e'];
+
+/**
+ * Large square flagstones laid on the tile grid (2 x 2 slabs per tile, so slab joints line up from
+ * tile to tile). Variant 1 is cracked, variant 2 has a broken slab with moss in the joints.
+ */
+function drawFlagstoneTile(variant: number, tones: readonly string[]): HTMLCanvasElement {
+  const pc = newTileCanvas();
+  const rng = createRng(800 + variant * 23 + tones[0].charCodeAt(1));
+  const slabTone = [0, 1, 2, 3].map(() => tones[Math.floor(rng() * tones.length)]);
+  paintDiamond(pc, (x, y) => {
+    // pixel -> tile-local (u, v) in [0, 1)
+    const a = (x + 0.5 - TW / 2) / (TW / 2);
+    const b = (y + 0.5) / (TH / 2);
+    const u = (a + b) / 2;
+    const v = (b - a) / 2;
+    const su = Math.floor(u * 2);
+    const sv = Math.floor(v * 2);
+    const slab = Math.max(0, Math.min(3, sv * 2 + su));
+    const fu = u * 2 - su;
+    const fv = v * 2 - sv;
+    if (fu < 0.07 || fv < 0.07) return variant === 2 && rng() < 0.4 ? '#2f382c' : '#29292e'; // joints
+    if (fv < 0.14) return mixHex(slabTone[slab], '#ffffff', 0.03); // lit far edge
+    if (variant === 2 && slab === 3 && fu > 0.3 && fv > 0.25) return rng() < 0.35 ? '#2a2a2f' : rng() < 0.2 ? '#2f382c' : '#303036'; // sunken broken slab
+    const r = rng();
+    if (r < 0.06) return mixHex(slabTone[slab], '#000000', 0.2);
+    if (r < 0.1) return mixHex(slabTone[slab], '#ffffff', 0.04);
+    return slabTone[slab];
+  });
+  if (variant === 1) {
+    let x = 10;
+    let y = 4;
+    for (let i = 0; i < 14; i++) {
+      if (inDiamond(x, y)) pc.pixel(x, y, '#18181b');
+      x += rng() < 0.6 ? 1 : 0;
+      y += 1 - (rng() < 0.35 ? 1 : 0);
+    }
+  }
+  paintSides(pc, rng);
+  return pc.upscale(MOCKUP_PIXEL_SCALE);
+}
+
+/** Floor of a collapsed building: dark earth thick with broken stone and charred wood. */
+function drawRubbleFloorTile(variant: number): HTMLCanvasElement {
+  const pc = newTileCanvas();
+  const rng = createRng(900 + variant * 29);
+  paintDiamond(pc, () => (rng() < 0.12 ? '#1b1b1f' : '#232327'));
+  for (let i = 0; i < 9; i++) {
+    const x = 6 + Math.floor(rng() * 20);
+    const y = 3 + Math.floor(rng() * 10);
+    if (!inDiamond(x, y) || !inDiamond(x + 2, y + 1)) continue;
+    const tone = ['#3c3c43', '#46464d', '#34302d'][i % 3];
+    pc.rect(x, y, 2 + (i % 2), 1, tone);
+    pc.rect(x, y + 1, 2 + (i % 2), 1, '#1e1e22');
+  }
   paintSides(pc, rng);
   return pc.upscale(MOCKUP_PIXEL_SCALE);
 }

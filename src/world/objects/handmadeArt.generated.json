@@ -1,0 +1,37 @@
+{
+  "city_wall": {
+    "file": "city_wall.png",
+    "width": 160,
+    "height": 176,
+    "anchorX": 80,
+    "anchorY": 136
+  },
+  "city_wall_broken": {
+    "file": "city_wall_broken.png",
+    "width": 160,
+    "height": 170,
+    "anchorX": 80,
+    "anchorY": 130
+  },
+  "city_tower": {
+    "file": "city_tower.png",
+    "width": 128,
+    "height": 208,
+    "anchorX": 64,
+    "anchorY": 176
+  },
+  "city_gate": {
+    "file": "city_gate.png",
+    "width": 288,
+    "height": 336,
+    "anchorX": 144,
+    "anchorY": 264
+  },
+  "bell_tower": {
+    "file": "bell_tower.png",
+    "width": 128,
+    "height": 304,
+    "anchorX": 64,
+    "anchorY": 272
+  }
+}

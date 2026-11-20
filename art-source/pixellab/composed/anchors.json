@@ -1,0 +1,65 @@
+{
+  "city_wall": {
+    "width": 160,
+    "height": 176,
+    "anchorX": 80,
+    "anchorY": 136
+  },
+  "city_wall_broken": {
+    "width": 160,
+    "height": 170,
+    "anchorX": 80,
+    "anchorY": 130
+  },
+  "city_tower": {
+    "width": 128,
+    "height": 208,
+    "anchorX": 64,
+    "anchorY": 176
+  },
+  "city_gate_base": {
+    "width": 288,
+    "height": 336,
+    "anchorX": 144,
+    "anchorY": 264,
+    "gateFace": {
+      "from": {
+        "x": 104,
+        "y": 200
+      },
+      "to": {
+        "x": 136,
+        "y": 216
+      }
+    }
+  },
+  "bell_tower_base": {
+    "width": 128,
+    "height": 304,
+    "anchorX": 64,
+    "anchorY": 272,
+    "faces": {
+      "south": [
+        {
+          "x": 28,
+          "y": 216
+        },
+        {
+          "x": 60,
+          "y": 232
+        }
+      ],
+      "east": [
+        {
+          "x": 60,
+          "y": 232
+        },
+        {
+          "x": 92,
+          "y": 216
+        }
+      ]
+    },
+    "towerHeight": 120
+  }
+}

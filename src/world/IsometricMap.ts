@@ -1,82 +1,48 @@
 import Phaser from 'phaser';
 import { DEPTH, TILE_HALF_WIDTH, TILE_HEIGHT, TILE_SIDE_HEIGHT, TILE_WIDTH } from '../config/constants';
 import { TextureKeys } from '../assets/TextureKeys';
-import { createRng } from '../assets/mockup/PixelCanvas';
+import { getDecorArt } from '../assets/mockup/MockupRuinFactory';
 import type { Point, TileCoord } from '../core/types';
 import { IsoProjection } from './IsoProjection';
 import type { MapDefinition } from './MapData';
+import { MapLayout, type GroundType } from './MapLayout';
 import { OBSTACLES, type ObstacleDefinition } from './ObstacleCatalog';
 import { StructureLayer, type TileBox } from './structures/StructureLayer';
-
-type GroundType = 'ground' | 'path' | 'vent' | 'floor';
 
 /** Extra empty space around the diamond so the camera can show the map edges. */
 const WORLD_MARGIN = 160;
 
 export interface PlacedObstacle extends TileCoord {
   definition: ObstacleDefinition;
+  /** Ground point the sprite stands on (footprint centre). */
   world: Point;
+  box: TileBox;
 }
 
 /**
- * Isometric tile map: owns the tile grid, collision data and coordinate conversion,
- * and renders ground tiles + props into a scene.
+ * Isometric tile map: renders ground tiles, props and structures into a scene and answers collision /
+ * coordinate queries. The data model (ground, blocked tiles, props, wall boxes) is MapLayout - pure,
+ * so navigation can be validated in tests with the same rules.
  */
 export class IsometricMap {
   readonly cols: number;
   readonly rows: number;
   readonly projection: IsoProjection;
+  readonly layout: MapLayout;
   readonly obstacles: PlacedObstacle[] = [];
   readonly structures: StructureLayer;
 
   private readonly staticImages: Phaser.GameObjects.Image[] = [];
-  private readonly ground: GroundType[][];
-  private readonly blocked: boolean[][];
 
   constructor(readonly definition: MapDefinition) {
+    this.layout = new MapLayout(definition);
     this.cols = definition.cols;
     this.rows = definition.rows;
     // Tile (0, rows-1)'s left corner lands at x = WORLD_MARGIN.
     this.projection = new IsoProjection(WORLD_MARGIN + this.rows * TILE_HALF_WIDTH, WORLD_MARGIN);
-
-    this.ground = Array.from({ length: this.rows }, () => Array<GroundType>(this.cols).fill('ground'));
-    this.blocked = Array.from({ length: this.rows }, () => Array<boolean>(this.cols).fill(false));
-
-    for (const r of definition.paths) {
-      for (let row = r.row; row < r.row + r.h; row++) {
-        for (let col = r.col; col < r.col + r.w; col++) {
-          if (this.isInside(col, row)) this.ground[row][col] = 'path';
-        }
-      }
-    }
-    for (const v of definition.vents) {
-      if (this.isInside(v.col, v.row)) this.ground[v.row][v.col] = 'vent';
-    }
-    this.structures = new StructureLayer(this.projection, definition.structures);
-    const footprints = this.structures.footprints();
-    for (const f of footprints) {
-      if (!this.isInside(f.minX, f.minY) || !this.isInside(f.maxX - 1, f.maxY - 1)) {
-        throw new Error(`Map "${definition.id}": a structure footprint lies outside the map.`);
-      }
-      for (let row = f.minY; row < f.maxY; row++) {
-        for (let col = f.minX; col < f.maxX; col++) this.ground[row][col] = 'floor';
-      }
-    }
-
-    for (const o of definition.objects) {
-      if (!this.isInside(o.col, o.row)) continue;
-      const inside = footprints.some((f) => o.col >= f.minX && o.col < f.maxX && o.row >= f.minY && o.row < f.maxY);
-      if (inside) {
-        throw new Error(`Map "${definition.id}": object ${o.type} at (${o.col}, ${o.row}) overlaps a structure.`);
-      }
-      const def = OBSTACLES[o.type];
-      this.obstacles.push({ col: o.col, row: o.row, definition: def, world: this.projection.tileCenter(o.col, o.row) });
-      if (def.blocksMovement) this.blocked[o.row][o.col] = true;
-    }
-
-    const { col, row } = definition.spawn;
-    if (!this.isInside(col, row) || this.blocked[row][col]) {
-      throw new Error(`Map "${definition.id}": spawn tile (${col}, ${row}) is outside the map or blocked.`);
+    this.structures = new StructureLayer(this.projection, definition.structures, this.layout.pieces);
+    for (const o of this.layout.objects) {
+      this.obstacles.push({ col: o.col, row: o.row, definition: OBSTACLES[o.type], world: this.projection.tileToWorld(o.centre.x, o.centre.y), box: o.box });
     }
   }
 
@@ -85,33 +51,24 @@ export class IsometricMap {
   // -------------------------------------------------------------------------------------------
 
   isInside(col: number, row: number): boolean {
-    return col >= 0 && row >= 0 && col < this.cols && row < this.rows;
+    return this.layout.isInside(col, row);
   }
 
   isTileBlocked(col: number, row: number): boolean {
-    return !this.isInside(col, row) || this.blocked[row][col];
+    return this.layout.isTileBlocked(col, row);
   }
 
   /** Continuous tile-space point query. Outside the map counts as blocked. */
   isWalkable(x: number, y: number): boolean {
-    return !this.isTileBlocked(Math.floor(x), Math.floor(y));
+    return this.layout.isWalkable(x, y);
   }
 
-  /**
-   * Movement collision for a footprint box (smaller than one tile): blocked tiles are tested at the
-   * four corners, thin structure walls with a box-overlap test.
-   */
+  /** Movement collision for a footprint box (see MapLayout.isAreaFree). */
   isAreaFree(box: TileBox): boolean {
-    return (
-      this.isWalkable(box.minX, box.minY) &&
-      this.isWalkable(box.maxX, box.minY) &&
-      this.isWalkable(box.minX, box.maxY) &&
-      this.isWalkable(box.maxX, box.maxY) &&
-      !this.structures.collides(box)
-    );
+    return this.layout.isAreaFree(box);
   }
 
-  /** Depth for a character, corrected against structure walls (see StructureLayer). */
+  /** Depth for a character, corrected against walls and large props (see StructureLayer). */
   resolveDepth(box: TileBox, naturalDepth: number, screenRect: Phaser.Geom.Rectangle): number {
     return this.structures.resolveDepth(box, naturalDepth, screenRect);
   }
@@ -165,16 +122,16 @@ export class IsometricMap {
   }
 
   /**
-   * Incremental build: ground tiles (back-to-front), props (depth-sorted by screen Y), structures.
-   * Yields progress (0..1) after each tile diagonal / prop group so a time-sliced runner can spread
-   * object creation over several frames. The visual result is identical to a one-shot build.
+   * Incremental build: ground tiles (back-to-front), ground details, props (depth-sorted by screen Y),
+   * structures. Yields progress (0..1) after each tile diagonal / group so a time-sliced runner can
+   * spread object creation over several frames. The visual result is identical to a one-shot build.
    */
   *buildSteps(scene: Phaser.Scene): Generator<number> {
     const layer = scene.add.layer();
     layer.setDepth(DEPTH.Ground);
-    const rng = createRng(this.definition.seed);
     const diagonals = this.cols + this.rows - 1;
-    const totalSteps = diagonals + 2;
+    const totalSteps = diagonals + 3;
+    const ground = this.layout.ground;
 
     // Draw diagonals in increasing (col + row) so nearer tiles cover the sides of farther ones.
     for (let sum = 0; sum < diagonals; sum++) {
@@ -182,7 +139,7 @@ export class IsometricMap {
         const row = sum - col;
         if (row < 0 || row >= this.rows) continue;
         const top = this.projection.tileToWorld(col, row);
-        const key = this.pickTileTexture(this.ground[row][col], rng);
+        const key = this.pickTileTexture(ground[row][col], this.layout.tileNoise(col, row));
         const image = scene.make.image({ x: top.x - TILE_WIDTH / 2, y: top.y, key }, false);
         image.setOrigin(0, 0);
         layer.add(image);
@@ -191,35 +148,61 @@ export class IsometricMap {
       yield (sum + 1) / totalSteps;
     }
 
-    for (const o of this.obstacles) {
-      const image = scene.add.image(o.world.x, o.world.y, o.definition.textureKey);
-      image.setOrigin(o.definition.originX, o.definition.originY);
-      image.setDepth(o.world.y);
+    // Flat ground details: on the ground layer, under every prop and character.
+    for (const d of this.layout.decor) {
+      const art = getDecorArt(scene.textures, d.type);
+      const pos = this.projection.tileToWorld(d.col + 0.5 + (d.dx ?? 0), d.row + 0.5 + (d.dy ?? 0));
+      const image = scene.make.image({ x: Math.round(pos.x), y: Math.round(pos.y), key: art.key }, false);
+      image.setOrigin(art.originX, art.originY);
+      if (this.layout.tileNoise(d.col, d.row, 5) < 0.5 && art.flippable) image.setFlipX(true);
+      layer.add(image);
       this.staticImages.push(image);
     }
     yield (diagonals + 1) / totalSteps;
+
+    for (const o of this.obstacles) {
+      const image = scene.add.image(Math.round(o.world.x), Math.round(o.world.y), o.definition.textureKey);
+      image.setOrigin(o.definition.originX, o.definition.originY);
+      if (o.definition.spec.w > 1 || o.definition.spec.h > 1 || o.definition.spec.tall) {
+        // Large / tall props sort (and fade) against characters like walls do.
+        this.structures.register(image, o.box, o.definition.spec.tall);
+      } else {
+        image.setDepth(o.world.y);
+        this.staticImages.push(image);
+      }
+    }
+    yield (diagonals + 2) / totalSteps;
 
     this.structures.build(scene, layer);
     yield 1;
   }
 
   /**
-   * Static, never-moving images created by the build (ground tiles and props). Safe to hide when
-   * off-screen; structure walls are excluded because they fade dynamically.
+   * Static, never-moving images created by the build (ground tiles, details and small props). Safe to
+   * hide when off-screen; walls and large props are excluded because they fade dynamically.
    */
   getStaticImages(): readonly Phaser.GameObjects.Image[] {
     return this.staticImages;
   }
 
-  private pickTileTexture(type: GroundType, rng: () => number): string {
-    const r = rng();
+  private pickTileTexture(type: GroundType, r: number): string {
+    const pick = (keys: readonly string[]): string => keys[Math.min(keys.length - 1, Math.floor(r * keys.length))];
     switch (type) {
       case 'vent':
         return TextureKeys.ventTile;
       case 'floor':
         return TextureKeys.floorTiles[r < 0.7 ? 0 : 1];
+      case 'stone_floor':
+        return TextureKeys.stoneFloorTiles[r < 0.88 ? 0 : 1];
+      case 'rubble_floor':
+        return pick(TextureKeys.rubbleFloorTiles);
       case 'path':
-        return TextureKeys.pathTiles[Math.floor(r * TextureKeys.pathTiles.length)];
+        return pick(TextureKeys.pathTiles);
+      case 'cobble_broken':
+        // mostly broken stones, some intact cobbles
+        return r < 0.3 ? TextureKeys.pathTiles[Math.floor(r * 10) % 3] : pick(TextureKeys.brokenCobbleTiles);
+      case 'plaza':
+        return r < 0.8 ? TextureKeys.plazaTiles[0] : r < 0.9 ? TextureKeys.plazaTiles[1] : TextureKeys.plazaTiles[2];
       case 'ground': {
         // Mostly plain ground with occasional detail variants.
         const g = TextureKeys.groundTiles;
@@ -231,3 +214,4 @@ export class IsometricMap {
     }
   }
 }
+

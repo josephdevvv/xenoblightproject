@@ -127,11 +127,13 @@ export class GameScene extends Phaser.Scene {
   private setupWorld(character: CharacterData, services: Services): void {
     const bounds = this.map.getWorldBounds();
 
-    // Atmosphere
+    // Atmosphere: counts were tuned for the original 2240 x 1288 world; keep the same density on larger maps.
+    const density = Math.max(1, (bounds.width * bounds.height) / (2240 * 1288));
+    const n = (count: number): number => Math.round(count * density);
     this.atmosphere = new AtmosphereEffects(this, bounds)
-      .addDriftLayer({ textureKey: TextureKeys.fx.cloud, count: 6, depth: DEPTH.CloudShadow, scale: [9, 13], alpha: [0.16, 0.24], speed: [6, 12] })
-      .addDriftLayer({ textureKey: TextureKeys.fx.fog, count: 14, depth: DEPTH.GroundFx, scale: [5, 8], alpha: [0.05, 0.09], speed: [5, 12] })
-      .addDriftLayer({ textureKey: TextureKeys.fx.fog, count: 8, depth: DEPTH.HighFog, scale: [7, 11], alpha: [0.025, 0.05], speed: [8, 16] })
+      .addDriftLayer({ textureKey: TextureKeys.fx.cloud, count: n(6), depth: DEPTH.CloudShadow, scale: [9, 13], alpha: [0.16, 0.24], speed: [6, 12] })
+      .addDriftLayer({ textureKey: TextureKeys.fx.fog, count: n(14), depth: DEPTH.GroundFx, scale: [5, 8], alpha: [0.05, 0.09], speed: [5, 12] })
+      .addDriftLayer({ textureKey: TextureKeys.fx.fog, count: n(8), depth: DEPTH.HighFog, scale: [7, 11], alpha: [0.025, 0.05], speed: [8, 16] })
       .addVignette();
     for (const p of this.map.getSmokeSources()) this.atmosphere.addSmoke(p.x, p.y, p.y + 1);
     for (const o of this.map.obstacles) {

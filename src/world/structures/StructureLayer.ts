@@ -3,15 +3,10 @@ import type { Point } from '../../core/types';
 import { getDecalTexture, getPostTexture, getWallTexture } from '../../assets/mockup/MockupStructureFactory';
 import type { IsoProjection } from '../IsoProjection';
 import type { StructurePlacement } from '../MapData';
-import { STRUCTURE_BLUEPRINTS, type StructureBlueprint } from './StructureBlueprints';
+import { STRUCTURE_BLUEPRINTS } from './StructureBlueprints';
+import type { PieceSpec, TileBox } from './StructureGeometry';
 
-/** Axis-aligned box in continuous tile space. */
-export interface TileBox {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-}
+export type { TileBox } from './StructureGeometry';
 
 interface Piece {
   box: TileBox;
@@ -26,25 +21,35 @@ interface Piece {
 const EPSILON = 0.001;
 const FADED_ALPHA = 0.32;
 const FADE_SPEED = 9;
+/** Screen-space bucket size for the depth / occlusion queries. */
+const BUCKET = 256;
 
 /**
- * Owns every walk-in structure on a map.
+ * Renders every wall piece on a map (building walls, free-standing wall runs) and resolves character
+ * depth against them. Large multi-tile props (monument, bell tower, carts) are registered here too so
+ * they sort and fade like walls.
  *
  * Why not one big sprite per building? A single image has a single depth, so a character could never be
  * inside it and in front of the back wall but behind the front wall at the same time. Instead each wall
- * piece is a separate sprite with a thin collision box, and characters get their depth corrected against
+ * piece is a separate sprite with a thin box, and characters get their depth corrected against
  * nearby pieces with a separating-axis test in tile space (see `resolveDepth`).
+ *
+ * Collision is NOT handled here: MapLayout owns it (same piece boxes).
  */
 export class StructureLayer {
   private readonly pieces: Piece[] = [];
+  private readonly buckets = new Map<number, Piece[]>();
   private readonly smoke: Point[] = [];
+  /** Pieces whose alpha is not at rest (faded or fading), so idle frames do no work. */
+  private readonly fading = new Set<Piece>();
 
   constructor(
     private readonly projection: IsoProjection,
     private readonly placements: StructurePlacement[],
+    private readonly specs: readonly PieceSpec[],
   ) {}
 
-  /** Footprint tiles of all structures (for floor tiles and validation). */
+  /** Footprint tiles of all structures (for validation, spawning, the minimap). */
   footprints(): TileBox[] {
     return this.placements.map((p) => {
       const bp = STRUCTURE_BLUEPRINTS[p.type];
@@ -52,9 +57,44 @@ export class StructureLayer {
     });
   }
 
+  /** Creates wall / post sprites and building floor decals. */
   build(scene: Phaser.Scene, groundLayer: Phaser.GameObjects.Layer): void {
+    for (const spec of this.specs) {
+      if (spec.kind === 'wall') {
+        const art = getWallTexture(scene.textures, spec.variant, spec.orientation);
+        this.register(this.addImage(scene, art.key, art.originX, art.originY, spec.anchor), spec.box);
+        continue;
+      }
+      const art = getPostTexture(scene.textures, spec.variant);
+      this.register(this.addImage(scene, art.key, art.originX, art.originY, spec.anchor), spec.box);
+      if (spec.variant === 'chimney') {
+        const top = this.projection.tileToWorld(spec.anchor.x, spec.anchor.y);
+        this.smoke.push({ x: top.x, y: top.y + art.topOffsetY });
+      }
+    }
+
     for (const placement of this.placements) {
-      this.buildOne(scene, groundLayer, STRUCTURE_BLUEPRINTS[placement.type], placement.col, placement.row);
+      for (const d of STRUCTURE_BLUEPRINTS[placement.type].decals) {
+        const art = getDecalTexture(scene.textures, d.variant);
+        const pos = this.projection.tileToWorld(placement.col + d.x, placement.row + d.y);
+        const image = scene.make.image({ x: pos.x, y: pos.y, key: art.key }, false);
+        image.setOrigin(art.originX, art.originY);
+        groundLayer.add(image); // drawn on top of all floor tiles, below everything else
+      }
+    }
+  }
+
+  /** Adds an existing image (e.g. a multi-tile prop) to depth sorting / occlusion with footprint `box`. */
+  register(image: Phaser.GameObjects.Image, box: TileBox, canFade?: boolean): void {
+    const centre = this.projection.tileToWorld((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2);
+    image.setDepth(centre.y);
+    const bounds = image.getBounds();
+    const piece: Piece = { box, image, depth: centre.y, bounds, canFade: canFade ?? bounds.height > 40 };
+    this.pieces.push(piece);
+    for (const key of this.bucketsOf(bounds)) {
+      const list = this.buckets.get(key);
+      if (list) list.push(piece);
+      else this.buckets.set(key, [piece]);
     }
   }
 
@@ -63,17 +103,8 @@ export class StructureLayer {
   }
 
   // -------------------------------------------------------------------------------------------
-  // Queries used by movement / rendering
+  // Queries used by rendering
   // -------------------------------------------------------------------------------------------
-
-  collides(box: TileBox): boolean {
-    for (const p of this.pieces) {
-      if (box.minX < p.box.maxX && box.maxX > p.box.minX && box.minY < p.box.maxY && box.maxY > p.box.minY) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   /**
    * Returns a depth for a character standing on `box` whose natural depth is its feet screen Y.
@@ -83,7 +114,7 @@ export class StructureLayer {
   resolveDepth(box: TileBox, naturalDepth: number, screenRect: Phaser.Geom.Rectangle): number {
     let lower = -Infinity;
     let upper = Infinity;
-    for (const p of this.pieces) {
+    for (const p of this.near(screenRect)) {
       if (!Phaser.Geom.Rectangle.Overlaps(p.bounds, screenRect)) continue;
       const relation = classify(p.box, box);
       if (relation === 'behind') lower = Math.max(lower, p.depth);
@@ -98,75 +129,40 @@ export class StructureLayer {
   /** Fades tall pieces that stand in front of the character and cover it on screen. */
   updateOcclusion(box: TileBox, screenRect: Phaser.Geom.Rectangle, deltaMs: number): void {
     const k = Math.min(1, (deltaMs / 1000) * FADE_SPEED);
-    for (const p of this.pieces) {
-      const hides = p.canFade && Phaser.Geom.Rectangle.Overlaps(p.bounds, screenRect) && classify(p.box, box) === 'front';
-      const target = hides ? FADED_ALPHA : 1;
-      if (p.image.alpha !== target) {
-        const next = p.image.alpha + (target - p.image.alpha) * k;
-        p.image.setAlpha(Math.abs(next - target) < 0.01 ? target : next);
-      }
+    const hiding = new Set<Piece>();
+    for (const p of this.near(screenRect)) {
+      if (p.canFade && Phaser.Geom.Rectangle.Overlaps(p.bounds, screenRect) && classify(p.box, box) === 'front') hiding.add(p);
+    }
+    for (const p of hiding) this.fading.add(p);
+    for (const p of this.fading) {
+      const target = hiding.has(p) ? FADED_ALPHA : 1;
+      const next = p.image.alpha + (target - p.image.alpha) * k;
+      p.image.setAlpha(Math.abs(next - target) < 0.01 ? target : next);
+      if (p.image.alpha === 1 && target === 1) this.fading.delete(p);
     }
   }
 
   // -------------------------------------------------------------------------------------------
-  // Construction
+  // Internals
   // -------------------------------------------------------------------------------------------
 
-  private buildOne(scene: Phaser.Scene, groundLayer: Phaser.GameObjects.Layer, bp: StructureBlueprint, col: number, row: number): void {
-    const t = bp.wallThickness;
-
-    for (const w of bp.walls) {
-      let box: TileBox;
-      let anchor: Point;
-      if (w.orientation === 'x') {
-        const back = w.y === 0;
-        const y0 = row + w.y;
-        box = back
-          ? { minX: col + w.x, maxX: col + w.x + 1, minY: y0, maxY: y0 + t }
-          : { minX: col + w.x, maxX: col + w.x + 1, minY: y0 - t, maxY: y0 };
-        // The visible face is the one facing +y (interior for back walls, exterior for front walls).
-        anchor = { x: col + w.x, y: box.maxY };
-      } else {
-        const back = w.x === 0;
-        const x0 = col + w.x;
-        box = back
-          ? { minX: x0, maxX: x0 + t, minY: row + w.y, maxY: row + w.y + 1 }
-          : { minX: x0 - t, maxX: x0, minY: row + w.y, maxY: row + w.y + 1 };
-        anchor = { x: box.maxX, y: row + w.y };
-      }
-      const art = getWallTexture(scene.textures, w.variant, w.orientation);
-      this.addPiece(scene, art.key, art.originX, art.originY, anchor, box);
-    }
-
-    for (const post of bp.posts) {
-      const minX = post.x === 0 ? col : col + post.x - t;
-      const minY = post.y === 0 ? row : row + post.y - t;
-      const box: TileBox = { minX, minY, maxX: minX + t, maxY: minY + t };
-      const art = getPostTexture(scene.textures, post.variant);
-      const anchor = { x: box.maxX, y: box.maxY };
-      this.addPiece(scene, art.key, art.originX, art.originY, anchor, box);
-      if (post.variant === 'chimney') {
-        const top = this.projection.tileToWorld(anchor.x, anchor.y);
-        this.smoke.push({ x: top.x, y: top.y + art.topOffsetY });
-      }
-    }
-
-    for (const d of bp.decals) {
-      const art = getDecalTexture(scene.textures, d.variant);
-      const pos = this.projection.tileToWorld(col + d.x, row + d.y);
-      const image = scene.make.image({ x: pos.x, y: pos.y, key: art.key }, false);
-      image.setOrigin(art.originX, art.originY);
-      groundLayer.add(image); // drawn on top of all floor tiles, below everything else
-    }
-  }
-
-  private addPiece(scene: Phaser.Scene, key: string, originX: number, originY: number, anchor: Point, box: TileBox): void {
+  private addImage(scene: Phaser.Scene, key: string, originX: number, originY: number, anchor: Point): Phaser.GameObjects.Image {
     const pos = this.projection.tileToWorld(anchor.x, anchor.y);
-    const centre = this.projection.tileToWorld((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2);
-    const image = scene.add.image(Math.round(pos.x), Math.round(pos.y), key).setOrigin(originX, originY);
-    image.setDepth(centre.y);
-    const bounds = image.getBounds();
-    this.pieces.push({ box, image, depth: centre.y, bounds, canFade: bounds.height > 40 });
+    return scene.add.image(Math.round(pos.x), Math.round(pos.y), key).setOrigin(originX, originY);
+  }
+
+  private near(rect: Phaser.Geom.Rectangle): Set<Piece> {
+    const out = new Set<Piece>();
+    for (const key of this.bucketsOf(rect)) for (const p of this.buckets.get(key) ?? []) out.add(p);
+    return out;
+  }
+
+  private *bucketsOf(r: Phaser.Geom.Rectangle): Generator<number> {
+    const c0 = Math.floor(r.x / BUCKET);
+    const c1 = Math.floor((r.x + r.width) / BUCKET);
+    const r0 = Math.floor(r.y / BUCKET);
+    const r1 = Math.floor((r.y + r.height) / BUCKET);
+    for (let y = r0; y <= r1; y++) for (let x = c0; x <= c1; x++) yield (y + 4) * 4096 + (x + 4);
   }
 }
 

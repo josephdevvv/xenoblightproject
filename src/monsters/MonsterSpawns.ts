@@ -1,3 +1,4 @@
+import { fromOriginal } from '../world/maps/AshenCrossroads';
 import type { MonsterId } from './MonsterDefinition';
 
 export interface MonsterSpawnPoint {
@@ -12,20 +13,22 @@ export interface MonsterSpawnPoint {
  * Every point is validated by MonsterSpawner before anything is created; invalid points are
  * reported and skipped, never placed.
  *
- * ashen_crossroads (30x30): 10 Voidmites spread over the four quarters, the north/south roads and
- * the east side - clear of props, the shrine plaza, the ruined house and the player spawn (14,28).
+ * ashen_crossroads: 10 Voidmites in the starting area (the original 30x30 map, now rows 90-119 of the
+ * expanded city) - written in the original coordinates and shifted with fromOriginal(), so they keep
+ * their places relative to the props, the shrine plaza, the ruined house and the player spawn.
+ * The new ruined-city zones have no monsters yet (no encounters in this milestone).
  */
 export const MONSTER_SPAWNS: Readonly<Record<string, readonly MonsterSpawnPoint[]>> = {
   ashen_crossroads: [
-    { monster: 'voidmite', col: 5, row: 4 },
-    { monster: 'voidmite', col: 11, row: 3 },
-    { monster: 'voidmite', col: 19, row: 2 },
-    { monster: 'voidmite', col: 27, row: 5 },
-    { monster: 'voidmite', col: 4, row: 13 },
-    { monster: 'voidmite', col: 20, row: 11 },
-    { monster: 'voidmite', col: 27, row: 17 },
-    { monster: 'voidmite', col: 6, row: 20 },
-    { monster: 'voidmite', col: 24, row: 22 },
-    { monster: 'voidmite', col: 17, row: 26 },
+    { monster: 'voidmite', ...fromOriginal({ col: 5, row: 4 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 11, row: 3 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 19, row: 2 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 27, row: 5 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 4, row: 13 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 20, row: 11 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 27, row: 17 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 6, row: 20 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 24, row: 22 }) },
+    { monster: 'voidmite', ...fromOriginal({ col: 17, row: 26 }) },
   ],
 };

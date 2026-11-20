@@ -28,6 +28,8 @@ export interface PostArt extends PieceArt {
 /** Horizontal extent of one tile edge in logical pixels (32 px / 2). */
 const SEG = 16;
 const TALL = 34;
+/** Chapel walls stand much taller than houses. */
+const GOTHIC = 54;
 const STONE_TOP = 11;
 const RAFTER_MARGIN = 10;
 
@@ -43,11 +45,27 @@ const COLORS = {
   void: '#0b0b0d',
   rafter: '#1d1a19',
   rafterLight: '#34302d',
+  // weathered free-standing / house masonry, darker than the timber houses' plinths
+  wallStone: ['#46464d', '#414148', '#4b4b52', '#3d3d44'],
+  wallMortar: '#2e2e33',
+  // chapel stone: colder and darker still
+  gothic: ['#414149', '#3c3c45', '#46464e', '#38383f'],
+  gothicCap: '#5e5e68',
+  glass: '#44395a',
+  glassLight: '#6f5f8c',
+  moss: '#2f382c',
 } as const;
+
+type Material = 'timber' | 'stone' | 'gothic';
 
 interface WallProfile {
   heights: number[];
+  material: Material;
   window: boolean;
+  /** Round-arched window (stone houses) or pointed lancet (chapel). */
+  arched?: 'round' | 'lancet';
+  /** Transparent opening (arches): true where the face is see-through. */
+  hole?: (u: number, v: number) => boolean;
   rafters: boolean;
   /** True when the top edge is an intact wall plate rather than a broken edge. */
   intactTop: boolean;
@@ -81,14 +99,52 @@ function wallProfile(variant: WallVariant): WallProfile {
       case 'low_rubble':
         h = 2 + Math.floor(rng() * 3);
         break;
+      case 'stone_tall':
+      case 'stone_window':
+        h = TALL - 4 + (u % 5 === 2 ? -1 : 0);
+        break;
+      case 'stone_mid':
+        h = 15 + jag(2);
+        break;
+      case 'stone_low':
+        h = 5 + Math.floor(rng() * 3);
+        break;
+      case 'stone_ruin':
+        h = Math.max(6, Math.round(TALL - 6 - u * 1.3) + jag(2));
+        break;
+      case 'gothic_tall':
+      case 'gothic_lancet':
+        h = GOTHIC;
+        break;
+      case 'gothic_broken':
+        h = Math.max(14, Math.round(GOTHIC - 6 - Math.abs(u - 4) * 2.4) + jag(3));
+        break;
+      case 'arch_open':
+        h = GOTHIC - 6;
+        break;
+      case 'arch_broken':
+        h = u < 4 ? 40 + jag(1) : u > 12 ? 27 + jag(1) : Math.max(0, 40 - (u - 3) * 3 + jag(2));
+        break;
     }
     heights.push(h);
   }
+  const material: Material = variant.startsWith('gothic') || variant.startsWith('arch') ? 'gothic' : variant.startsWith('stone') ? 'stone' : 'timber';
+  const archTop = (u: number): number => 30 + Math.round(Math.sqrt(Math.max(0, 20 - (u - 7.5) ** 2)) * 1.6);
+  const open = variant === 'arch_open' || variant === 'arch_broken';
   return {
     heights,
-    window: variant === 'tall_window',
+    material,
+    window: variant === 'tall_window' || variant === 'stone_window' || variant === 'gothic_lancet',
+    arched: variant === 'stone_window' ? 'round' : variant === 'gothic_lancet' ? 'lancet' : undefined,
+    hole: open ? (u, v) => u >= 3 && u <= 12 && v < archTop(u) : undefined,
     rafters: variant === 'tall_plain' || variant === 'tall_window',
-    intactTop: variant === 'tall_plain' || variant === 'tall_window' || variant === 'tall_gable',
+    intactTop:
+      variant === 'tall_plain' ||
+      variant === 'tall_window' ||
+      variant === 'tall_gable' ||
+      variant === 'gothic_tall' ||
+      variant === 'gothic_lancet' ||
+      variant === 'arch_open',
   };
 }
 
@@ -115,14 +171,15 @@ function drawWall(p: WallProfile, orientation: WallOrientation, baseY: number, h
     const h = p.heights[u];
     const gy = ground(u);
     for (let v = 0; v < h; v++) {
+      if (p.hole?.(u, v)) continue;
       let color = faceColor(u, v, h, p, rng);
       if (v === 0) color = mixHex(color, '#000000', 0.3);
+      if (p.hole && (p.hole(u - 1, v) || p.hole(u + 1, v) || p.hole(u, v - 1))) color = COLORS.gothicCap; // arch rim
       pc.pixel(mx(u), gy - v, shade(color));
     }
+    if (h <= 0) continue;
     // top edge
-    const inStone = h <= STONE_TOP + 1;
-    const cap = p.intactTop ? COLORS.beam : inStone ? COLORS.stoneCap : COLORS.charred;
-    pc.pixel(mx(u), gy - h, shade(cap));
+    pc.pixel(mx(u), gy - h, shade(capColor(p, h)));
   }
 
   if (p.rafters) {
@@ -135,7 +192,71 @@ function drawWall(p: WallProfile, orientation: WallOrientation, baseY: number, h
   return pc.upscale(MOCKUP_PIXEL_SCALE);
 }
 
+function capColor(p: WallProfile, h: number): string {
+  if (p.material === 'gothic') return p.intactTop ? COLORS.gothicCap : COLORS.charred;
+  if (p.material === 'stone') return COLORS.stoneCap;
+  if (p.intactTop) return COLORS.beam;
+  return h <= STONE_TOP + 1 ? COLORS.stoneCap : COLORS.charred;
+}
+
+/** All-stone faces: coursed blocks, windows, moss low down, soot near broken tops. */
+function masonryColor(u: number, v: number, h: number, p: WallProfile, rng: () => number): string {
+  const gothic = p.material === 'gothic';
+  const tones = gothic ? COLORS.gothic : COLORS.wallStone;
+  if (p.window) {
+    const w = windowAt(u, v, p);
+    if (w) return w;
+  }
+  // Plinth course at the bottom of chapel walls
+  if (gothic && v < 4) {
+    if (v === 3) return COLORS.gothicCap;
+    return v === 0 ? COLORS.mortar : mixHex(tones[0], '#000000', 0.12);
+  }
+  // String course (horizontal moulding) on tall chapel walls
+  if (gothic && (v === 22 || v === 23) && h > 26) return v === 23 ? COLORS.gothicCap : mixHex(COLORS.gothicCap, '#000000', 0.35);
+  // Irregular coursed rubble masonry: blocks of varying length, joints that do not line up.
+  const course = gothic ? 4 : 3;
+  const row = Math.floor(v / course);
+  const len = 5 + ((row * 5 + 3) % 4);
+  const off = (row * 7) % len;
+  if (v % course === course - 1 || (u + off) % len === 0) return rng() < 0.25 ? tones[3] : COLORS.wallMortar;
+  const block = Math.floor((u + off) / len);
+  let tone: string = tones[(row * 7 + block * 3) % tones.length];
+  if (v < 3 && rng() < 0.45) tone = COLORS.moss; // damp moss at the foot of the wall
+  else if (v > h - 4 && rng() < 0.5) tone = mixHex(tone, COLORS.charred, 0.45); // broken, sooty top
+  else if (rng() < 0.08) tone = mixHex(tone, '#000000', 0.22);
+  return tone;
+}
+
+/** Window opening colours (null = solid wall here). */
+function windowAt(u: number, v: number, p: WallProfile): string | null {
+  const cx = 7.5;
+  const dx = Math.abs(u - cx);
+  if (p.arched === 'lancet') {
+    // tall pointed window with a centre mullion and faint shards of old glass
+    const top = 44 - Math.round(dx * 1.6);
+    if (dx <= 3 && v >= 14 && v <= top) {
+      if (dx > 2 || v === 14) return COLORS.gothicCap; // frame
+      if (dx < 0.6) return v % 7 === 0 ? COLORS.glass : COLORS.void; // mullion gap
+      if ((u * 3 + v) % 11 === 0) return COLORS.glassLight;
+      if ((u + v * 2) % 7 === 0) return COLORS.glass;
+      return COLORS.void;
+    }
+    return null;
+  }
+  if (p.arched === 'round') {
+    const top = 24 + Math.round(Math.sqrt(Math.max(0, 6.25 - dx * dx)));
+    if (dx <= 3 && v >= 15 && v <= top + 1) {
+      if (dx > 2 || v === 15 || v === top + 1) return COLORS.stoneCap;
+      return COLORS.void;
+    }
+    return null;
+  }
+  return null;
+}
+
 function faceColor(u: number, v: number, h: number, p: WallProfile, rng: () => number): string {
+  if (p.material !== 'timber') return masonryColor(u, v, h, p, rng);
   // Stone masonry ground floor
   if (v < STONE_TOP || h <= STONE_TOP + 2) {
     const row = Math.floor(v / 3);
@@ -177,12 +298,17 @@ const POST_HEIGHTS: Record<PostVariant, number> = {
   post_tall: 36,
   post_mid: 20,
   post_low: 8,
+  stone_post_tall: 34,
+  stone_post_mid: 20,
+  stone_post_low: 9,
+  buttress: 60,
 };
 
 export function getPostTexture(textures: Phaser.Textures.TextureManager, variant: PostVariant): PostArt {
   const key = `post_${variant}`;
   const h = POST_HEIGHTS[variant];
-  const width = 8;
+  const buttress = variant === 'buttress';
+  const width = buttress ? 10 : 8;
   const base = h + 3;
   const height = base + 4;
   if (!textures.exists(key)) {
@@ -197,6 +323,15 @@ export function getPostTexture(textures: Phaser.Textures.TextureManager, variant
         const block = Math.floor(v / 4);
         let c = (v % 4 === 3) ? COLORS.mortar : block % 2 === (left ? 0 : 1) ? '#5e5e66' : '#4f4f57';
         if (chimney) c = mixHex(c, '#000000', 0.18);
+        if (variant.startsWith('stone_post')) c = v % 4 === 3 ? COLORS.wallMortar : block % 2 === (left ? 0 : 1) ? '#4f4f56' : '#44444b';
+        if (buttress) {
+          // Gothic buttress: darker stone, stepped set-offs narrowing towards the top
+          const inset = v > h * 0.66 ? 2 : v > h * 0.33 ? 1 : 0;
+          if (u < inset || u > width - 1 - inset) continue;
+          c = v % 4 === 3 ? COLORS.mortar : block % 2 === (left ? 0 : 1) ? '#54545e' : '#484851';
+          if (v === Math.round(h * 0.33) || v === Math.round(h * 0.66)) c = COLORS.gothicCap;
+        }
+        if (v < 2 && rng() < 0.4) c = COLORS.moss;
         if (v > h - 6 && chimney) c = mixHex(c, COLORS.charred, 0.5); // soot
         if (rng() < 0.06) c = mixHex(c, '#000000', 0.25);
         if (!left) c = mixHex(c, '#000000', 0.32);

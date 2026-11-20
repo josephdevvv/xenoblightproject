@@ -16,6 +16,7 @@ import { t } from '../i18n';
 import { GameServices, type Services } from '../systems/GameServices';
 import type { GameUIScene } from './GameUIScene';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
+import { StableCameraFollow } from '../render/StableCameraFollow';
 import { GameHud } from '../ui/GameHud';
 import { DungeonHud } from '../ui/hud/DungeonHud';
 import { StatusWindow } from '../ui/StatusWindow';
@@ -40,6 +41,7 @@ export class GameScene extends Phaser.Scene {
   private atmosphere!: AtmosphereEffects;
   private hud!: GameHud;
   private culler!: VisibilityCuller;
+  private cameraFollow!: StableCameraFollow;
   monsters!: MonsterSpawner;
   private loading!: LoadingScreen;
   private mapId = DEFAULT_MAP_ID;
@@ -84,11 +86,15 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (!this.ready) return;
     this.player.update(delta);
+    // Camera first, then draw the player and its name plate at camera-stable whole pixels.
+    const feet = this.player.getWorldPosition();
+    this.cameraFollow.update(feet.x, feet.y, delta);
+    this.player.view.setRenderPosition(this.cameraFollow.renderX(feet.x), this.cameraFollow.renderY(feet.y));
     this.monsters.update(delta, this.cameras.main, GameServices.get().performance);
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
     this.atmosphere.update(delta);
     this.culler.update();
-    this.hud.update(this.player);
+    this.hud.update(this.player.view);
   }
 
   private async loadWorld(character: CharacterData): Promise<void> {
@@ -151,9 +157,11 @@ export class GameScene extends Phaser.Scene {
     // Camera
     const cam = this.cameras.main;
     cam.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
-    cam.startFollow(view.sprite, true, 0.12, 0.12);
-    cam.setFollowOffset(0, 24);
+    // Smooth follow (same 0.12 lerp, view 24 px above the feet) without pixel jitter - see StableCameraFollow.
     cam.setRoundPixels(true);
+    this.cameraFollow = new StableCameraFollow(cam, { lerp: 0.12, offsetY: -24 });
+    this.cameraFollow.update(spawnWorld.x, spawnWorld.y, 0);
+    view.setRenderPosition(this.cameraFollow.renderX(spawnWorld.x), this.cameraFollow.renderY(spawnWorld.y));
 
     // Visibility management: static map images, and smoke that pauses (not resets) off-screen.
     this.culler = new VisibilityCuller(cam);
@@ -176,7 +184,7 @@ export class GameScene extends Phaser.Scene {
 
     // HUD
     this.hud = new GameHud(this, character);
-    this.hud.update(this.player);
+    this.hud.update(this.player.view);
   }
 
   /** Loads (once) every monster sprite used by this map's spawn table and holds it while the map is shown. */

@@ -30,6 +30,14 @@ export const CHARACTER_DIRECTION_FRAMES: Readonly<Record<Direction, number>> = {
   SW: 7,
 };
 
+/**
+ * Root of the 64x64 canvas used by approved (Sprite Forge) art: horizontal centre, feet bottom
+ * edge (the forge's root convention, y = 57). Every frame of every approved sheet - static and walk -
+ * is drawn from this ONE origin, so the art's own composition decides where the body is: no
+ * per-frame / per-sheet re-measuring, which made the body hop by up to 3 px between static and walk.
+ */
+export const CHARACTER_CANVAS_ROOT = { x: 32, y: 57 } as const;
+
 /** Fallback origin (feet) for a frame that cannot be measured. Measured frames use SpriteMetrics. */
 export const CHARACTER_ORIGIN = { x: 0.5, y: 58 / 64 } as const;
 

@@ -151,13 +151,25 @@ Sheet format (see `src/characters/CharacterSheetLayout.ts`):
 
 - 64x64 frames, 4 columns x 2 rows (256x128), 8 static directional frames
 - row 0: S, SE, E, NE  /  row 1: N, NW, W, SW
-- the figure may sit anywhere in the frame and be any height: the game measures each frame's feet and
-  height from the pixels (`SpriteMetrics`) and anchors it on its feet. Size comes from the BODY, not the full
+- approved Sprite Forge art uses ONE fixed canvas root for every frame, static and walk:
+  `CHARACTER_CANVAS_ROOT` (32, 57) - the line under the feet (`approvedPlacement` in `CharacterAnimator`).
+  The walk cycle's own foot lift stays visible and the switch standing <-> walking never hops. Unknown /
+  mockup sheets may sit anywhere in the frame: the game measures each frame's feet and height from the
+  pixels (`SpriteMetrics`) and anchors them on their feet. Size comes from the BODY, not the full
   figure (`src/characters/CharacterBodyMetrics.ts`): every approved sprite is built on a body master (male /
   female, 49 px from feet to the top of the bare head), and all variants of a master - any hairstyle, any
   outfit, static and walk - share one scale (x0.982, the size the haired male had before), so hair never
   makes a character bigger or smaller and legs / feet line up exactly. Sheets without a master fall back to
   sizing the full figure to 54 px
+
+**Pixel-stable rendering.** Movement and camera positions are never rounded; only the DRAWN position is.
+`CharacterView` keeps the exact world position and draws at whole pixels. The camera is followed by
+`StableCameraFollow` (`src/render/`): the camera keeps an exact scroll and is drawn at its floor, and the
+followed player is drawn at `floor(scroll) + round(world - scroll)` - one rounding of its real distance to the
+camera, so it can never shake back and forth by a pixel (Phaser's own follow floors the player and the lerped
+scroll separately). The name plate is placed on the character's drawn root (`getRenderRoot()`) at a fixed
+height per appearance (front static frame top + 5 px), never from the animated frame, and its text is only
+set once. Tests: `tests/renderStability.test.ts`.
 
 Walk sheet: 6 columns x 8 rows (384x512), one direction per row in the order S, SE, E, NE, N, NW, W, SW,
 125 ms per frame (8 FPS), looping while moving. Register both files in `CHARACTER_SPRITE_MANIFEST`

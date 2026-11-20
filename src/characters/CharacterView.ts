@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import type { CharacterAppearance } from '../data/CharacterData';
 import { GameServices } from '../systems/GameServices';
-import { CharacterAnimator, type CharacterSheets } from './CharacterAnimator';
+import { approvedPlacement, CharacterAnimator, namePlateHeight, type CharacterSheets } from './CharacterAnimator';
+import { characterFrameIndex } from './CharacterSheetLayout';
+import { getSheetMetrics } from './SpriteMetrics';
 
 export interface CharacterViewOptions {
   /** Load and use the walk-cycle sheet (default true). The creation preview passes false. */
@@ -19,6 +21,11 @@ let nextViewId = 1;
  * lives, and releases them when the sprite is destroyed (e.g. scene shutdown).
  * Scenes normally preload the sheets with AssetManager.ensureCharacterSheets(); if they are not
  * loaded yet, a mockup placeholder is shown and swapped as soon as the real art arrives.
+ *
+ * Positions: the view keeps the exact world position (movement is never rounded) but DRAWS at whole
+ * pixels - rounded to the world for ordinary characters, or a camera-stable position for the
+ * followed player (setRenderPosition). Anything attached to a character (name plate) uses
+ * getRenderRoot(), so both share one integer root and cannot drift apart by a pixel.
  */
 export class CharacterView {
   readonly sprite: Phaser.GameObjects.Sprite;
@@ -27,6 +34,8 @@ export class CharacterView {
   private readonly walk: boolean;
   private sheets: CharacterSheets;
   private request = 0;
+  private readonly world = { x: 0, y: 0 };
+  private namePlateCache: { texture: string; scale: number; height: number } | null = null;
 
   constructor(scene: Phaser.Scene, appearance: CharacterAppearance, x: number, y: number, options: CharacterViewOptions = {}) {
     this.walk = options.walk ?? true;
@@ -34,7 +43,9 @@ export class CharacterView {
     this.sheets = ready ?? AssetManager.placeholderSheets(scene, appearance);
     this.retain(this.sheets);
 
-    this.sprite = scene.add.sprite(x, y, this.sheets.standing, 0);
+    this.world.x = x;
+    this.world.y = y;
+    this.sprite = scene.add.sprite(Math.round(x), Math.round(y), this.sheets.standing, 0);
     this.animator = new CharacterAnimator(this.sprite, this.sheets);
 
     const services = GameServices.get();
@@ -66,8 +77,41 @@ export class CharacterView {
     });
   }
 
+  /** Exact world position (feet). Drawn at the nearest whole pixel. */
   setPosition(x: number, y: number): void {
-    this.sprite.setPosition(x, y);
+    this.world.x = x;
+    this.world.y = y;
+    this.sprite.setPosition(Math.round(x), Math.round(y));
+  }
+
+  /** Overrides the drawn position (whole pixels), e.g. the camera-stable position of the followed player. */
+  setRenderPosition(x: number, y: number): void {
+    this.sprite.setPosition(Math.round(x), Math.round(y));
+  }
+
+  getWorldPosition(): { x: number; y: number } {
+    return { ...this.world };
+  }
+
+  /** Where the character is drawn (integer feet root). Attach labels / effects here. */
+  getRenderRoot(): { x: number; y: number } {
+    return { x: this.sprite.x, y: this.sprite.y };
+  }
+
+  /**
+   * Name plate height above the feet (whole px): fixed per appearance - top of the front (S) static
+   * frame + a small gap - and NEVER taken from the animated frame, so the label does not bounce with
+   * the walk cycle. Cached until the appearance or display scale changes.
+   */
+  getNamePlateHeight(): number {
+    const texture = this.sheets.standing;
+    const scale = this.animator.getBaseScale();
+    if (this.namePlateCache && this.namePlateCache.texture === texture && this.namePlateCache.scale === scale) return this.namePlateCache.height;
+    const placement = approvedPlacement(texture);
+    const front = placement ? getSheetMetrics(this.sprite.scene.textures, texture)[characterFrameIndex('S')] : undefined;
+    const height = namePlateHeight(front ? front.top : null, placement ? placement.normalize : null, scale);
+    this.namePlateCache = { texture, scale, height };
+    return height;
   }
 
   setDepth(depth: number): void {

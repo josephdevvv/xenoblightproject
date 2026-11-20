@@ -4,6 +4,7 @@ import {
   CHARACTER_DISPLAY_HEIGHT,
   CHARACTER_FRAME_HEIGHT,
   CHARACTER_FRAME_WIDTH,
+  CHARACTER_CANVAS_ROOT,
   CHARACTER_ORIGIN,
   CHARACTER_WALK_LAYOUT,
   characterFrameIndex,
@@ -21,7 +22,7 @@ export interface CharacterSheets {
 }
 
 /** Sprite origin + size normalisation for one displayed frame / walk row. */
-interface Placement {
+export interface Placement {
   originX: number;
   originY: number;
   /** Multiplier that brings the figure to CHARACTER_DISPLAY_HEIGHT. */
@@ -101,6 +102,10 @@ export class CharacterAnimator {
     return this.direction;
   }
 
+  getBaseScale(): number {
+    return this.baseScale;
+  }
+
   /** Uniform display scale on top of the size normalisation. */
   setBaseScale(scale: number): void {
     this.baseScale = scale;
@@ -149,6 +154,8 @@ export class CharacterAnimator {
    * hairstyle / outfit and for the walk sheet), else the sheet's front (S) frame height.
    */
   private standingPlacement(index: number): Placement {
+    const approved = approvedPlacement(this.sheets.standing);
+    if (approved) return approved;
     const metrics = getSheetMetrics(this.sprite.scene.textures, this.sheets.standing);
     const frame = metrics[index];
     const reference = metrics[characterFrameIndex('S')] ?? frame;
@@ -166,6 +173,8 @@ export class CharacterAnimator {
    * the median height of the S walk row.
    */
   private walkPlacement(walkTexture: string): Placement {
+    const approved = approvedPlacement(walkTexture);
+    if (approved) return approved;
     const metrics = getSheetMetrics(this.sprite.scene.textures, walkTexture);
     const { columns, rows } = CHARACTER_WALK_LAYOUT;
     const rowFrames = (direction: Direction): FrameBounds[] =>
@@ -185,4 +194,33 @@ export class CharacterAnimator {
       normalize: bodyScale ?? CHARACTER_DISPLAY_HEIGHT / referenceHeight,
     };
   }
+}
+
+/**
+ * Approved art (a known body master): one fixed canvas root and one body scale for every frame,
+ * static and walk. Null for other sheets (mockups), which keep the measured anchors.
+ */
+export function approvedPlacement(textureKey: string): Placement | null {
+  const normalize = bodyNormalizeFor(textureKey);
+  if (normalize === null) return null;
+  return {
+    originX: CHARACTER_CANVAS_ROOT.x / CHARACTER_FRAME_WIDTH,
+    originY: CHARACTER_CANVAS_ROOT.y / CHARACTER_FRAME_HEIGHT,
+    normalize,
+  };
+}
+
+/** Gap between the top of the head / hair and the bottom of the name plate (world px). */
+export const NAMEPLATE_GAP = 5;
+/** Name plate height above the feet for art without a known body master. */
+export const NAMEPLATE_FALLBACK_HEIGHT = 62;
+
+/**
+ * Name plate height above the feet root (whole px). For approved art it comes from the FRONT (S)
+ * static frame's top row - one fixed value per appearance, never from the animated frame - so the
+ * label cannot bounce with the walk cycle. `frontTop` null = unknown art (fallback height).
+ */
+export function namePlateHeight(frontTop: number | null, normalize: number | null, displayScale: number): number {
+  if (frontTop === null || normalize === null) return Math.round(NAMEPLATE_FALLBACK_HEIGHT * displayScale);
+  return Math.round((CHARACTER_CANVAS_ROOT.y - frontTop) * normalize * displayScale + NAMEPLATE_GAP);
 }

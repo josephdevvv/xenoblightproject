@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { DEPTH } from '../config/constants';
 import { PALETTE } from '../config/palette';
 import type { CharacterData } from '../data/CharacterData';
-import type { PlayerController } from '../player/PlayerController';
+import type { CharacterView } from '../characters/CharacterView';
 import { typo } from './UITheme';
 
 /**
@@ -19,8 +19,13 @@ export class GameHud {
       .setDepth(DEPTH.NamePlate);
   }
 
-  update(player: PlayerController): void {
-    const world = player.getWorldPosition();
-    this.namePlate.setPosition(Math.round(world.x), Math.round(world.y - 62));
+  /**
+   * Keeps the name plate on the character's drawn root (whole pixels, shared with the sprite) at a
+   * fixed height per appearance - never the animated frame's bounds - so it moves with the character
+   * but does not bounce with the walk cycle. Only the position changes: the text texture is not redrawn.
+   */
+  update(view: CharacterView): void {
+    const root = view.getRenderRoot();
+    this.namePlate.setPosition(root.x, root.y - view.getNamePlateHeight());
   }
 }

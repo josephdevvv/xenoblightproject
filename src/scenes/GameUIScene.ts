@@ -42,6 +42,7 @@ export class GameUIScene extends Phaser.Scene {
         map: game.map,
         onStatus: () => this.statusWindow?.toggle(),
         onSettings: () => this.settingsWindow?.toggle(),
+        currentHp: () => this.gameScene()?.combat?.getPlayerHp() ?? Number.POSITIVE_INFINITY,
       },
       0,
     );
@@ -59,8 +60,44 @@ export class GameUIScene extends Phaser.Scene {
     if (!this.hud || !game?.player) return;
     this.hud.update(
       game.player.getTilePosition(),
-      game.monsters.getMonsters().map((m) => m.position),
+      game.monsters
+        .getMonsters()
+        .filter((m) => m.isAlive())
+        .map((m) => m.position),
     );
+  }
+
+  /**
+   * True when the pointer is over UI: an interactive UI element, a visible pixel of HUD art (cropped
+   * images such as the minimap count only their visible window) or an open window. World clicks are
+   * ignored there, so the UI never moves or attacks.
+   */
+  isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
+    if (this.input.hitTestPointer(pointer).length > 0) return true;
+    const x = pointer.x;
+    const y = pointer.y;
+    for (const o of this.children.list) {
+      const v = o as Phaser.GameObjects.GameObject & Partial<Phaser.GameObjects.Components.Visible & Phaser.GameObjects.Components.AlphaSingle>;
+      if (v.visible === false || v.alpha === 0) continue;
+      if (o instanceof Phaser.GameObjects.Image) {
+        if (o.isCropped) {
+          const c = (o as unknown as { _crop: { x: number; y: number; width: number; height: number } })._crop;
+          const left = o.x - o.displayOriginX + c.x;
+          const top = o.y - o.displayOriginY + c.y;
+          if (x >= left && x < left + c.width && y >= top && y < top + c.height) return true;
+          continue;
+        }
+        const b = o.getBounds();
+        if (!b.contains(x, y)) continue;
+        const lx = Math.floor((x - b.x) / (o.scaleX || 1));
+        const ly = Math.floor((y - b.y) / (o.scaleY || 1));
+        const alpha = this.textures.getPixelAlpha(lx, ly, o.texture.key, o.frame.name);
+        if (alpha === null || alpha > 0) return true;
+      } else if (o instanceof Phaser.GameObjects.Container && o.getBounds().contains(x, y)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   get isStatusOpen(): boolean {

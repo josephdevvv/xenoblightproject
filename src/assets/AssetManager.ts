@@ -14,8 +14,16 @@ import { CHARACTER_SPRITE_MANIFEST, isApprovedCharacterSprite } from './Characte
 import { LOGO_URL } from './LogoTexture';
 import { TextureKeys } from './TextureKeys';
 import type { MonsterDefinition } from '../monsters/MonsterDefinition';
+import {
+  MONSTER_ACTIONS,
+  MONSTER_ART,
+  MONSTER_FACINGS,
+  monsterAnimKey,
+  monsterSheetKey,
+  monsterVfxAnimKey,
+  monsterVfxKey,
+} from '../monsters/art/MonsterArt';
 import { createMockupCharacterSheet } from './mockup/MockupCharacterFactory';
-import { createMonsterMockup } from './mockup/MockupMonsterFactory';
 import { createEnvironmentTextures } from './mockup/MockupEnvironmentFactory';
 
 export interface CharacterSheetOptions {
@@ -59,26 +67,57 @@ export const AssetManager = {
   },
 
   /**
-   * Makes a monster's sprite available (on demand, once): loads its production sheet when the
-   * definition has a URL, otherwise generates the procedural mockup. Falls back to the mockup if
-   * loading fails. Tracked as a lazy texture; callers retain it while monsters are on screen.
+   * Makes a monster's animated sprite set available (on demand, once): every action sheet + the attack
+   * VFX sheet, and the per-facing animations. Returns the texture keys so callers can retain them while
+   * the monsters are on screen. Rejects when a sheet fails to load (no placeholder art is substituted).
    */
-  async ensureMonsterTexture(scene: Phaser.Scene, definition: MonsterDefinition): Promise<string> {
-    const s = definition.sprite;
-    if (scene.textures.exists(s.textureKey)) return s.textureKey;
+  async ensureMonsterArt(scene: Phaser.Scene, definition: MonsterDefinition): Promise<string[]> {
+    const art = MONSTER_ART[definition.art];
     const services = GameServices.get();
-    if (s.url) {
-      try {
-        await services.assets.load({ key: s.textureKey, type: 'spritesheet', url: s.url, frameWidth: s.frameWidth, frameHeight: s.frameHeight });
-      } catch (e) {
-        console.warn(`[assets] ${(e as Error).message} - using mockup for ${definition.id}`);
+    const requests = [
+      ...MONSTER_ACTIONS.map((action) => {
+        const m = art.meta.actions[action];
+        return { key: monsterSheetKey(definition.art, action), type: 'spritesheet' as const, url: art.basePath + m.file, frameWidth: m.frameWidth, frameHeight: m.frameHeight };
+      }),
+      { key: monsterVfxKey(definition.art), type: 'spritesheet' as const, url: art.basePath + art.meta.vfx.file, frameWidth: art.meta.vfx.frameWidth, frameHeight: art.meta.vfx.frameHeight },
+    ];
+    const missing = requests.filter((r) => !scene.textures.exists(r.key));
+    if (missing.length) {
+      const result = await services.assets.loadAll(missing);
+      if (result.failed.length) throw new Error(`monster art "${definition.art}" failed: ${result.failed.map((f) => f.key).join(', ')}`);
+      // (Re)loaded textures: animations made for an evicted copy would point at stale frames - rebuild them.
+      for (const facing of MONSTER_FACINGS) {
+        for (const action of MONSTER_ACTIONS) scene.anims.remove(monsterAnimKey(definition.art, action, facing));
+        scene.anims.remove(monsterVfxAnimKey(definition.art, facing));
       }
     }
-    if (!scene.textures.exists(s.textureKey)) {
-      scene.textures.addCanvas(s.textureKey, createMonsterMockup(definition.id, s.frameWidth, s.frameHeight));
-    }
-    services.cache.track(s.textureKey);
-    return s.textureKey;
+    // Animations: one per action and facing (sheet row = facing, in MONSTER_FACINGS order).
+    MONSTER_FACINGS.forEach((facing, row) => {
+      for (const action of MONSTER_ACTIONS) {
+        const key = monsterAnimKey(definition.art, action, facing);
+        if (scene.anims.exists(key)) continue;
+        const m = art.meta.actions[action];
+        const t = art.timing[action];
+        scene.anims.create({
+          key,
+          frames: scene.anims.generateFrameNumbers(monsterSheetKey(definition.art, action), { start: row * m.frames, end: row * m.frames + m.frames - 1 }),
+          frameRate: t.frameRate,
+          repeat: t.repeat,
+        });
+      }
+      const vKey = monsterVfxAnimKey(definition.art, facing);
+      if (!scene.anims.exists(vKey)) {
+        const v = art.meta.vfx;
+        scene.anims.create({
+          key: vKey,
+          frames: scene.anims.generateFrameNumbers(monsterVfxKey(definition.art), { start: row * v.frames, end: row * v.frames + v.frames - 1 }),
+          frameRate: art.vfxFrameRate,
+          repeat: 0,
+        });
+      }
+    });
+    for (const r of requests) services.cache.track(r.key);
+    return requests.map((r) => r.key);
   },
 
   /**

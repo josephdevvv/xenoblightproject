@@ -16,7 +16,8 @@ export interface MonsterSpawnPoint {
  * ashen_crossroads: 10 Voidmites in the starting area (the original 30x30 map, now rows 90-119 of the
  * expanded city) - written in the original coordinates and shifted with fromOriginal(), so they keep
  * their places relative to the props, the shrine plaza, the ruined house and the player spawn.
- * The new ruined-city zones have no monsters yet (no encounters in this milestone).
+ * Mutant Wolves (visual entry, idle wandering only) roam the ruined city: the broken street, the plaza
+ * and the pilgrim avenue - away from the starting area. No encounters or combat in this milestone.
  */
 export const MONSTER_SPAWNS: Readonly<Record<string, readonly MonsterSpawnPoint[]>> = {
   ashen_crossroads: [
@@ -30,5 +31,9 @@ export const MONSTER_SPAWNS: Readonly<Record<string, readonly MonsterSpawnPoint[
     { monster: 'voidmite', ...fromOriginal({ col: 6, row: 20 }) },
     { monster: 'voidmite', ...fromOriginal({ col: 24, row: 22 }) },
     { monster: 'voidmite', ...fromOriginal({ col: 17, row: 26 }) },
+    { monster: 'mutant_wolf', col: 2, row: 68 },
+    { monster: 'mutant_wolf', col: 25, row: 63 },
+    { monster: 'mutant_wolf', col: 21, row: 51 },
+    { monster: 'mutant_wolf', col: 27, row: 33 },
   ],
 };

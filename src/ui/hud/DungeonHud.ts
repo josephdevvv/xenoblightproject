@@ -3,6 +3,8 @@ import { PALETTE, toColorInt } from '../../config/palette';
 import type { Point } from '../../core/types';
 import type { CharacterData } from '../../data/CharacterData';
 import { CharacterStatusService } from '../../status/CharacterStatusService';
+import { STATUS_RULES } from '../../status/StatTypes';
+import { expToNextLevel } from '../../combat/CombatRules';
 import { GameServices } from '../../systems/GameServices';
 import { t, type TranslationKey } from '../../i18n';
 import { labels } from '../../i18n/labels';
@@ -26,6 +28,8 @@ export interface DungeonHudOptions {
   map: IsometricMap;
   onStatus: () => void;
   onSettings: () => void;
+  /** Current HP (combat); max HP when absent. SP has no consumer yet and stays at max. */
+  currentHp?: () => number;
 }
 
 /**
@@ -65,6 +69,7 @@ export class DungeonHud {
   private readonly unsubscribe: () => void;
   private readonly nameMaxWidth: number;
   private lastTile = '';
+  private lastHp: number | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -144,8 +149,13 @@ export class DungeonHud {
     });
   }
 
-  /** Per-frame: coordinates and minimap. */
+  /** Per-frame: coordinates, minimap and HP (only redrawn when it changes). */
   update(playerTile: Point, monsters: readonly Point[]): void {
+    const hp = this.options.currentHp ? Math.round(this.options.currentHp()) : null;
+    if (hp !== null && hp !== this.lastHp) {
+      this.lastHp = hp;
+      this.refreshStatus();
+    }
     const label = `${Math.floor(playerTile.x)}, ${Math.floor(playerTile.y)}`;
     if (label !== this.lastTile) {
       this.lastTile = label;
@@ -154,21 +164,23 @@ export class DungeonHud {
     this.minimap.update(playerTile, monsters);
   }
 
-  /** Name, level and HP / SP from the character status (current values = max until combat exists). */
+  /** Name, level, HP (current from combat), SP (= max, no SP use yet) and EXP towards the next level. */
   refreshStatus(): void {
     const c = this.options.character;
     const derived = CharacterStatusService.derived(c);
     fitText(this.nameText, c.name, this.nameMaxWidth);
     this.levelText.setText(t('hud.level', { level: c.status.level }));
-    const hp = Math.round(derived.maxHp);
+    const maxHp = Math.round(derived.maxHp);
+    const hp = Math.min(maxHp, this.options.currentHp ? Math.round(this.options.currentHp()) : maxHp);
     const sp = Math.round(derived.maxSp);
-    this.hpText.setText(t('hud.hp', { current: hp, max: hp }));
+    this.hpText.setText(t('hud.hp', { current: hp, max: maxHp }));
     this.spText.setText(t('hud.sp', { current: sp, max: sp }));
-    this.setBar(this.hpBar, this.hpArea, hp, hp);
+    this.setBar(this.hpBar, this.hpArea, hp, maxHp);
     this.setBar(this.spBar, this.spArea, sp, sp);
-    this.setBar(this.expBar, this.expArea, 0, 1);
-    // No EXP system yet: the bar and value show 0 %.
-    this.expText.setText(t('hud.exp', { percent: (0).toFixed(2) }));
+    const need = expToNextLevel(c.status.level);
+    const ratio = c.status.level >= STATUS_RULES.maxLevel ? 1 : Math.min(1, c.status.exp / need);
+    this.setBar(this.expBar, this.expArea, ratio, 1);
+    this.expText.setText(t('hud.exp', { percent: (ratio * 100).toFixed(2) }));
   }
 
   /**

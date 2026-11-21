@@ -2,7 +2,8 @@ import type { CharacterData, LocalizedMessage } from '../data/CharacterData';
 import { DEBUG_AVAILABLE } from '../systems/performance/DebugSnapshot';
 import { computeDerivedStats, type DerivedStats } from './DerivedStats';
 import type { StatAllocationDraft } from './StatAllocation';
-import { applyLevelUp, cloneStatus, createInitialStatus, totalStats, type CharacterStatus } from './StatTypes';
+import { addExp } from '../combat/CombatRules';
+import { applyLevelUp, cloneStatus, createInitialStatus, STATUS_RULES, totalStats, type CharacterStatus } from './StatTypes';
 import { StatusSaveStore } from './StatusSaveStore';
 
 /**
@@ -55,7 +56,7 @@ export const CharacterStatusService = {
     return null;
   },
 
-  /** Future leveling entry point (no EXP / level-up gameplay yet): awards 3 points per level gained. */
+  /** Sets the level directly (dev / tests): awards 3 points per level gained. */
   setLevel(character: CharacterData, level: number): number {
     const next = cloneStatus(character.status);
     const awarded = applyLevelUp(next, level);
@@ -65,6 +66,18 @@ export const CharacterStatusService = {
       notify(character);
     }
     return awarded;
+  },
+
+  /** Adds EXP (monster kills); levels up as often as earned (3 stat points per level). Returns levels gained. */
+  gainExp(character: CharacterData, amount: number): number {
+    const next = cloneStatus(character.status);
+    const r = addExp(next.level, next.exp, amount, STATUS_RULES.maxLevel);
+    if (r.levelsGained > 0) applyLevelUp(next, r.level);
+    next.exp = r.exp;
+    character.status = next;
+    StatusSaveStore.save(character.name, next);
+    notify(character);
+    return r.levelsGained;
   },
 
   /** DEV ONLY: adds free stat points for testing. No-op when dev tools are disabled. */

@@ -6,6 +6,7 @@ import { CharacterCreationScene } from '../scenes/CharacterCreationScene';
 import { DebugOverlayScene } from '../scenes/DebugOverlayScene';
 import { GameScene } from '../scenes/GameScene';
 import { GameUIScene } from '../scenes/GameUIScene';
+import { MonsterPreviewScene } from '../scenes/MonsterPreviewScene';
 import { SystemScene } from '../scenes/SystemScene';
 
 export function createGameConfig(): Phaser.Types.Core.GameConfig {
@@ -29,6 +30,6 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
       createContainer: true,
     },
     // Boot starts first; SystemScene is `active` and runs alongside everything; the overlay renders last (on top).
-    scene: [BootScene, SystemScene, CharacterCreationScene, GameScene, GameUIScene, DebugOverlayScene],
+    scene: [BootScene, SystemScene, CharacterCreationScene, GameScene, GameUIScene, DebugOverlayScene, MonsterPreviewScene],
   };
 }

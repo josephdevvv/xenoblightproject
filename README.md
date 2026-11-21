@@ -127,6 +127,15 @@ src/
   scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```
 
+## Monster sprites (delivered packs)
+
+`art-source/monsters/<id>/` holds the monster packs as delivered (per-direction sheets, README, manifest).
+`node tools/import-monster-packs.mjs` copies the pixels unchanged into one sheet per action
+(`public/assets/monsters/<id>/<action>.png`, rows SE, SW, NE, NW) and writes
+`src/monsters/art/<id>.generated.json` (frame sizes, ground anchors and the attack VFX placement measured from
+the art). Timing, contact frame and hit-flash frames are in `src/monsters/art/MonsterArt.ts`. Preview every
+animation in all four facings with `?monsters` in the URL (dev builds, or `?debug`).
+
 ## Zone 5 city wall art (PixelLab kit)
 
 The city wall, towers, gatehouse and bell tower at the far end of the first map are hand-made sprites built
@@ -182,9 +191,9 @@ Sheet format (see `src/characters/CharacterSheetLayout.ts`):
 `StableCameraFollow` (`src/render/`): the camera keeps an exact scroll and is drawn at its floor, and the
 followed player is drawn at `floor(scroll) + round(world - scroll)` - one rounding of its real distance to the
 camera, so it can never shake back and forth by a pixel (Phaser's own follow floors the player and the lerped
-scroll separately). The name plate is placed on the character's drawn root (`getRenderRoot()`) at a fixed
-height per appearance (front static frame top + 5 px), never from the animated frame, and its text is only
-set once. Tests: `tests/renderStability.test.ts`.
+scroll separately). The name label is placed under the character's drawn root (`getRenderRoot()`), 3 px below
+the feet - the shared world label rule of `src/ui/world/WorldNameLabel.ts` (player, NPCs and monsters) -
+never from the animated frame, and its text is only set once. Tests: `tests/renderStability.test.ts`.
 
 Walk sheet: 6 columns x 8 rows (384x512), one direction per row in the order S, SE, E, NE, N, NW, W, SW,
 125 ms per frame (8 FPS), looping while moving. Register both files in `CHARACTER_SPRITE_MANIFEST`

@@ -1,0 +1,336 @@
+{
+  "id": "mutant_wolf",
+  "name": "Mutant Wolf",
+  "nameTh": "หมาป่ากลายพันธุ์",
+  "rows": [
+    "SE",
+    "SW",
+    "NE",
+    "NW"
+  ],
+  "actions": {
+    "idle": {
+      "file": "idle.png",
+      "frameWidth": 60,
+      "frameHeight": 42,
+      "frames": 1,
+      "anchors": {
+        "SE": {
+          "x": 30,
+          "y": 41
+        },
+        "SW": {
+          "x": 30,
+          "y": 41
+        },
+        "NE": {
+          "x": 30,
+          "y": 41
+        },
+        "NW": {
+          "x": 30,
+          "y": 41
+        }
+      },
+      "feet": {
+        "SE": [
+          40
+        ],
+        "SW": [
+          40
+        ],
+        "NE": [
+          40
+        ],
+        "NW": [
+          40
+        ]
+      }
+    },
+    "walk": {
+      "file": "walk.png",
+      "frameWidth": 60,
+      "frameHeight": 42,
+      "frames": 6,
+      "anchors": {
+        "SE": {
+          "x": 30,
+          "y": 41
+        },
+        "SW": {
+          "x": 30,
+          "y": 41
+        },
+        "NE": {
+          "x": 30,
+          "y": 41
+        },
+        "NW": {
+          "x": 30,
+          "y": 41
+        }
+      },
+      "feet": {
+        "SE": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "SW": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "NE": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "NW": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ]
+      }
+    },
+    "attack": {
+      "file": "attack.png",
+      "frameWidth": 60,
+      "frameHeight": 42,
+      "frames": 6,
+      "anchors": {
+        "SE": {
+          "x": 30,
+          "y": 41
+        },
+        "SW": {
+          "x": 30,
+          "y": 41
+        },
+        "NE": {
+          "x": 30,
+          "y": 41
+        },
+        "NW": {
+          "x": 30,
+          "y": 41
+        }
+      },
+      "feet": {
+        "SE": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "SW": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "NE": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "NW": [
+          40,
+          40,
+          40,
+          40,
+          40,
+          40
+        ]
+      }
+    },
+    "hit": {
+      "file": "hit.png",
+      "frameWidth": 60,
+      "frameHeight": 42,
+      "frames": 4,
+      "anchors": {
+        "SE": {
+          "x": 30,
+          "y": 41
+        },
+        "SW": {
+          "x": 30,
+          "y": 41
+        },
+        "NE": {
+          "x": 30,
+          "y": 41
+        },
+        "NW": {
+          "x": 30,
+          "y": 41
+        }
+      },
+      "feet": {
+        "SE": [
+          40,
+          40,
+          40,
+          40
+        ],
+        "SW": [
+          40,
+          40,
+          40,
+          40
+        ],
+        "NE": [
+          40,
+          40,
+          40,
+          40
+        ],
+        "NW": [
+          40,
+          40,
+          40,
+          40
+        ]
+      }
+    },
+    "death": {
+      "file": "death.png",
+      "frameWidth": 60,
+      "frameHeight": 42,
+      "frames": 5,
+      "anchors": {
+        "SE": {
+          "x": 30,
+          "y": 41
+        },
+        "SW": {
+          "x": 30,
+          "y": 41
+        },
+        "NE": {
+          "x": 30,
+          "y": 41
+        },
+        "NW": {
+          "x": 30,
+          "y": 41
+        }
+      },
+      "feet": {
+        "SE": [
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "SW": [
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "NE": [
+          40,
+          40,
+          40,
+          40,
+          40
+        ],
+        "NW": [
+          40,
+          40,
+          40,
+          40,
+          40
+        ]
+      }
+    }
+  },
+  "vfx": {
+    "file": "vfx_attack.png",
+    "frameWidth": 32,
+    "frameHeight": 32,
+    "frames": 3,
+    "origins": {
+      "SE": {
+        "x": 16,
+        "y": 16
+      },
+      "SW": {
+        "x": 16,
+        "y": 16
+      },
+      "NE": {
+        "x": 16,
+        "y": 16
+      },
+      "NW": {
+        "x": 16,
+        "y": 16
+      }
+    },
+    "offsets": {
+      "SE": {
+        "x": 27,
+        "y": -25
+      },
+      "SW": {
+        "x": -28,
+        "y": -25
+      },
+      "NE": {
+        "x": 20,
+        "y": -38
+      },
+      "NW": {
+        "x": -21,
+        "y": -38
+      }
+    }
+  },
+  "qa": {
+    "specks": [
+      "idle SE frame 1: speck at (41, 1)",
+      "idle SE frame 1: speck at (5, 19)",
+      "idle SW frame 1: speck at (18, 1)",
+      "idle SW frame 1: speck at (54, 19)",
+      "idle NE frame 1: speck at (26, 4)",
+      "idle NE frame 1: speck at (28, 5)",
+      "idle NE frame 1: speck at (30, 6)",
+      "idle NW frame 1: speck at (33, 4)",
+      "idle NW frame 1: speck at (31, 5)",
+      "idle NW frame 1: speck at (29, 6)",
+      "walk NE frame 3: speck at (26, 10)",
+      "walk NW frame 3: speck at (33, 10)",
+      "attack SE frame 6: speck at (2, 24)",
+      "attack SE frame 6: speck at (2, 22)",
+      "attack SW frame 6: speck at (57, 24)",
+      "attack SW frame 6: speck at (57, 22)",
+      "hit SE frame 2: speck at (41, 1)",
+      "hit SW frame 2: speck at (18, 1)"
+    ],
+    "notes": []
+  }
+}

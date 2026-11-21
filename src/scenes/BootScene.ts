@@ -4,6 +4,7 @@ import { PALETTE } from '../config/palette';
 import { AssetManager } from '../assets/AssetManager';
 import { t } from '../i18n';
 import { typo } from '../ui/UITheme';
+import { DEBUG_AVAILABLE } from '../systems/performance/DebugSnapshot';
 
 /** Loads production assets (none yet) and generates the mockup textures. */
 export class BootScene extends Phaser.Scene {
@@ -21,6 +22,8 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     AssetManager.createMockupTextures(this);
-    this.scene.start(SCENES.CharacterCreation);
+    // Developer monster animation preview: ?monsters (dev builds, or production with ?debug).
+    const preview = DEBUG_AVAILABLE && new URLSearchParams(location.search).has('monsters');
+    this.scene.start(preview ? SCENES.MonsterPreview : SCENES.CharacterCreation);
   }
 }

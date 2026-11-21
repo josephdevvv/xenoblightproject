@@ -28,6 +28,8 @@ export interface CharacterStatus {
   bonus: StatBlock;
   /** Unspent stat points. */
   statPoints: number;
+  /** EXP towards the next level (resets on level-up). */
+  exp: number;
 }
 
 export function createStatBlock(value: number): StatBlock {
@@ -41,11 +43,12 @@ export function createInitialStatus(): CharacterStatus {
     base: createStatBlock(STATUS_RULES.startingStat),
     bonus: createStatBlock(0),
     statPoints: 0,
+    exp: 0,
   };
 }
 
 export function cloneStatus(s: CharacterStatus): CharacterStatus {
-  return { level: s.level, base: { ...s.base }, bonus: { ...s.bonus }, statPoints: s.statPoints };
+  return { level: s.level, base: { ...s.base }, bonus: { ...s.bonus }, statPoints: s.statPoints, exp: s.exp };
 }
 
 export function totalStats(s: CharacterStatus): StatBlock {
@@ -68,7 +71,7 @@ export function pointsSpent(s: CharacterStatus): number {
 }
 
 /**
- * Future leveling hook (no EXP / level-up gameplay exists yet). Raises the level to `newLevel`
+ * Level-up hook (used by the EXP system, see combat/CombatRules). Raises the level to `newLevel`
  * (capped at 99) and awards 3 points for each level actually gained - never twice for the same
  * level, and never for levels at or below the current one. Returns the number of points awarded.
  */

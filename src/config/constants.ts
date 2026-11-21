@@ -31,6 +31,8 @@ export const SCENES = {
   GameUI: 'GameUIScene',
   /** Optional performance overlay (dev: toggle with F3; production: only with ?debug in the URL). */
   DebugOverlay: 'DebugOverlayScene',
+  /** Developer preview of all monster animations (dev builds or ?debug, opened with ?monsters). */
+  MonsterPreview: 'MonsterPreviewScene',
 } as const;
 
 /**

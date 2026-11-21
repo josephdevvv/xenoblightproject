@@ -8,7 +8,7 @@ import { createCharacterData, createDefaultAppearance, type CharacterData } from
 import { CharacterStore } from '../data/CharacterStore';
 import { KeyboardMovementInput } from '../player/KeyboardMovementInput';
 import { PlayerController } from '../player/PlayerController';
-import { MONSTER_DEFINITIONS } from '../monsters/MonsterDefinition';
+import { MONSTER_DEFINITIONS, type MonsterId } from '../monsters/MonsterDefinition';
 import { MonsterSpawner } from '../monsters/MonsterSpawner';
 import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
 import { CharacterStatusService } from '../status/CharacterStatusService';
@@ -17,6 +17,13 @@ import { GameServices, type Services } from '../systems/GameServices';
 import type { GameUIScene } from './GameUIScene';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
 import { StableCameraFollow } from '../render/StableCameraFollow';
+import { CombatSystem } from '../combat/CombatSystem';
+import type { MonsterEntity } from '../monsters/MonsterEntity';
+import { ClickMarker } from '../ui/world/ClickMarker';
+import { npcSheetKey, npcsOnMap } from '../npcs/NpcDefinition';
+import { NpcEntity } from '../npcs/NpcEntity';
+import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
+import { PLAYER_MOVEMENT } from '../player/PlayerController';
 import { GameHud } from '../ui/GameHud';
 import { DungeonHud } from '../ui/hud/DungeonHud';
 import { StatusWindow } from '../ui/StatusWindow';
@@ -43,6 +50,12 @@ export class GameScene extends Phaser.Scene {
   private culler!: VisibilityCuller;
   private cameraFollow!: StableCameraFollow;
   monsters!: MonsterSpawner;
+  combat!: CombatSystem;
+  /** Stationary NPCs on this map (idle routines only - no interaction yet). */
+  npcs: NpcEntity[] = [];
+  clickMarker!: ClickMarker;
+  monsterCursor!: MonsterCursor;
+  private readonly monstersWithArt = new Set<MonsterId>();
   private loading!: LoadingScreen;
   private mapId = DEFAULT_MAP_ID;
   private ready = false;
@@ -69,9 +82,16 @@ export class GameScene extends Phaser.Scene {
       this.returnToCreation();
     };
     this.input.keyboard?.on('keydown-ESC', onEscape);
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
+    this.input.on(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
+    this.input.on(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
+      this.input.off(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
+      this.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
+      this.input.off(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
+      this.monsterCursor?.reset();
       this.scene.stop(SCENES.GameUI);
       const services = GameServices.tryGet();
       services?.debugSources.delete(CULLING_DEBUG_SOURCE);
@@ -85,12 +105,18 @@ export class GameScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (!this.ready) return;
+    // Combat decides first (target approach / attacks), then the player moves.
+    this.combat.update(delta);
     this.player.update(delta);
     // Camera first, then draw the player and its name plate at camera-stable whole pixels.
     const feet = this.player.getWorldPosition();
     this.cameraFollow.update(feet.x, feet.y, delta);
     this.player.view.setRenderPosition(this.cameraFollow.renderX(feet.x), this.cameraFollow.renderY(feet.y));
-    this.monsters.update(delta, this.cameras.main, GameServices.get().performance);
+    this.monsters.update(delta, this.cameras.main, GameServices.get().performance, this.combat.monsterContext);
+    for (const npc of this.npcs) npc.update(delta);
+    this.combat.updateMarker();
+    // pointer outside the canvas keeps its last position: only a pointer over the game can hover
+    this.monsterCursor.update(delta, this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
     this.atmosphere.update(delta);
     this.culler.update();
@@ -105,7 +131,15 @@ export class GameScene extends Phaser.Scene {
         AssetManager.ensureCharacterSheets(this, character.appearance, { walk: true }),
         this.loadMonsterTextures(services),
         DungeonHud.load(),
+        ...npcsOnMap(this.mapId).map((n) =>
+          services.assets
+            .load({ key: npcSheetKey(n), type: 'spritesheet', url: n.art.url, frameWidth: n.art.meta.frameWidth, frameHeight: n.art.meta.frameHeight })
+            .catch((e: Error) => console.warn(`[npcs] ${n.id} not shown: ${e.message}`)),
+        ),
         StatusWindow.load(),
+        services.assets
+          .load({ key: MONSTER_CURSOR.key, type: 'image', url: MONSTER_CURSOR.url })
+          .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor over monsters`)),
       ]);
       if (!this.sys.isActive()) return;
       this.map = prepared.map;
@@ -151,10 +185,21 @@ export class GameScene extends Phaser.Scene {
 
     // Monsters: static visual entities, validated against the map and the player spawn.
     this.monsters = new MonsterSpawner(this, this.map);
-    this.monsters.spawn(MONSTER_SPAWNS[this.mapId] ?? [], {
+    // NPCs: stationary, on their tile (only those whose art loaded)
+    this.npcs = npcsOnMap(this.mapId)
+      .filter((n) => this.textures.exists(npcSheetKey(n)))
+      .map((n) => new NpcEntity(this, this.map, n));
+    const npcTiles = this.npcs.map(({ definition: { tile } }) => ({ minX: tile.col, minY: tile.row, maxX: tile.col + 1, maxY: tile.row + 1 }));
+
+    this.monsters.spawn((MONSTER_SPAWNS[this.mapId] ?? []).filter((p) => this.monstersWithArt.has(p.monster)), {
       avoid: { world: spawnWorld, minDistancePx: MONSTER_MIN_SPAWN_DISTANCE_PX },
-      reserved: [this.player.getFootprint()],
+      reserved: [this.player.getFootprint(), ...npcTiles],
     });
+
+    // Combat: player vs monsters, click targeting (see onPointerDown)
+    this.combat = new CombatSystem(this, character, this.player, this.monsters, spawn);
+    this.clickMarker = new ClickMarker(this);
+    this.monsterCursor = new MonsterCursor(this.game.canvas, this.textures);
 
     // Camera
     const cam = this.cameras.main;
@@ -189,11 +234,79 @@ export class GameScene extends Phaser.Scene {
     this.hud.update(this.player.view);
   }
 
-  /** Loads (once) every monster sprite used by this map's spawn table and holds it while the map is shown. */
+  /**
+   * Left click: a monster under the pointer is targeted (approach + attack until it dies); anywhere else
+   * on walkable ground the player walks there. Clicks on the HUD / open windows never reach the world.
+   */
+  private onPointerDown(pointer: Phaser.Input.Pointer): void {
+    if (!this.ready || !pointer.leftButtonDown() || this.isOverUi(pointer)) return;
+    const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+    const monster = this.pickMonster(world.x, world.y);
+    if (monster) {
+      this.monsterCursor.press();
+      this.combat.attack(monster);
+      return;
+    }
+    const tile = this.map.worldToTile(world.x, world.y);
+    if (!this.map.isInside(Math.floor(tile.x), Math.floor(tile.y))) return;
+    const moving = this.combat.moveTo(tile);
+    // destination ripple only on walkable ground the player is really heading to
+    const r = PLAYER_MOVEMENT.radius;
+    const standable = this.map.isAreaFree({ minX: tile.x - r, minY: tile.y - r, maxX: tile.x + r, maxY: tile.y + r });
+    if (moving && standable) this.clickMarker.show(world.x, world.y);
+  }
+
+  private onPointerUp(pointer: Phaser.Input.Pointer): void {
+    if (!this.ready) return;
+    this.monsterCursor.release(this.pointerOverMonster(pointer) !== null);
+  }
+
+  private onPointerOut(): void {
+    this.monsterCursor?.reset();
+  }
+
+  private isOverUi(pointer: Phaser.Input.Pointer): boolean {
+    const ui = this.scene.get(SCENES.GameUI) as GameUIScene;
+    return this.scene.isActive(SCENES.GameUI) && ui.isPointerOverUi(pointer);
+  }
+
+  /** The living monster under the pointer (never through the UI), or null. */
+  private pointerOverMonster(pointer: Phaser.Input.Pointer): MonsterEntity | null {
+    if (!this.ready || this.isOverUi(pointer)) return null;
+    const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+    return this.pickMonster(world.x, world.y);
+  }
+
+  /** Living monster whose sprite (plus a few px of slack) is under a world point; the front-most wins. */
+  private pickMonster(x: number, y: number): MonsterEntity | null {
+    let best: MonsterEntity | null = null;
+    for (const m of this.monsters.getMonsters()) {
+      if (!m.isAlive()) continue;
+      const b = m.sprite.getBounds();
+      if (x < b.x - 4 || x > b.right + 4 || y < b.y - 4 || y > b.bottom + 4) continue;
+      if (!best || m.sprite.depth > best.sprite.depth) best = m;
+    }
+    return best;
+  }
+
+  /**
+   * Loads (once) the animated sprite set of every monster in this map's spawn table and holds it while the
+   * map is shown. A monster whose art fails to load is left out (reported), the map still opens.
+   */
   private async loadMonsterTextures(services: Services): Promise<void> {
     const ids = [...new Set((MONSTER_SPAWNS[this.mapId] ?? []).map((p) => p.monster))];
-    const keys = await Promise.all(ids.map((id) => AssetManager.ensureMonsterTexture(this, MONSTER_DEFINITIONS[id])));
-    for (const key of keys) services.cache.retain(key, this.monsterOwner());
+    this.monstersWithArt.clear();
+    await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const keys = await AssetManager.ensureMonsterArt(this, MONSTER_DEFINITIONS[id]);
+          for (const key of keys) services.cache.retain(key, this.monsterOwner());
+          this.monstersWithArt.add(id);
+        } catch (error) {
+          console.warn(`[monsters] ${id} not shown: ${(error as Error).message}`);
+        }
+      }),
+    );
   }
 
   private monsterOwner(): string {

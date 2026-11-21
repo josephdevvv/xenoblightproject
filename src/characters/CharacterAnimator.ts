@@ -210,17 +210,3 @@ export function approvedPlacement(textureKey: string): Placement | null {
   };
 }
 
-/** Gap between the top of the head / hair and the bottom of the name plate (world px). */
-export const NAMEPLATE_GAP = 5;
-/** Name plate height above the feet for art without a known body master. */
-export const NAMEPLATE_FALLBACK_HEIGHT = 62;
-
-/**
- * Name plate height above the feet root (whole px). For approved art it comes from the FRONT (S)
- * static frame's top row - one fixed value per appearance, never from the animated frame - so the
- * label cannot bounce with the walk cycle. `frontTop` null = unknown art (fallback height).
- */
-export function namePlateHeight(frontTop: number | null, normalize: number | null, displayScale: number): number {
-  if (frontTop === null || normalize === null) return Math.round(NAMEPLATE_FALLBACK_HEIGHT * displayScale);
-  return Math.round((CHARACTER_CANVAS_ROOT.y - frontTop) * normalize * displayScale + NAMEPLATE_GAP);
-}

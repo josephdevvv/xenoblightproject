@@ -9,6 +9,7 @@ export type Direction = (typeof DIRECTIONS)[number];
 
 /** Future combat / action animations (attack, cast, pick-up, death) only use the diagonals. */
 export const ACTION_DIRECTIONS = ['NE', 'SE', 'SW', 'NW'] as const satisfies readonly Direction[];
+export type ActionDirection = (typeof ACTION_DIRECTIONS)[number];
 
 const SCREEN_INPUT_TO_DIRECTION: Record<string, Direction> = {
   '0,-1': 'N',
@@ -42,4 +43,29 @@ export function screenInputToGroundVector(x: number, y: number): Point {
   const gy = Math.sign(y) - Math.sign(x);
   const length = Math.hypot(gx, gy);
   return length === 0 ? { x: 0, y: 0 } : { x: gx / length, y: gy / length };
+}
+
+/** Screen-space direction of a ground (tile-space) vector (2:1 isometric: x = dx - dy, y = (dx + dy) / 2). */
+function groundToScreen(gx: number, gy: number): Point {
+  return { x: gx - gy, y: (gx + gy) / 2 };
+}
+
+/** The 8-way facing for a movement / look direction given in GROUND (tile) space, or null for zero. */
+export function directionFromGroundVector(gx: number, gy: number): Direction | null {
+  const s = groundToScreen(gx, gy);
+  if (Math.abs(s.x) < 1e-9 && Math.abs(s.y) < 1e-9) return null;
+  // screen angle in 45-degree sectors, 0 = E, clockwise (screen y points down)
+  const sector = ((Math.round(Math.atan2(s.y, s.x) / (Math.PI / 4)) % 8) + 8) % 8;
+  return (['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'] as const)[sector];
+}
+
+/**
+ * The 4-way action facing (attack / hit / cast / death art: SE, SW, NE, NW) for a GROUND vector. A pure
+ * screen-vertical / horizontal direction keeps the side of `fallback`.
+ */
+export function actionDirectionFromGroundVector(gx: number, gy: number, fallback: ActionDirection = 'SE'): ActionDirection {
+  const s = groundToScreen(gx, gy);
+  const east = Math.abs(s.x) < 1e-9 ? fallback === 'SE' || fallback === 'NE' : s.x > 0;
+  const south = Math.abs(s.y) < 1e-9 ? fallback === 'SE' || fallback === 'SW' : s.y > 0;
+  return south ? (east ? 'SE' : 'SW') : east ? 'NE' : 'NW';
 }

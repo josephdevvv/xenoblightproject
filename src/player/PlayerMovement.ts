@@ -32,17 +32,18 @@ export class PlayerMovement {
 
   /**
    * @param direction unit vector in tile space (or zero)
+   * @param speedScale multiplies the configured speed (chasing, or a shorter final step onto a waypoint)
    * @returns true if the position changed
    */
-  step(direction: Point, deltaSeconds: number): boolean {
+  step(direction: Point, deltaSeconds: number, speedScale = 1): boolean {
     if (direction.x === 0 && direction.y === 0) return false;
     let remaining = deltaSeconds;
     let moved = false;
     while (remaining > 0) {
       const dt = Math.min(remaining, MAX_STEP_SECONDS);
       remaining -= dt;
-      const dx = direction.x * this.config.speed * dt;
-      const dy = direction.y * this.config.speed * dt;
+      const dx = direction.x * this.config.speed * speedScale * dt;
+      const dy = direction.y * this.config.speed * speedScale * dt;
       if (dx !== 0) moved = this.advance('x', dx) || moved;
       if (dy !== 0) moved = this.advance('y', dy) || moved;
     }

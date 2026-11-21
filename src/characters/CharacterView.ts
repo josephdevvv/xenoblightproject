@@ -2,9 +2,7 @@ import Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import type { CharacterAppearance } from '../data/CharacterData';
 import { GameServices } from '../systems/GameServices';
-import { approvedPlacement, CharacterAnimator, namePlateHeight, type CharacterSheets } from './CharacterAnimator';
-import { characterFrameIndex } from './CharacterSheetLayout';
-import { getSheetMetrics } from './SpriteMetrics';
+import { CharacterAnimator, type CharacterSheets } from './CharacterAnimator';
 
 export interface CharacterViewOptions {
   /** Load and use the walk-cycle sheet (default true). The creation preview passes false. */
@@ -35,7 +33,6 @@ export class CharacterView {
   private sheets: CharacterSheets;
   private request = 0;
   private readonly world = { x: 0, y: 0 };
-  private namePlateCache: { texture: string; scale: number; height: number } | null = null;
 
   constructor(scene: Phaser.Scene, appearance: CharacterAppearance, x: number, y: number, options: CharacterViewOptions = {}) {
     this.walk = options.walk ?? true;
@@ -98,21 +95,6 @@ export class CharacterView {
     return { x: this.sprite.x, y: this.sprite.y };
   }
 
-  /**
-   * Name plate height above the feet (whole px): fixed per appearance - top of the front (S) static
-   * frame + a small gap - and NEVER taken from the animated frame, so the label does not bounce with
-   * the walk cycle. Cached until the appearance or display scale changes.
-   */
-  getNamePlateHeight(): number {
-    const texture = this.sheets.standing;
-    const scale = this.animator.getBaseScale();
-    if (this.namePlateCache && this.namePlateCache.texture === texture && this.namePlateCache.scale === scale) return this.namePlateCache.height;
-    const placement = approvedPlacement(texture);
-    const front = placement ? getSheetMetrics(this.sprite.scene.textures, texture)[characterFrameIndex('S')] : undefined;
-    const height = namePlateHeight(front ? front.top : null, placement ? placement.normalize : null, scale);
-    this.namePlateCache = { texture, scale, height };
-    return height;
-  }
 
   setDepth(depth: number): void {
     this.sprite.setDepth(depth);

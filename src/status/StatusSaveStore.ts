@@ -14,7 +14,7 @@ import {
  * - One key per character (`xenoblight.status.v1.<name>`), so reading or writing one character
  *   never touches another, and a corrupt record cannot break the others.
  * - Character identity in this prototype is the name (case-insensitive); see characterSaveKey().
- * - Only level, base stats and unspent points are stored. Bonus stats come from future equipment
+ * - Only level, base stats, unspent points and EXP are stored. Bonus stats come from future equipment
  *   / passives and derived stats are always recalculated, so neither is saved.
  */
 
@@ -27,6 +27,8 @@ interface SavedStatus {
   level: number;
   base: Record<string, number>;
   statPoints: number;
+  /** EXP towards the next level. Optional: saves from before combat have none (= 0). */
+  exp?: number;
   updatedAt: number;
 }
 
@@ -85,6 +87,7 @@ export const StatusSaveStore = {
       level: status.level,
       base: { ...status.base },
       statPoints: status.statPoints,
+      exp: status.exp,
       updatedAt: Date.now(),
     };
     try {
@@ -145,6 +148,10 @@ function sanitize(d: Partial<SavedStatus>): LoadResult {
   } else {
     repaired.push('statPoints (missing)');
   }
+
+  const exp = Number(d.exp ?? 0);
+  if (Number.isFinite(exp) && exp >= 0) status.exp = Math.floor(exp);
+  else repaired.push('exp');
 
   if (!base && !Number.isFinite(level) && !Number.isFinite(points)) {
     return { kind: 'invalid', reason: 'no recognisable status fields' };

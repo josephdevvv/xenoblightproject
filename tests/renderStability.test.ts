@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
 import { SPRITE_FORGE_CHARACTER_VARIANTS } from '../src/assets/SpriteForgeCharacters';
-import { approvedPlacement, NAMEPLATE_FALLBACK_HEIGHT, namePlateHeight } from '../src/characters/CharacterAnimator';
+import { approvedPlacement } from '../src/characters/CharacterAnimator';
 import { walkSpriteIdOf } from '../src/characters/CharacterAssetIds';
 import { bodyNormalizeFor } from '../src/characters/CharacterBodyMetrics';
 import { CHARACTER_CANVAS_ROOT, CHARACTER_FRAME_HEIGHT, CHARACTER_FRAME_WIDTH } from '../src/characters/CharacterSheetLayout';
 import { StableCameraFollow, type FollowCamera } from '../src/render/StableCameraFollow';
+import { NAME_LABEL_GAP, NAME_LABEL_ROLE, nameLabelTop } from '../src/ui/world/WorldNameLabel';
+import { TYPOGRAPHY } from '../src/ui/text/Typography';
 import { readPng, type Rgba } from './helpers/png';
 
 // ---------------------------------------------------------------------------------------------
@@ -197,31 +199,32 @@ test('approved art: every frame stands on the canvas root line (so one fixed ori
 });
 
 // ---------------------------------------------------------------------------------------------
-// Name plate: fixed height per appearance, never from the animated frame.
+// Name label: under the feet, from the ground root only - never from the animated frame.
 // ---------------------------------------------------------------------------------------------
 
-test('name plate: one fixed height per appearance that clears every walk frame', () => {
+test('name label: whole-pixel top a fixed gap under the root, ~15 % smaller than the old plates', () => {
+  for (const y of [0, 57, 2080, 1234.4, 1234.6]) {
+    const top = nameLabelTop(y);
+    assert.ok(Number.isInteger(top), 'whole pixels');
+    assert.equal(top, Math.round(y) + NAME_LABEL_GAP);
+  }
+  const ratio = TYPOGRAPHY[NAME_LABEL_ROLE].size / TYPOGRAPHY.label.size;
+  assert.ok(ratio >= 0.8 && ratio <= 0.88, `label size ratio ${ratio}`);
+});
+
+test('name label: below every static and walk frame of the approved characters', () => {
   for (const v of SPRITE_FORGE_CHARACTER_VARIANTS) {
     const normalize = bodyNormalizeFor(v.spriteId)!;
+    // drawn pixels below the root (scaled) must end before the label starts
+    const below = (bottom: number) => (bottom + 1 - CHARACTER_CANVAS_ROOT.y) * normalize;
     const st = readPng(path.join(PUBLIC, v.standing));
-    const height = namePlateHeight(frameRange(st, 0, 0).top, normalize, 1);
-    assert.ok(Number.isInteger(height), 'whole pixels');
-    // Same inputs always give the same height - it cannot depend on the current frame.
-    assert.equal(namePlateHeight(frameRange(st, 0, 0).top, normalize, 1), height);
-    const clearance = (top: number) => height - (CHARACTER_CANVAS_ROOT.y - top) * normalize;
-    for (let i = 0; i < 8; i++) assert.ok(clearance(frameRange(st, i % 4, Math.floor(i / 4)).top) >= 1, `${v.key} static ${i}`);
+    for (let i = 0; i < 8; i++) assert.ok(below(frameRange(st, i % 4, Math.floor(i / 4)).bottom) <= NAME_LABEL_GAP, `${v.key} static ${i}`);
     if (!v.walk) continue;
     const wk = readPng(path.join(PUBLIC, v.walk));
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < v.walkFramesPerDirection; c++) {
-        assert.ok(clearance(frameRange(wk, c, r).top) >= 1, `${v.key} walk ${r}/${c}: plate overlaps the head`);
+        assert.ok(below(frameRange(wk, c, r).bottom) <= NAME_LABEL_GAP, `${v.key} walk ${r}/${c}: label overlaps the feet`);
       }
     }
   }
-});
-
-test('name plate: scales with the display scale; unknown art uses the fallback', () => {
-  assert.equal(namePlateHeight(null, null, 1), NAMEPLATE_FALLBACK_HEIGHT);
-  assert.equal(namePlateHeight(null, 0.98, 2), NAMEPLATE_FALLBACK_HEIGHT * 2);
-  assert.ok(namePlateHeight(10, 1, 3) > namePlateHeight(10, 1, 1) * 2.5);
 });

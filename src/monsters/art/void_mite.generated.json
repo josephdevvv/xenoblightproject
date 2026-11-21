@@ -1,0 +1,331 @@
+{
+  "id": "void_mite",
+  "name": "Void Mite",
+  "nameTh": null,
+  "rows": [
+    "SE",
+    "SW",
+    "NE",
+    "NW"
+  ],
+  "actions": {
+    "idle": {
+      "file": "idle.png",
+      "frameWidth": 48,
+      "frameHeight": 32,
+      "frames": 1,
+      "anchors": {
+        "SE": {
+          "x": 24,
+          "y": 31
+        },
+        "SW": {
+          "x": 24,
+          "y": 31
+        },
+        "NE": {
+          "x": 24,
+          "y": 31
+        },
+        "NW": {
+          "x": 24,
+          "y": 31
+        }
+      },
+      "feet": {
+        "SE": [
+          30
+        ],
+        "SW": [
+          30
+        ],
+        "NE": [
+          29
+        ],
+        "NW": [
+          30
+        ]
+      }
+    },
+    "walk": {
+      "file": "walk.png",
+      "frameWidth": 48,
+      "frameHeight": 32,
+      "frames": 6,
+      "anchors": {
+        "SE": {
+          "x": 24,
+          "y": 31
+        },
+        "SW": {
+          "x": 24,
+          "y": 31
+        },
+        "NE": {
+          "x": 24,
+          "y": 31
+        },
+        "NW": {
+          "x": 24,
+          "y": 31
+        }
+      },
+      "feet": {
+        "SE": [
+          29,
+          30,
+          29,
+          30,
+          30,
+          29
+        ],
+        "SW": [
+          29,
+          29,
+          29,
+          30,
+          30,
+          29
+        ],
+        "NE": [
+          30,
+          30,
+          30,
+          29,
+          30,
+          29
+        ],
+        "NW": [
+          29,
+          30,
+          29,
+          29,
+          30,
+          29
+        ]
+      }
+    },
+    "attack": {
+      "file": "attack.png",
+      "frameWidth": 48,
+      "frameHeight": 32,
+      "frames": 6,
+      "anchors": {
+        "SE": {
+          "x": 24,
+          "y": 31
+        },
+        "SW": {
+          "x": 24,
+          "y": 31
+        },
+        "NE": {
+          "x": 24,
+          "y": 31
+        },
+        "NW": {
+          "x": 24,
+          "y": 31
+        }
+      },
+      "feet": {
+        "SE": [
+          29,
+          29,
+          29,
+          29,
+          30,
+          29
+        ],
+        "SW": [
+          29,
+          29,
+          29,
+          29,
+          30,
+          29
+        ],
+        "NE": [
+          30,
+          30,
+          30,
+          30,
+          30,
+          30
+        ],
+        "NW": [
+          30,
+          30,
+          30,
+          30,
+          30,
+          30
+        ]
+      }
+    },
+    "hit": {
+      "file": "hit.png",
+      "frameWidth": 48,
+      "frameHeight": 32,
+      "frames": 4,
+      "anchors": {
+        "SE": {
+          "x": 24,
+          "y": 31
+        },
+        "SW": {
+          "x": 24,
+          "y": 31
+        },
+        "NE": {
+          "x": 24,
+          "y": 31
+        },
+        "NW": {
+          "x": 24,
+          "y": 31
+        }
+      },
+      "feet": {
+        "SE": [
+          30,
+          30,
+          30,
+          30
+        ],
+        "SW": [
+          30,
+          30,
+          30,
+          30
+        ],
+        "NE": [
+          30,
+          30,
+          30,
+          30
+        ],
+        "NW": [
+          30,
+          30,
+          30,
+          30
+        ]
+      }
+    },
+    "death": {
+      "file": "death.png",
+      "frameWidth": 64,
+      "frameHeight": 48,
+      "frames": 6,
+      "anchors": {
+        "SE": {
+          "x": 28,
+          "y": 47
+        },
+        "SW": {
+          "x": 36,
+          "y": 47
+        },
+        "NE": {
+          "x": 30,
+          "y": 48
+        },
+        "NW": {
+          "x": 35,
+          "y": 47
+        }
+      },
+      "feet": {
+        "SE": [
+          46,
+          45,
+          45,
+          45,
+          45,
+          45
+        ],
+        "SW": [
+          46,
+          45,
+          45,
+          45,
+          45,
+          45
+        ],
+        "NE": [
+          46,
+          46,
+          41,
+          46,
+          46,
+          46
+        ],
+        "NW": [
+          45,
+          46,
+          41,
+          45,
+          45,
+          45
+        ]
+      }
+    }
+  },
+  "vfx": {
+    "file": "vfx_attack.png",
+    "frameWidth": 48,
+    "frameHeight": 32,
+    "frames": 3,
+    "origins": {
+      "SE": {
+        "x": 24,
+        "y": 31
+      },
+      "SW": {
+        "x": 24,
+        "y": 31
+      },
+      "NE": {
+        "x": 24,
+        "y": 31
+      },
+      "NW": {
+        "x": 24,
+        "y": 31
+      }
+    },
+    "offsets": {
+      "SE": {
+        "x": 0,
+        "y": 0
+      },
+      "SW": {
+        "x": 0,
+        "y": 0
+      },
+      "NE": {
+        "x": 0,
+        "y": 0
+      },
+      "NW": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  "qa": {
+    "specks": [
+      "attack SE frame 5: speck at (23, 28)",
+      "attack SW frame 5: speck at (23, 28)",
+      "attack NE frame 5: speck at (45, 19)",
+      "attack NE frame 6: speck at (3, 18)",
+      "attack NW frame 5: speck at (2, 19)",
+      "attack NW frame 6: speck at (44, 18)"
+    ],
+    "notes": [
+      "death: drawn at x1.43 the height of the idle frame (43 vs 30 px) - the creature visibly changes size when this action starts",
+      "death: rescaled x0.709 (nearest neighbour, about the ground anchor) to the idle body size"
+    ]
+  }
+}

@@ -5,7 +5,7 @@ import type { PerformanceManager } from '../systems/performance/PerformanceManag
 import type { IsometricMap } from '../world/IsometricMap';
 import type { TileBox } from '../world/structures/StructureLayer';
 import { MONSTER_DEFINITIONS } from './MonsterDefinition';
-import { MonsterEntity } from './MonsterEntity';
+import { MonsterEntity, type MonsterCombatContext } from './MonsterEntity';
 import type { MonsterSpawnPoint } from './MonsterSpawns';
 
 export interface SpawnConstraints {
@@ -73,17 +73,19 @@ export class MonsterSpawner {
   }
 
   /**
-   * Moves wandering monsters. Monsters in the "dormant" distance band (far from the camera) are
-   * skipped; nothing else changes, and stationary monsters cost nothing.
+   * Moves monsters and runs their combat states. Wandering monsters in the "dormant" distance band (far
+   * from the camera) are skipped; fighting, returning, dying and respawning ones always update.
    */
-  update(deltaMs: number, camera: Phaser.Cameras.Scene2D.Camera, performance: PerformanceManager): void {
+  update(deltaMs: number, camera: Phaser.Cameras.Scene2D.Camera, performance: PerformanceManager, ctx: MonsterCombatContext): void {
     const cx = camera.midPoint.x;
     const cy = camera.midPoint.y;
     for (const monster of this.monsters) {
-      if (!monster.moves) continue;
-      const w = monster.world;
-      if (performance.priorityForDistance(Math.hypot(w.x - cx, w.y - cy)) === 'dormant') continue;
-      monster.update(deltaMs, (p) => this.isAreaFreeFor(monster, monster.footprint(p)));
+      if (monster.getMode() === 'wander') {
+        if (!monster.moves) continue;
+        const w = monster.world;
+        if (performance.priorityForDistance(Math.hypot(w.x - cx, w.y - cy)) === 'dormant') continue;
+      }
+      monster.update(deltaMs, (p) => this.isAreaFreeFor(monster, monster.footprint(p)), ctx);
     }
   }
 
@@ -95,7 +97,7 @@ export class MonsterSpawner {
   private isAreaFreeFor(self: MonsterEntity | null, box: TileBox): boolean {
     if (!this.map.isAreaFree(box)) return false;
     if (this.buildings.some((b) => overlaps(box, b))) return false;
-    return !this.monsters.some((m) => m !== self && overlaps(box, m.footprint()));
+    return !this.monsters.some((m) => m !== self && m.isAlive() && overlaps(box, m.footprint()));
   }
 
   /** Returns why a point is invalid, or null when it may be used. */

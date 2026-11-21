@@ -1,0 +1,44 @@
+{
+  "name": "Mutant Wolf",
+  "name_th": "หมาป่ากลายพันธุ์",
+  "monster_id": "05_corrupted_wolf",
+  "directions": [
+    "south_east",
+    "south_west",
+    "north_east",
+    "north_west"
+  ],
+  "cell_sizes": {
+    "monster": "60x42",
+    "bite_impact_vfx": "32x32"
+  },
+  "actions": {
+    "idle": {
+      "frames": 1,
+      "folder": "Idle"
+    },
+    "walk_light_run": {
+      "frames": 6,
+      "folder": "Walk_Light_Run"
+    },
+    "pounce_bite": {
+      "frames": 6,
+      "folder": "Attack_Pounce_Bite"
+    },
+    "hit_reaction": {
+      "frames": 4,
+      "folder": "Hit_Reaction"
+    },
+    "death_prone": {
+      "frames": 5,
+      "folder": "Death_Prone"
+    },
+    "bite_impact_vfx": {
+      "frames": 3,
+      "folder": "VFX_Bite_Impact",
+      "cell": "32x32",
+      "note": "Play on the bite contact frame; VFX remains separate from monster frames."
+    }
+  },
+  "included": "Final PNG sheets and individual transparent frames only; source and QA files omitted."
+}

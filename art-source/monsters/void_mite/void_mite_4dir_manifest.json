@@ -1,0 +1,43 @@
+{
+  "name": "Void Mite",
+  "monster_id": "01_void_mite",
+  "directions": [
+    "south_east",
+    "south_west",
+    "north_east",
+    "north_west"
+  ],
+  "cell_sizes": {
+    "idle_walk_attack_hit_vfx": "48x32",
+    "death": "64x48"
+  },
+  "actions": {
+    "idle": {
+      "frames": 1,
+      "folder": "Idle"
+    },
+    "walk": {
+      "frames": 6,
+      "folder": "Walk"
+    },
+    "attack_stomp": {
+      "frames": 6,
+      "folder": "Attack_Stomp"
+    },
+    "hit_reaction": {
+      "frames": 4,
+      "folder": "Hit_Reaction"
+    },
+    "stomp_impact_vfx": {
+      "frames": 3,
+      "folder": "VFX_Stomp_Impact",
+      "note": "Separate overlay. Play on the stomp contact frame."
+    },
+    "death_fall": {
+      "frames": 6,
+      "folder": "Death_Fall"
+    }
+  },
+  "north_west_stomp_vfx": "Horizontal mirror of the accepted north_east stomp VFX, built to complete the four-direction set.",
+  "included": "Final transparent PNG sheets and individual frames only; source and QA files omitted."
+}

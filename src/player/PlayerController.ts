@@ -1,10 +1,18 @@
 import Phaser from 'phaser';
 import type { TileBox } from '../world/structures/StructureLayer';
-import { directionFromScreenInput, screenInputToGroundVector, type Direction } from '../core/Direction';
+import {
+  actionDirectionFromGroundVector,
+  directionFromGroundVector,
+  directionFromScreenInput,
+  screenInputToGroundVector,
+  type ActionDirection,
+  type Direction,
+} from '../core/Direction';
 import type { Point } from '../core/types';
 import type { CharacterView } from '../characters/CharacterView';
 import type { IsometricMap } from '../world/IsometricMap';
 import type { KeyboardMovementInput } from './KeyboardMovementInput';
+import { Pathfinder } from '../world/navigation/Pathfinder';
 import { PlayerMovement } from './PlayerMovement';
 
 export const PLAYER_MOVEMENT = {
@@ -15,6 +23,24 @@ export const PLAYER_MOVEMENT = {
 /** Logical movement state: drives the walk animation and is shown in the HUD. */
 export type MovementState = 'idle' | 'walk';
 
+/** Player actions that will get 4-direction animations (SE, SW, NE, NW). Walking stays 8-directional. */
+export type PlayerAction = 'attack' | 'hit' | 'cast' | 'death';
+
+/**
+ * Hook for the future player action animations. No attack / hit / cast / death art exists yet, so the
+ * default returns false and the controller keeps the existing visual state (standing frame turned towards
+ * the target). Replace with an implementation that plays the 4-direction clips once the art arrives.
+ */
+export interface PlayerActionAnimations {
+  /** Returns true when it played an animation for the action. */
+  play(action: PlayerAction, facing: ActionDirection): boolean;
+}
+
+const NO_ACTION_ANIMATIONS: PlayerActionAnimations = { play: () => false };
+
+/** A blocked path (no progress for this long) is abandoned. */
+const STUCK_MS = 400;
+
 /**
  * Central player controller: input -> movement (tile space) -> view (world space) -> animator.
  * Movement rules live in PlayerMovement; sprite selection lives in CharacterAnimator.
@@ -23,8 +49,15 @@ export type MovementState = 'idle' | 'walk';
  */
 export class PlayerController {
   private readonly movement: PlayerMovement;
+  private readonly pathfinder: Pathfinder;
   private facing: Direction = 'S';
   private state: MovementState = 'idle';
+  /** Click-to-move waypoints (tile space); empty when not following a path. */
+  private path: Point[] = [];
+  private stuckMs = 0;
+  /** Called when the player takes manual control (WASD), e.g. to cancel a combat target. */
+  onManualMove: (() => void) | null = null;
+  actions: PlayerActionAnimations = NO_ACTION_ANIMATIONS;
 
   constructor(
     private readonly map: IsometricMap,
@@ -33,6 +66,7 @@ export class PlayerController {
     spawn: Point,
   ) {
     this.movement = new PlayerMovement(spawn, map, PLAYER_MOVEMENT);
+    this.pathfinder = new Pathfinder(map.layout, { radius: PLAYER_MOVEMENT.radius });
     this.syncView();
   }
 
@@ -42,12 +76,89 @@ export class PlayerController {
 
     let moved = false;
     if (direction) {
+      // Keyboard always wins: it cancels click-to-move (and, through onManualMove, a combat target).
+      if (this.path.length) this.stopPath();
+      this.onManualMove?.();
       this.facing = direction;
       moved = this.movement.step(screenInputToGroundVector(intent.x, intent.y), deltaMs / 1000);
+    } else if (this.path.length) {
+      moved = this.followPath(deltaMs);
     }
     this.state = moved ? 'walk' : 'idle';
 
     this.syncView();
+  }
+
+  /** Walks to a point (tile space) along a found path. Returns false when there is no way there. */
+  moveTo(goal: Point): boolean {
+    const path = this.pathfinder.findPath(this.movement.position, goal);
+    if (!path || path.length === 0) {
+      this.stopPath();
+      return false;
+    }
+    this.path = path;
+    this.stuckMs = 0;
+    return true;
+  }
+
+  stopPath(): void {
+    this.path = [];
+    this.stuckMs = 0;
+  }
+
+  hasPath(): boolean {
+    return this.path.length > 0;
+  }
+
+  /** Turns the (standing) character towards a tile-space point. */
+  faceTowards(p: Point): void {
+    const d = directionFromGroundVector(p.x - this.movement.position.x, p.y - this.movement.position.y);
+    if (d) this.facing = d;
+    this.syncView();
+  }
+
+  /** 4-way facing for action animations towards a point (attack / hit / cast / death). */
+  actionFacingTowards(p: Point): ActionDirection {
+    return actionDirectionFromGroundVector(p.x - this.movement.position.x, p.y - this.movement.position.y);
+  }
+
+  /** Puts the player on a point at once (respawn). */
+  teleport(p: Point): void {
+    this.stopPath();
+    this.movement.position.x = p.x;
+    this.movement.position.y = p.y;
+    this.state = 'idle';
+    this.syncView();
+  }
+
+  private followPath(deltaMs: number): boolean {
+    const dt = deltaMs / 1000;
+    const pos = this.movement.position;
+    let next = this.path[0];
+    let dx = next.x - pos.x;
+    let dy = next.y - pos.y;
+    let dist = Math.hypot(dx, dy);
+    while (dist < 0.02 && this.path.length) {
+      this.path.shift();
+      if (!this.path.length) return false;
+      next = this.path[0];
+      dx = next.x - pos.x;
+      dy = next.y - pos.y;
+      dist = Math.hypot(dx, dy);
+    }
+    const stepLength = PLAYER_MOVEMENT.speed * dt;
+    // last bit: a shorter step lands exactly on the waypoint instead of overshooting it
+    const scale = dist < stepLength ? dist / stepLength : 1;
+    const moved = this.movement.step({ x: dx / dist, y: dy / dist }, dt, scale);
+    const d = directionFromGroundVector(dx, dy);
+    if (d) this.facing = d;
+    if (!moved) {
+      this.stuckMs += deltaMs;
+      if (this.stuckMs > STUCK_MS) this.stopPath();
+      return false;
+    }
+    this.stuckMs = 0;
+    return true;
   }
 
   /** Position in continuous tile space. */

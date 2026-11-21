@@ -1,5 +1,7 @@
 import type { TileCoord } from '../core/types';
 import cityGuard from './art/city_guard_01.generated.json';
+import cityGuardJack from './art/city_guard_jack.generated.json';
+import cityGuardSonny from './art/city_guard_sonny.generated.json';
 
 /**
  * Non-player characters. Data only: a stable id (used later by quests / dialogue), a display name, where it
@@ -7,7 +9,7 @@ import cityGuard from './art/city_guard_01.generated.json';
  * id is kept stable so those systems can attach to it later.
  */
 
-export type NpcId = 'city_guard_01';
+export type NpcId = 'city_guard_01' | 'city_guard_jack' | 'city_guard_sonny';
 
 export interface NpcSheetMeta {
   id: string;
@@ -49,6 +51,25 @@ export const NPC_DEFINITIONS: Readonly<Record<NpcId, NpcDefinition>> = {
     facing: 'SW',
     // the city guard "Mateus": standing frame 1; frames 2-13 played once at 150 ms, then 15 s standing again
     art: { meta: cityGuard as NpcSheetMeta, url: 'assets/npcs/city_guard_01/MateusIdleAnimation.png' },
+    idle: { stillMs: 15000, frameMs: 150 },
+  },
+  // The two gate guards in front of the closed city gate (Zone 5), same idle routine as Mateus.
+  city_guard_jack: {
+    id: 'city_guard_jack',
+    name: 'Jack',
+    mapId: 'ashen_crossroads',
+    tile: { col: 13, row: 3 },
+    facing: 'SW',
+    art: { meta: cityGuardJack as NpcSheetMeta, url: 'assets/npcs/city_guard_jack/DoorGuard01IdleAnimation.png' },
+    idle: { stillMs: 15000, frameMs: 150 },
+  },
+  city_guard_sonny: {
+    id: 'city_guard_sonny',
+    name: 'Sonny',
+    mapId: 'ashen_crossroads',
+    tile: { col: 16, row: 3 },
+    facing: 'SW',
+    art: { meta: cityGuardSonny as NpcSheetMeta, url: 'assets/npcs/city_guard_sonny/DoorGuard02IdleAnimation.png' },
     idle: { stillMs: 15000, frameMs: 150 },
   },
 };

@@ -33,17 +33,18 @@ export class CombatSystem {
   private pathFails = 0;
   private lastHurtAt = -Infinity;
   private regenCarry = 0;
-  private defeatedUntil: number | null = null;
+  private defeated = false;
   private elapsed = 0;
   private readonly rng: () => number;
   readonly monsterContext: MonsterCombatContext;
+  /** Called once when the player's HP reaches 0 (the death flow takes over; there is no auto-respawn). */
+  onPlayerDefeated: (() => void) | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly character: CharacterData,
     private readonly player: PlayerController,
     private readonly monsters: MonsterSpawner,
-    private readonly spawn: Point,
     rng: () => number = Math.random,
   ) {
     this.rng = rng;
@@ -107,7 +108,7 @@ export class CombatSystem {
   }
 
   isDefeated(): boolean {
-    return this.defeatedUntil !== null;
+    return this.defeated;
   }
 
   // -------------------------------------------------------------------------------------------
@@ -119,10 +120,7 @@ export class CombatSystem {
     this.attackCooldownMs = Math.max(0, this.attackCooldownMs - deltaMs);
     this.monsterContext.player = this.isDefeated() ? null : this.player.getTilePosition();
 
-    if (this.defeatedUntil !== null) {
-      if (this.elapsed >= this.defeatedUntil) this.respawnPlayer();
-      return;
-    }
+    if (this.defeated) return; // dead: no regeneration, no target, nothing hits the player
     this.regenerate(deltaMs);
     this.updateTarget(deltaMs);
   }
@@ -221,7 +219,9 @@ export class CombatSystem {
   private flashPlayer(): void {
     const sprite = this.player.view.sprite;
     sprite.setTint(0xff5050);
-    this.scene.time.delayedCall(140, () => sprite.clearTint());
+    this.scene.time.delayedCall(140, () => {
+      if (sprite.active) sprite.clearTint();
+    });
   }
 
   private regenerate(deltaMs: number): void {
@@ -235,21 +235,32 @@ export class CombatSystem {
     }
   }
 
+  /** HP reached 0: stop every combat action at once and hand over to the death flow (once). */
   private defeat(): void {
+    if (this.defeated) return;
+    this.defeated = true;
     this.clearTarget();
-    this.player.stopPath();
-    this.player.actions.play('death', this.player.actionFacingTowards(this.player.getTilePosition()));
-    const w = this.player.getWorldPosition();
-    this.numbers.show(w.x, w.y - 70, 'DEFEATED', 'info');
-    this.player.view.sprite.setAlpha(0.5);
+    this.player.halt();
+    this.attackCooldownMs = 0;
+    this.player.view.sprite.clearTint();
     for (const m of this.monsters.getMonsters()) m.disengage();
-    this.defeatedUntil = this.elapsed + COMBAT_RULES.playerRespawnMs;
+    this.onPlayerDefeated?.();
   }
 
-  private respawnPlayer(): void {
-    this.defeatedUntil = null;
-    this.player.teleport({ x: this.spawn.x, y: this.spawn.y });
-    this.player.view.sprite.setAlpha(1);
+  /**
+   * Respawn (called by the death flow at the save point). Existing rule: full HP. Every temporary combat
+   * state is cleared (target, cooldowns, regeneration timers, red flash).
+   */
+  respawnAt(point: Point): void {
+    this.clearTarget();
+    this.defeated = false;
+    this.player.teleport({ x: point.x, y: point.y });
+    this.player.view.sprite.clearTint();
     this.playerHp = this.playerStats().maxHp;
+    this.attackCooldownMs = 0;
+    this.repathMs = 0;
+    this.pathFails = 0;
+    this.regenCarry = 0;
+    this.lastHurtAt = -Infinity;
   }
 }

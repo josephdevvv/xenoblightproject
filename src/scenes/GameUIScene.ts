@@ -3,6 +3,10 @@ import { SCENES } from '../config/constants';
 import type { CharacterData } from '../data/CharacterData';
 import { CharacterStore } from '../data/CharacterStore';
 import { DungeonHud } from '../ui/hud/DungeonHud';
+import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
+import { DeathOverlay } from '../ui/death/DeathOverlay';
+import { availablePoints } from '../passives/PassiveProgress';
+import { CharacterStatusService } from '../status/CharacterStatusService';
 import { SettingsWindow } from '../ui/SettingsWindow';
 import { StatusWindow } from '../ui/StatusWindow';
 import type { GameScene } from './GameScene';
@@ -20,6 +24,8 @@ export class GameUIScene extends Phaser.Scene {
   private statusWindow: StatusWindow | null = null;
   private hud: DungeonHud | null = null;
   private settingsWindow: SettingsWindow | null = null;
+  private passiveWindow: PassiveTreeWindow | null = null;
+  private deathOverlay: DeathOverlay | null = null;
 
   constructor() {
     super(SCENES.GameUI);
@@ -29,6 +35,8 @@ export class GameUIScene extends Phaser.Scene {
     this.statusWindow = null;
     this.hud = null;
     this.settingsWindow = null;
+    this.passiveWindow = null;
+    this.deathOverlay = null;
     const character = this.resolveCharacter(data.characterId);
     const game = this.gameScene();
     if (!character || !game?.map) {
@@ -42,20 +50,45 @@ export class GameUIScene extends Phaser.Scene {
         map: game.map,
         onStatus: () => this.statusWindow?.toggle(),
         onSettings: () => this.settingsWindow?.toggle(),
+        onPassive: () => this.togglePassiveTree(),
         currentHp: () => this.gameScene()?.combat?.getPlayerHp() ?? Number.POSITIVE_INFINITY,
       },
       0,
     );
     this.statusWindow = new StatusWindow(this, character, 10);
+    if (character.passives) {
+      const passive = new PassiveTreeWindow(this, character, 14);
+      this.passiveWindow = passive;
+      passive.onStateChange = () => this.refreshPassiveGuide(character);
+      const unsubscribe = CharacterStatusService.onChange((c) => {
+        if (c === character) this.refreshPassiveGuide(character);
+      });
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
+      // P toggles the tree (not while Settings is open on top).
+      const onP = (): void => {
+        const alive = this.gameScene()?.death?.life.canPerform('openWindow') ?? true;
+        if (alive && !this.settingsWindow?.isOpen) this.togglePassiveTree();
+      };
+      this.input.keyboard?.on('keydown-P', onP);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-P', onP));
+      this.refreshPassiveGuide(character);
+    }
     this.settingsWindow = new SettingsWindow(this, { depth: 20 });
+    // Death screen above everything (HUD, windows): blocks all input while the player is not alive.
+    const death = new DeathOverlay(this, 40);
+    this.deathOverlay = death;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => death.dispose());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.statusWindow = null;
       this.hud = null;
       this.settingsWindow = null;
+      this.passiveWindow = null;
+      this.deathOverlay = null;
     });
   }
 
-  update(): void {
+  update(_time: number, delta: number): void {
+    this.deathOverlay?.update(delta);
     const game = this.gameScene();
     if (!this.hud || !game?.player) return;
     this.hud.update(
@@ -114,11 +147,44 @@ export class GameUIScene extends Phaser.Scene {
       this.settingsWindow.close();
       return true;
     }
+    if (this.passiveWindow?.isOpen) {
+      this.passiveWindow.close();
+      return true;
+    }
     if (this.statusWindow?.isOpen) {
       this.statusWindow.close();
       return true;
     }
     return false;
+  }
+
+  /** The death screen (DeathUi for PlayerDeathController). */
+  get death(): DeathOverlay | null {
+    return this.deathOverlay;
+  }
+
+  /** Closes every window at once (death). */
+  closeAllWindows(): void {
+    for (let i = 0; i < 4 && this.closeWindows(); i++);
+  }
+
+  get isPassiveTreeOpen(): boolean {
+    return this.passiveWindow?.isOpen ?? false;
+  }
+
+  /** Opens / closes the Passive Tree (one modal window at a time: Status closes first). */
+  togglePassiveTree(): void {
+    const w = this.passiveWindow;
+    if (!w) return;
+    if (!w.isOpen && this.statusWindow?.isOpen) this.statusWindow.close();
+    w.toggle();
+  }
+
+  /** HUD guidance: the tutorial 'open' step and the unspent-points pip. */
+  private refreshPassiveGuide(character: CharacterData): void {
+    const w = this.passiveWindow;
+    if (!w || !character.passives) return;
+    this.hud?.setPassiveGuide(w.tutorial === 'open', availablePoints(character.passives) > 0);
   }
 
   get isSettingsOpen(): boolean {

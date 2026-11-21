@@ -3,12 +3,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import { IdleCycle } from '../src/npcs/IdleCycle';
-import { NPC_DEFINITIONS } from '../src/npcs/NpcDefinition';
+import { NPC_DEFINITIONS, npcsOnMap, type NpcDefinition } from '../src/npcs/NpcDefinition';
 import { MapLayout } from '../src/world/MapLayout';
 import { ASHEN_CROSSROADS } from '../src/world/maps/AshenCrossroads';
 import { readPng } from './helpers/png';
 
 const guard = NPC_DEFINITIONS.city_guard_01;
+const ALL: NpcDefinition[] = Object.values(NPC_DEFINITIONS);
+const DELIVERED: Record<string, string> = {
+  city_guard_01: 'art-source/npcs/city_guard_01/MateusIdleAnimation.png',
+  city_guard_jack: 'art-source/npcs/city_guard_jack/DoorGuard01IdleAnimation.png',
+  city_guard_sonny: 'art-source/npcs/city_guard_sonny/DoorGuard02IdleAnimation.png',
+};
+
+function standsFree(def: NpcDefinition): boolean {
+  const map = new MapLayout(ASHEN_CROSSROADS);
+  const r = 0.22;
+  const c = { x: def.tile.col + 0.5, y: def.tile.row + 0.5 };
+  return map.isAreaFree({ minX: c.x - r, minY: c.y - r, maxX: c.x + r, maxY: c.y + r }) && map.structureAt(def.tile.col, def.tile.row) === -1;
+}
 
 test('City Guard Mateus: same id, named Mateus, block (14, 105) facing SW, on a standable tile of the first map', () => {
   assert.equal(guard.id, 'city_guard_01');
@@ -65,23 +78,56 @@ test('idle routine: one cycle = 16.8 s, no overlapping plays even with huge fram
   assert.equal(d.frame(), 1);
 });
 
-test('City Guard art: MateusIdleAnimation.png unchanged, 4 x 4 of 64 x 64, all used frames on one feet row', () => {
-  const meta = guard.art.meta;
-  const delivered = path.join(process.cwd(), 'art-source/npcs/city_guard_01/MateusIdleAnimation.png');
-  const shipped = path.join(process.cwd(), 'public', guard.art.url);
-  assert.ok(fs.readFileSync(shipped).equals(fs.readFileSync(delivered)), 'byte-identical to the delivered file');
-  const img = readPng(shipped);
-  assert.equal(img.width, 256);
-  assert.equal(img.height, 256);
-  assert.equal(meta.columns, 4);
-  const bottomOf = (i: number): number => {
-    const cx = (i % 4) * 64;
-    const cy = Math.floor(i / 4) * 64;
-    let b = -1;
-    for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if (img.data[((cy + y) * img.width + cx + x) * 4 + 3] >= 128) b = y;
-    return b;
-  };
-  for (const i of [meta.standFrame, ...meta.playFrames]) assert.equal(bottomOf(i) + 1, meta.anchor.y, `frame ${i + 1} stands on the anchor row`);
-  for (const i of [13, 14, 15]) assert.equal(bottomOf(i), -1, `frame ${i + 1} is empty and unused`);
-  assert.ok(![meta.standFrame, ...meta.playFrames].some((i) => i > 12));
+for (const def of ALL) {
+  test(`${def.name} art: ${def.art.meta.file} unchanged, 4 x 4 of 64 x 64, frames 1-13 on one feet row, 14-16 empty`, () => {
+    const meta = def.art.meta;
+    const delivered = path.join(process.cwd(), DELIVERED[def.id]);
+    const shipped = path.join(process.cwd(), 'public', def.art.url);
+    assert.ok(def.art.url.endsWith(meta.file));
+    assert.ok(fs.readFileSync(shipped).equals(fs.readFileSync(delivered)), 'byte-identical to the delivered file');
+    const img = readPng(shipped);
+    assert.equal(img.width, 256);
+    assert.equal(img.height, 256);
+    assert.equal(meta.frameWidth, 64);
+    assert.equal(meta.frameHeight, 64);
+    assert.equal(meta.columns, 4);
+    assert.equal(meta.standFrame, 0);
+    assert.deepEqual(meta.playFrames, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    const bottomOf = (i: number): number => {
+      const cx = (i % 4) * 64;
+      const cy = Math.floor(i / 4) * 64;
+      let b = -1;
+      for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if (img.data[((cy + y) * img.width + cx + x) * 4 + 3] >= 128) b = y;
+      return b;
+    };
+    for (const i of [meta.standFrame, ...meta.playFrames]) assert.equal(bottomOf(i) + 1, meta.anchor.y, `frame ${i + 1} stands on the anchor row`);
+    for (const i of [13, 14, 15]) assert.equal(bottomOf(i), -1, `frame ${i + 1} is empty and unused`);
+  });
+}
+
+test('gate guards Jack (13, 3) and Sonny (16, 3): stable ids, standable tiles, Mateus idle routine', () => {
+  const jack = NPC_DEFINITIONS.city_guard_jack;
+  const sonny = NPC_DEFINITIONS.city_guard_sonny;
+  assert.equal(jack.id, 'city_guard_jack');
+  assert.equal(jack.name, 'Jack');
+  assert.deepEqual(jack.tile, { col: 13, row: 3 });
+  assert.equal(jack.art.meta.file, 'DoorGuard01IdleAnimation.png');
+  assert.equal(sonny.id, 'city_guard_sonny');
+  assert.equal(sonny.name, 'Sonny');
+  assert.deepEqual(sonny.tile, { col: 16, row: 3 });
+  assert.equal(sonny.art.meta.file, 'DoorGuard02IdleAnimation.png');
+  for (const def of [jack, sonny]) {
+    assert.equal(def.mapId, ASHEN_CROSSROADS.id);
+    assert.ok(standsFree(def), `${def.name} stands on open ground`);
+    assert.deepEqual(def.idle, guard.idle, 'same timing as Mateus');
+  }
+  // Mateus unchanged
+  assert.equal(guard.name, 'Mateus');
+  assert.deepEqual(guard.tile, { col: 14, row: 105 });
+  assert.equal(guard.art.meta.file, 'MateusIdleAnimation.png');
+  assert.deepEqual(guard.art.meta.anchor, { x: 36, y: 55, top: 6 });
+  // one NPC per tile, all on the first map, distinct texture keys
+  assert.equal(npcsOnMap(ASHEN_CROSSROADS.id).length, 3);
+  assert.equal(new Set(ALL.map((n) => `${n.tile.col},${n.tile.row}`)).size, ALL.length);
+  assert.equal(new Set(ALL.map((n) => n.art.meta.id)).size, ALL.length);
 });

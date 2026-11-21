@@ -1,0 +1,17 @@
+﻿{
+  "reference_resolution": {"width":1780,"height":883},
+  "render_order": ["01_window_and_panels.png","02_header.png","03_connectors.png","04_node_frames.png","05_selected_state.png","06_detail_strip.png","07_footer_buttons.png"],
+  "icon_slots": [
+    {"id":"core","center":[890,399],"size":94,"type":"core"},
+    {"id":"north","center":[890,238],"size":60,"type":"major"}, {"id":"south","center":[890,544],"size":60,"type":"major"},
+    {"id":"west","center":[661,399],"size":70,"type":"major"}, {"id":"east","center":[1119,399],"size":70,"type":"major"},
+    {"id":"nw_a","center":[535,315],"size":55,"type":"regular"}, {"id":"sw_a","center":[535,484],"size":55,"type":"regular"},
+    {"id":"ne_a","center":[1245,315],"size":55,"type":"regular"}, {"id":"se_a","center":[1245,484],"size":55,"type":"regular"},
+    {"id":"north_w","center":[723,210],"size":46,"type":"regular"}, {"id":"north_e","center":[1057,210],"size":46,"type":"regular"},
+    {"id":"south_w","center":[753,610],"size":46,"type":"regular"}, {"id":"south_e","center":[1027,610],"size":46,"type":"regular"},
+    {"id":"far_nw","center":[389,315],"size":46,"type":"regular"}, {"id":"far_sw","center":[389,484],"size":46,"type":"regular"},
+    {"id":"far_ne","center":[1391,315],"size":46,"type":"regular"}, {"id":"far_se","center":[1391,484],"size":46,"type":"regular"}
+  ],
+  "selected_node": "west",
+  "note": "Place each class-specific node icon centered on its icon slot. Render connector unlock state and selected overlay in code."
+}

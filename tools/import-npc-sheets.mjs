@@ -25,6 +25,27 @@ const SHEETS = {
     playFrames: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     facing: 'SW',
   },
+  // city_guard_jack / city_guard_sonny (gate guards): same layout as Mateus - 4 x 4 of 64 x 64, frames 1-13.
+  city_guard_jack: {
+    source: 'art-source/npcs/city_guard_jack/DoorGuard01IdleAnimation.png',
+    file: 'DoorGuard01IdleAnimation.png',
+    frameWidth: 64,
+    frameHeight: 64,
+    columns: 4,
+    standFrame: 1,
+    playFrames: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    facing: 'SW',
+  },
+  city_guard_sonny: {
+    source: 'art-source/npcs/city_guard_sonny/DoorGuard02IdleAnimation.png',
+    file: 'DoorGuard02IdleAnimation.png',
+    frameWidth: 64,
+    frameHeight: 64,
+    columns: 4,
+    standFrame: 1,
+    playFrames: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    facing: 'SW',
+  },
 };
 
 function readAlpha(file) {

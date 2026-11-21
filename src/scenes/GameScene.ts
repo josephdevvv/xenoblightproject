@@ -25,6 +25,8 @@ import { NpcEntity } from '../npcs/NpcEntity';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
 import { PLAYER_MOVEMENT } from '../player/PlayerController';
 import { GameHud } from '../ui/GameHud';
+import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
+import { PlayerDeathController } from '../player/death/PlayerDeathController';
 import { DungeonHud } from '../ui/hud/DungeonHud';
 import { StatusWindow } from '../ui/StatusWindow';
 import { LoadingScreen } from '../ui/LoadingScreen';
@@ -47,6 +49,8 @@ export class GameScene extends Phaser.Scene {
   player!: PlayerController;
   private atmosphere!: AtmosphereEffects;
   private hud!: GameHud;
+  /** Death / ghost / respawn flow and the dead-state action gate. */
+  death!: PlayerDeathController;
   private culler!: VisibilityCuller;
   private cameraFollow!: StableCameraFollow;
   monsters!: MonsterSpawner;
@@ -76,6 +80,8 @@ export class GameScene extends Phaser.Scene {
     this.loading = new LoadingScreen(this).show(t('world.entering'));
 
     const onEscape = (): void => {
+      // dying / dead / respawning: only the respawn button leaves the death screen
+      if (this.death && !this.death.life.isAlive()) return;
       // An open UI window (Status) closes first; otherwise ESC keeps its original meaning.
       const ui = this.scene.get(SCENES.GameUI) as GameUIScene;
       if (this.scene.isActive(SCENES.GameUI) && ui.closeWindows()) return;
@@ -105,18 +111,20 @@ export class GameScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (!this.ready) return;
-    // Combat decides first (target approach / attacks), then the player moves.
+    // Combat decides first (target approach / attacks), then the player moves - only while alive.
+    const alive = this.death.life.isAlive();
     this.combat.update(delta);
-    this.player.update(delta);
-    // Camera first, then draw the player and its name plate at camera-stable whole pixels.
+    if (alive) this.player.update(delta);
+    // Camera first, then draw the player and its name plate at camera-stable whole pixels. The camera
+    // holds still while the player is not alive (the ghost stays on the death spot).
     const feet = this.player.getWorldPosition();
-    this.cameraFollow.update(feet.x, feet.y, delta);
+    if (alive) this.cameraFollow.update(feet.x, feet.y, delta);
     this.player.view.setRenderPosition(this.cameraFollow.renderX(feet.x), this.cameraFollow.renderY(feet.y));
     this.monsters.update(delta, this.cameras.main, GameServices.get().performance, this.combat.monsterContext);
     for (const npc of this.npcs) npc.update(delta);
     this.combat.updateMarker();
     // pointer outside the canvas keeps its last position: only a pointer over the game can hover
-    this.monsterCursor.update(delta, this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
+    this.monsterCursor.update(delta, alive && this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
     this.atmosphere.update(delta);
     this.culler.update();
@@ -137,6 +145,7 @@ export class GameScene extends Phaser.Scene {
             .catch((e: Error) => console.warn(`[npcs] ${n.id} not shown: ${e.message}`)),
         ),
         StatusWindow.load(),
+        PassiveTreeWindow.load(),
         services.assets
           .load({ key: MONSTER_CURSOR.key, type: 'image', url: MONSTER_CURSOR.url })
           .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor over monsters`)),
@@ -197,9 +206,9 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Combat: player vs monsters, click targeting (see onPointerDown)
-    this.combat = new CombatSystem(this, character, this.player, this.monsters, spawn);
+    this.combat = new CombatSystem(this, character, this.player, this.monsters);
     this.clickMarker = new ClickMarker(this);
-    this.monsterCursor = new MonsterCursor(this.game.canvas, this.textures);
+    this.monsterCursor = new MonsterCursor(this.textures);
 
     // Camera
     const cam = this.cameras.main;
@@ -209,6 +218,19 @@ export class GameScene extends Phaser.Scene {
     this.cameraFollow = new StableCameraFollow(cam, { lerp: 0.12, offsetY: -24 });
     this.cameraFollow.update(spawnWorld.x, spawnWorld.y, 0);
     view.setRenderPosition(this.cameraFollow.renderX(spawnWorld.x), this.cameraFollow.renderY(spawnWorld.y));
+
+    // Death -> ghost -> respawn at the save point (none exist yet: the map spawn).
+    this.death = new PlayerDeathController({
+      scene: this,
+      combat: this.combat,
+      player: this.player,
+      camera: cam,
+      cameraFollow: this.cameraFollow,
+      mapId: this.mapId,
+      mapSpawn: spawn,
+      savePoint: () => null,
+      ui: () => (this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null),
+    });
 
     // Visibility management: static map images, and smoke that pauses (not resets) off-screen.
     this.culler = new VisibilityCuller(cam);
@@ -239,7 +261,7 @@ export class GameScene extends Phaser.Scene {
    * on walkable ground the player walks there. Clicks on the HUD / open windows never reach the world.
    */
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
-    if (!this.ready || !pointer.leftButtonDown() || this.isOverUi(pointer)) return;
+    if (!this.ready || !pointer.leftButtonDown() || !this.death.life.canPerform('move') || this.isOverUi(pointer)) return;
     const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
     const monster = this.pickMonster(world.x, world.y);
     if (monster) {

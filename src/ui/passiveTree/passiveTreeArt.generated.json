@@ -1,0 +1,212 @@
+{
+  "generatedBy": "tools/import-passive-tree.mjs (do not edit by hand)",
+  "source": {
+    "pack": "art-source/ui/passive_tree_minimal",
+    "icons": "art-source/ui/passive_tree_icons/drifter_skill_icon_sheet.png"
+  },
+  "scale": 0.5,
+  "canvas": {
+    "width": 890,
+    "height": 441.5
+  },
+  "layers": [
+    {
+      "id": "01_window_and_panels",
+      "url": "assets/ui/passive_tree/01_window_and_panels.png",
+      "x": 98,
+      "y": 27,
+      "width": 692,
+      "height": 400
+    },
+    {
+      "id": "02_header",
+      "url": "assets/ui/passive_tree/02_header.png",
+      "x": 346,
+      "y": 34,
+      "width": 424,
+      "height": 27
+    },
+    {
+      "id": "06_detail_strip",
+      "url": "assets/ui/passive_tree/06_detail_strip.png",
+      "x": 126,
+      "y": 348,
+      "width": 634,
+      "height": 34
+    },
+    {
+      "id": "07_footer_buttons",
+      "url": "assets/ui/passive_tree/07_footer_buttons.png",
+      "x": 334,
+      "y": 399,
+      "width": 223,
+      "height": 20
+    }
+  ],
+  "icons": {
+    "url": "assets/ui/passive_tree/drifter_passive_icons.png",
+    "frameSize": 27,
+    "frames": [
+      {
+        "id": "crossed_swords",
+        "frame": 0,
+        "width": 24,
+        "height": 24,
+        "source": {
+          "x": 58,
+          "y": 54,
+          "width": 291,
+          "height": 290
+        },
+        "grid": {
+          "pitchX": 11.9,
+          "pitchY": 11.9
+        }
+      },
+      {
+        "id": "sword",
+        "frame": 1,
+        "width": 23,
+        "height": 23,
+        "source": {
+          "x": 449,
+          "y": 52,
+          "width": 289,
+          "height": 296
+        },
+        "grid": {
+          "pitchX": 12.8,
+          "pitchY": 12.8
+        }
+      },
+      {
+        "id": "crosshair",
+        "frame": 2,
+        "width": 25,
+        "height": 25,
+        "source": {
+          "x": 836,
+          "y": 46,
+          "width": 311,
+          "height": 311
+        },
+        "grid": {
+          "pitchX": 12.4,
+          "pitchY": 12.4
+        }
+      },
+      {
+        "id": "impact",
+        "frame": 3,
+        "width": 25,
+        "height": 23,
+        "source": {
+          "x": 1218,
+          "y": 45,
+          "width": 338,
+          "height": 297
+        },
+        "grid": {
+          "pitchX": 13.2,
+          "pitchY": 13.2
+        }
+      },
+      {
+        "id": "shield",
+        "frame": 4,
+        "width": 23,
+        "height": 26,
+        "source": {
+          "x": 1648,
+          "y": 46,
+          "width": 275,
+          "height": 311
+        },
+        "grid": {
+          "pitchX": 11.9,
+          "pitchY": 11.9
+        }
+      },
+      {
+        "id": "heart",
+        "frame": 5,
+        "width": 21,
+        "height": 19,
+        "source": {
+          "x": 54,
+          "y": 469,
+          "width": 300,
+          "height": 273
+        },
+        "grid": {
+          "pitchX": 13.9,
+          "pitchY": 13.9
+        }
+      },
+      {
+        "id": "medical_cross",
+        "frame": 6,
+        "width": 21,
+        "height": 21,
+        "source": {
+          "x": 471,
+          "y": 464,
+          "width": 258,
+          "height": 254
+        },
+        "grid": {
+          "pitchX": 12.3,
+          "pitchY": 12.3
+        }
+      },
+      {
+        "id": "feather",
+        "frame": 7,
+        "width": 22,
+        "height": 25,
+        "source": {
+          "x": 851,
+          "y": 437,
+          "width": 273,
+          "height": 306
+        },
+        "grid": {
+          "pitchX": 12.1,
+          "pitchY": 12.1
+        }
+      },
+      {
+        "id": "eye",
+        "frame": 8,
+        "width": 27,
+        "height": 20,
+        "source": {
+          "x": 1216,
+          "y": 468,
+          "width": 334,
+          "height": 248
+        },
+        "grid": {
+          "pitchX": 12.6,
+          "pitchY": 12.6
+        }
+      },
+      {
+        "id": "star",
+        "frame": 9,
+        "width": 25,
+        "height": 25,
+        "source": {
+          "x": 1629,
+          "y": 437,
+          "width": 313,
+          "height": 307
+        },
+        "grid": {
+          "pitchX": 12.2,
+          "pitchY": 12.2
+        }
+      }
+    ]
+  }
+}

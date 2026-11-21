@@ -1,9 +1,12 @@
 import type { CharacterData, LocalizedMessage } from '../data/CharacterData';
 import { DEBUG_AVAILABLE } from '../systems/performance/DebugSnapshot';
 import { computeDerivedStats, type DerivedStats } from './DerivedStats';
+import { applyDerivedBonus, combineDerivedBonuses, type DerivedBonus } from './DerivedBonuses';
+import { passiveDerivedBonus, sanitizePassiveProgress, syncLevelRewards } from '../passives/PassiveProgress';
+import { PassiveSaveStore } from '../passives/PassiveSaveStore';
 import type { StatAllocationDraft } from './StatAllocation';
 import { addExp } from '../combat/CombatRules';
-import { applyLevelUp, cloneStatus, createInitialStatus, STATUS_RULES, totalStats, type CharacterStatus } from './StatTypes';
+import { applyLevelUp, cloneStatus, createInitialStatus, STATUS_RULES, totalStats, type CharacterStatus, type StatBlock } from './StatTypes';
 import { StatusSaveStore } from './StatusSaveStore';
 
 /**
@@ -39,11 +42,27 @@ export const CharacterStatusService = {
     }
     character.status = status;
     StatusSaveStore.save(character.name, status);
+    loadPassives(character);
     return status;
   },
 
+  /**
+   * Derived stats: formulas from level + TOTAL main stats, then every derived-stat bonus source
+   * (passive tree now, equipment later) applied once on top.
+   */
   derived(character: CharacterData): DerivedStats {
-    return computeDerivedStats(character.status.level, totalStats(character.status));
+    return applyDerivedBonus(computeDerivedStats(character.status.level, totalStats(character.status)), derivedBonus(character));
+  },
+
+  /** Derived stats if the base stats were `base` (Status window preview), with the same bonuses. */
+  previewDerived(character: CharacterData, base: StatBlock): DerivedStats {
+    const status = character.status;
+    return applyDerivedBonus(computeDerivedStats(status.level, totalStats({ ...status, base })), derivedBonus(character));
+  },
+
+  /** Tells listeners the character changed outside this service (passive upgrade / reset). */
+  refresh(character: CharacterData): void {
+    notify(character);
   },
 
   /** Validates and applies a staged allocation; returns a localizable error on failure. */
@@ -63,6 +82,7 @@ export const CharacterStatusService = {
     if (awarded > 0) {
       character.status = next;
       StatusSaveStore.save(character.name, next);
+      syncPassiveRewards(character);
       notify(character);
     }
     return awarded;
@@ -76,6 +96,7 @@ export const CharacterStatusService = {
     next.exp = r.exp;
     character.status = next;
     StatusSaveStore.save(character.name, next);
+    if (r.levelsGained > 0) syncPassiveRewards(character);
     notify(character);
     return r.levelsGained;
   },
@@ -96,6 +117,30 @@ export const CharacterStatusService = {
     return () => listeners.delete(listener);
   },
 };
+
+/** Every derived-stat bonus source of a character, combined (passives only for now). */
+function derivedBonus(character: CharacterData): DerivedBonus {
+  return combineDerivedBonuses(passiveDerivedBonus(character.passives));
+}
+
+/** Loads (and repairs) the passive progress, granting any level rewards still owed, and saves it. */
+function loadPassives(character: CharacterData): void {
+  const result = PassiveSaveStore.load(character.name);
+  if (result.kind === 'invalid') {
+    console.warn(`[passives] unreadable save for "${character.name}" (${result.reason}); kept a backup and started fresh`);
+    PassiveSaveStore.backupInvalid(character.name);
+  }
+  const { progress, repaired } = sanitizePassiveProgress(result.kind === 'loaded' ? result.data : null, character.status.level);
+  if (result.kind === 'loaded' && repaired.length > 0) console.warn(`[passives] repaired save for "${character.name}":`, repaired);
+  character.passives = progress;
+  PassiveSaveStore.save(character.name, progress);
+}
+
+/** Level-ups grant Drifter passive points (1 per level up to 10), each level only once. */
+function syncPassiveRewards(character: CharacterData): void {
+  if (!character.passives) return;
+  if (syncLevelRewards(character.passives, character.status.level) > 0) PassiveSaveStore.save(character.name, character.passives);
+}
 
 function notify(character: CharacterData): void {
   for (const l of listeners) l(character);

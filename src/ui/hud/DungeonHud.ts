@@ -28,6 +28,8 @@ export interface DungeonHudOptions {
   map: IsometricMap;
   onStatus: () => void;
   onSettings: () => void;
+  /** Opens / closes the Passive Tree. */
+  onPassive: () => void;
   /** Current HP (combat); max HP when absent. SP has no consumer yet and stays at max. */
   currentHp?: () => number;
 }
@@ -70,6 +72,11 @@ export class DungeonHud {
   private readonly nameMaxWidth: number;
   private lastTile = '';
   private lastHp: number | null = null;
+  /** Passive Tree menu slot: unspent-points pip and the pulsing tutorial guide + hint. */
+  private readonly passivePip: Phaser.GameObjects.Rectangle;
+  private readonly passiveGuide: Phaser.GameObjects.Graphics;
+  private readonly passiveHint: Phaser.GameObjects.Text;
+  private readonly passiveGuideTween: Phaser.Tweens.Tween;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -133,6 +140,34 @@ export class DungeonHud {
       g.fillRect(cx - 3, slot.y + 6, 7, 2);
       g.fillRect(cx - 4, slot.y + 8, 9, 3);
     });
+    // Passive Tree (second slot): a center node with left / right / down branches.
+    const passiveSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[1]);
+    this.buildMenuButton(passiveSlot, 'hud.menuPassive', () => this.options.onPassive(), (g, slot, color) => {
+      const cx = slot.x + Math.floor(slot.width / 2);
+      const cy = slot.y + Math.floor(slot.height / 2) - 2;
+      g.fillStyle(toColorInt(color), 1);
+      g.fillRect(cx - 1, cy - 1, 3, 3);
+      g.fillRect(cx - 6, cy, 4, 1);
+      g.fillRect(cx + 3, cy, 4, 1);
+      g.fillRect(cx, cy + 2, 1, 4);
+      g.fillRect(cx - 8, cy - 1, 2, 3);
+      g.fillRect(cx + 7, cy - 1, 2, 3);
+      g.fillRect(cx - 1, cy + 6, 3, 2);
+    });
+    this.passivePip = scene.add.rectangle(passiveSlot.x + passiveSlot.width - 3, passiveSlot.y + 1, 2, 2, toColorInt('#d3424b')).setOrigin(0, 0).setDepth(depth + 3).setVisible(false);
+    this.passiveGuide = scene.add.graphics().setDepth(depth + 3).setVisible(false);
+    this.passiveGuide.fillStyle(toColorInt('#d3424b'), 1);
+    const gx = passiveSlot.x - 3, gy = passiveSlot.y - 3, gw = passiveSlot.width + 6, gh = passiveSlot.height + 6;
+    this.passiveGuide.fillRect(gx, gy, gw, 1).fillRect(gx, gy + gh - 1, gw, 1).fillRect(gx, gy, 1, gh).fillRect(gx + gw - 1, gy, 1, gh);
+    // left of the whole menu bar (slot 0 = Status stays visible)
+    const menuLeft = this.space.inner(M, REF_ELEMENTS.menuSlots[0]).x;
+    this.passiveHint = this.text(menuLeft - 12, passiveSlot.y + Math.floor(passiveSlot.height / 2), '', 'small', '#e7e7ee', false)
+      .setOrigin(1, 0.5)
+      .setBackgroundColor('#0e0e12')
+      .setPadding(4, 2, 4, 2)
+      .setDepth(depth + 3)
+      .setVisible(false);
+    this.passiveGuideTween = scene.tweens.add({ targets: this.passiveGuide, alpha: { from: 1, to: 0.2 }, duration: 520, yoyo: true, repeat: -1, paused: true });
     // The pack's menu button (three bars, baked into the art) opens Settings.
     this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuMore), 'hud.menuSettings', () => this.options.onSettings(), null);
 
@@ -147,6 +182,18 @@ export class DungeonHud {
       mapName.setText(labels.map(options.map.definition.id));
       this.refreshStatus();
     });
+  }
+
+  /**
+   * Passive Tree guidance on the menu slot: 'open' (tutorial: pulsing red frame + hint text) and a small
+   * red pip while passive points are unspent.
+   */
+  setPassiveGuide(openHint: boolean, hasPoints: boolean): void {
+    this.passiveGuide.setVisible(openHint);
+    this.passiveHint.setVisible(openHint).setText(openHint ? t('passive.tutorial.open') : '');
+    if (openHint) this.passiveGuideTween.resume();
+    else this.passiveGuideTween.pause();
+    this.passivePip.setVisible(hasPoints && !openHint);
   }
 
   /** Per-frame: coordinates, minimap and HP (only redrawn when it changes). */

@@ -122,6 +122,13 @@ export class PlayerController {
     return actionDirectionFromGroundVector(p.x - this.movement.position.x, p.y - this.movement.position.y);
   }
 
+  /** Stops at once where the player stands: no path, standing frame of the current facing (death). */
+  halt(): void {
+    this.stopPath();
+    this.state = 'idle';
+    this.syncView();
+  }
+
   /** Puts the player on a point at once (respawn). */
   teleport(p: Point): void {
     this.stopPath();

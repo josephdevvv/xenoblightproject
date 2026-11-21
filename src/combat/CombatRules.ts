@@ -37,8 +37,6 @@ export const COMBAT_RULES = {
   /** Player HP regeneration out of combat (fraction of max HP per second) and the calm time before it starts. */
   regenPerSecond: 0.015,
   regenDelayMs: 4000,
-  /** Seconds before a defeated player is back at the map spawn with full HP. */
-  playerRespawnMs: 2500,
 } as const;
 
 /** The player's combat numbers from the existing derived stats (melee: the Drifter fights in melee). */

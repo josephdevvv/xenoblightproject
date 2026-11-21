@@ -1,3 +1,4 @@
+import type { PassiveProgress } from '../passives/PassiveProgress';
 import { createInitialStatus, type CharacterStatus } from '../status/StatTypes';
 import type { Gender } from './AppearanceCatalog';
 import { DEFAULT_STARTER_CHOICE, STARTER_CLASS_ID, starterAppearance, type StarterChoice } from './StarterCharacters';
@@ -22,6 +23,8 @@ export interface CharacterData {
   createdAt: number;
   /** Level, main stats and stat points. Loaded/saved by CharacterStatusService. */
   status: CharacterStatus;
+  /** Passive tree ranks and passive points (separate from stat points). Loaded with the status. */
+  passives?: PassiveProgress;
 }
 
 export const NAME_MIN_LENGTH = 3;

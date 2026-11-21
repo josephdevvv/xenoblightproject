@@ -41,9 +41,8 @@ test('monster cursor: the delivered sheet is 3 frames of 16 x 14, kept unmodifie
 
 test('monster cursor states: hover -> press -> release (once) -> hover; normal cursor off monsters', async () => {
   const { MonsterCursor } = await import('../src/ui/world/MonsterCursor');
-  const canvas = { style: { cursor: '' } } as unknown as HTMLCanvasElement;
   const textures = { exists: () => false } as unknown as Phaser.Textures.TextureManager;
-  const c = new MonsterCursor(canvas, textures);
+  const c = new MonsterCursor(textures);
   c.update(16, false);
   assert.equal(c.getState(), 'none');
   c.update(16, true);

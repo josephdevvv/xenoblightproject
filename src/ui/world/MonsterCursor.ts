@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import { GameCursor } from '../cursor/GameCursor';
 
 /**
  * The monster target cursor (art-source/ui/cursor/monster_target_cursor.png, as delivered): a 48 x 14
@@ -7,7 +8,8 @@ import type Phaser from 'phaser';
  *   frame 2: left button pressed on a monster
  *   frame 3: released over the monster (shown briefly, then back to frame 1 - never looped)
  * Each frame becomes a native CSS cursor (no input lag), scaled x2 with nearest neighbour to match the
- * game's pixel size. The hotspot is the blade tip, pixel (4, 3) of every frame.
+ * game's pixel size. The hotspot is the blade tip, pixel (4, 3) of every frame. It takes the cursor over
+ * from the game cursor (GameCursor.setOverride) and gives it back when the pointer leaves the monster.
  */
 export const MONSTER_CURSOR = {
   key: 'ui_cursor_monster_target',
@@ -23,16 +25,13 @@ export const MONSTER_CURSOR = {
 
 export type MonsterCursorState = 'none' | 'hover' | 'press' | 'release';
 
-/** Sets the canvas cursor for the monster hover / press / release states; 'none' restores the normal cursor. */
+/** Cursor for the monster hover / press / release states; 'none' gives the cursor back to the game cursor. */
 export class MonsterCursor {
   private readonly cursors: string[] = [];
   private state: MonsterCursorState = 'none';
   private releaseLeftMs = 0;
 
-  constructor(
-    private readonly canvas: HTMLCanvasElement,
-    textures: Phaser.Textures.TextureManager,
-  ) {
+  constructor(textures: Phaser.Textures.TextureManager) {
     if (!textures.exists(MONSTER_CURSOR.key)) return; // art failed to load: the normal cursor stays
     const source = textures.get(MONSTER_CURSOR.key).getSourceImage() as CanvasImageSource;
     const { frameWidth: w, frameHeight: h, scale: k, hotspot } = MONSTER_CURSOR;
@@ -91,6 +90,6 @@ export class MonsterCursor {
     this.state = state;
     if (!this.cursors.length) return;
     const frame = state === 'hover' ? 0 : state === 'press' ? 1 : state === 'release' ? 2 : -1;
-    this.canvas.style.cursor = frame < 0 ? '' : this.cursors[frame];
+    GameCursor.setOverride(frame < 0 ? null : this.cursors[frame]);
   }
 }

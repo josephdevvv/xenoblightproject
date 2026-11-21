@@ -56,6 +56,11 @@ export class StableCameraFollow {
     this.camera.setScroll(Math.floor(this.fx), Math.floor(this.fy));
   }
 
+  /** The next update jumps straight to the target (no easing) - e.g. after a respawn teleport. */
+  snap(): void {
+    this.started = false;
+  }
+
   /** Integer draw position for a world x so the followed object's screen motion is exact. */
   renderX(worldX: number): number {
     return Math.floor(this.fx) + Math.round(worldX - this.fx);

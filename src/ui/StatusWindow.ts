@@ -5,9 +5,9 @@ import { t, translate, type TranslationParams } from '../i18n';
 import { labels } from '../i18n/labels';
 import { localize } from '../i18n/phaser';
 import { CharacterStatusService, STATUS_DEV_TOOLS_ENABLED } from '../status/CharacterStatusService';
-import { computeDerivedStats, DERIVED_DISPLAY, formatStatValue, type DerivedStats } from '../status/DerivedStats';
+import { DERIVED_DISPLAY, formatStatValue, type DerivedStats } from '../status/DerivedStats';
 import { StatAllocationDraft } from '../status/StatAllocation';
-import { MAIN_STATS, totalStats, type MainStat, type StatBlock } from '../status/StatTypes';
+import { MAIN_STATS, type MainStat, type StatBlock } from '../status/StatTypes';
 import { GameServices } from '../systems/GameServices';
 import { ScrollArea } from './ScrollArea';
 import type { TypographyRole } from './text/Typography';
@@ -328,7 +328,7 @@ export class StatusWindow {
 
     // Derived stats preview the pending allocation so players see what they are buying.
     const current = CharacterStatusService.derived(this.character);
-    const next = computeDerivedStats(status.level, totalStats({ ...status, base: preview }));
+    const next = CharacterStatusService.previewDerived(this.character, preview);
     for (const row of this.derivedRows) {
       const now = formatStatValue(current[row.key], row.percent);
       const after = formatStatValue(next[row.key], row.percent);

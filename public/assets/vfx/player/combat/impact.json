@@ -1,0 +1,71 @@
+{
+  "schema": "xenoblight-sprite-forge/game-vfx-export@1",
+  "exportedAt": "2026-11-21T23:31:09.934Z",
+  "id": "vfx_impact",
+  "animation": "impact",
+  "library": "player shared grayscale VFX",
+  "category": "onHit",
+  "file": "impact.png",
+  "basePath": "assets/vfx/player/combat/",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "frameCount": 4,
+  "sheet": {
+    "width": 256,
+    "height": 64,
+    "columns": 4,
+    "rows": 1,
+    "layout": "single row, frames left to right"
+  },
+  "direction": "none",
+  "loop": false,
+  "repeat": 0,
+  "timing": {
+    "frameMs": 60,
+    "frameDurationsMs": [
+      60,
+      60,
+      70,
+      80
+    ],
+    "totalMs": 270,
+    "note": "use per-frame durations (Phaser anims: frames[i].duration); frameMs is the base value"
+  },
+  "anchor": {
+    "x": 32,
+    "y": 32,
+    "originX": 0.5,
+    "originY": 0.5,
+    "note": "effect centre = frame centre; place it on the target hit position"
+  },
+  "rendering": {
+    "filter": "nearest-neighbor",
+    "pixelArt": true,
+    "alpha": "binary (0/255)",
+    "palette": "grayscale (#bebdbd, #cac9c8, #f2f0f4, #ffffff)"
+  },
+  "usage": {
+    "scales": {
+      "basicAttack": 1,
+      "enhancedAttackSkill": 1.5
+    },
+    "spawn": "at the target hit position (not at the attacker)",
+    "trigger": "only when the server confirms a successful hit, on the attack animation impactFrame (e.g. dagger_thrust impactFrame 5)",
+    "reusableFor": [
+      "all player weapon types",
+      "all player attack directions",
+      "basic attacks",
+      "offensive skills"
+    ],
+    "monsterVfx": "separate, monster-specific (public/assets/monsters/*/vfx_attack.png)"
+  },
+  "forge": {
+    "vfxId": "vfx_impact",
+    "revision": 1,
+    "sheet": "approved/vfx/impact/vfx_impact_sheet.png",
+    "sheetSha256": "083d57470c314e2d6577ca249c13dd50c1f6cbadfaa17fbc3d443637380e2796",
+    "metadata": "approved/vfx/impact/vfx_impact_metadata.json",
+    "approvedAt": "2026-11-21T10:55:37.445Z"
+  },
+  "note": "Exported unchanged from the Sprite Forge approved VFX library. Do not edit; re-export from the forge."
+}

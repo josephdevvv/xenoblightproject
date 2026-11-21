@@ -56,6 +56,7 @@ export class MonsterEntity {
   private attackCooldownMs = 0;
   private stuckMs = 0;
   private respawnInMs = 0;
+  private lifeCount = 1;
 
   constructor(
     scene: Phaser.Scene,
@@ -110,6 +111,11 @@ export class MonsterEntity {
   }
 
   /** Can be targeted, damaged and blocks other monsters. */
+  /** Which life this is (1 = first spawn, +1 per respawn): kill rewards are paid once per life. */
+  get life(): number {
+    return this.lifeCount;
+  }
+
   isAlive(): boolean {
     return this.mode !== 'dying' && this.mode !== 'gone';
   }
@@ -320,6 +326,7 @@ export class MonsterEntity {
   }
 
   private respawn(): void {
+    this.lifeCount++;
     const p = this.movement.position;
     p.x = this.home.x;
     p.y = this.home.y;

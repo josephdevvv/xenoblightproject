@@ -3,17 +3,16 @@ import type Phaser from 'phaser';
 import fs from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { MONSTER_ART, MONSTER_FACINGS, vfxDepthOffset, vfxOffset, type MonsterArtId } from '../src/monsters/art/MonsterArt';
+import { MONSTER_ART, type MonsterArtId } from '../src/monsters/art/MonsterArt';
+import { ATTACK_IMPACT_FRAME } from '../src/combat/AttackTiming';
 import { MONSTER_CURSOR } from '../src/ui/world/MonsterCursor';
 import { readPng } from './helpers/png';
 
-test('attack VFX: in front of the monster facing SE / SW, behind it facing NE / NW', () => {
-  assert.ok(vfxDepthOffset('SE') > 0);
-  assert.ok(vfxDepthOffset('SW') > 0);
-  assert.ok(vfxDepthOffset('NE') < 0);
-  assert.ok(vfxDepthOffset('NW') < 0);
-  // stays glued to its own monster: never a whole depth step away
-  for (const f of MONSTER_FACINGS) assert.ok(Math.abs(vfxDepthOffset(f)) < 1);
+test('monster attacks land on the global hit frame 4 (every attack animation has at least 4 frames)', () => {
+  for (const art of Object.keys(MONSTER_ART) as MonsterArtId[]) {
+    assert.equal(MONSTER_ART[art].impactFrame, ATTACK_IMPACT_FRAME, art);
+    assert.ok(MONSTER_ART[art].meta.actions.attack.frames >= ATTACK_IMPACT_FRAME, `${art}: attack has a frame 4`);
+  }
 });
 
 test('monster cursor: the delivered sheet is 3 frames of 16 x 14, kept unmodified, hotspot on the blade tip', () => {
@@ -67,15 +66,12 @@ test('monster cursor states: hover -> press -> release (once) -> hover; normal c
   assert.equal(c.getState(), 'none', 'leaving the monster restores the normal cursor');
 });
 
-test('attack VFX position on top of the measured offsets: mite NE +20 / NW -20, wolf NE +10 / NW -10; SE / SW and Y unchanged', () => {
-  const nudge: Record<MonsterArtId, number> = { void_mite: 20, mutant_wolf: 10 };
+test('monster attack VFX keep their own artwork (one row per facing), drawn on the target - no attacker offsets', () => {
   for (const art of Object.keys(MONSTER_ART) as MonsterArtId[]) {
-    const measured = MONSTER_ART[art].meta.vfx.offsets;
-    assert.deepEqual(vfxOffset(art, 'NE'), { x: measured.NE.x + nudge[art], y: measured.NE.y }, `${art} NE`);
-    assert.deepEqual(vfxOffset(art, 'NW'), { x: measured.NW.x - nudge[art], y: measured.NW.y }, `${art} NW`);
-    assert.deepEqual(vfxOffset(art, 'SE'), measured.SE, `${art} SE`);
-    assert.deepEqual(vfxOffset(art, 'SW'), measured.SW, `${art} SW`);
+    const v = MONSTER_ART[art].meta.vfx;
+    const img = readPng(path.join(process.cwd(), 'public', MONSTER_ART[art].basePath + v.file));
+    assert.equal(img.width, v.frameWidth * v.frames, `${art}: frames in a row`);
+    assert.equal(img.height, v.frameHeight * 4, `${art}: one row per facing`);
+    assert.ok(!('vfxNudge' in MONSTER_ART[art]), `${art}: no attacker-relative nudge at runtime`);
   }
-  // still behind the monster facing north
-  assert.ok(vfxDepthOffset('NE') < 0 && vfxDepthOffset('NW') < 0);
 });

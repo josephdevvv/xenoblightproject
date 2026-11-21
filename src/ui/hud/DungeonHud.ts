@@ -4,7 +4,7 @@ import type { Point } from '../../core/types';
 import type { CharacterData } from '../../data/CharacterData';
 import { CharacterStatusService } from '../../status/CharacterStatusService';
 import { STATUS_RULES } from '../../status/StatTypes';
-import { expToNextLevel } from '../../combat/CombatRules';
+import { levelProgress } from '../../progression/LevelProgression';
 import { GameServices } from '../../systems/GameServices';
 import { t, type TranslationKey } from '../../i18n';
 import { labels } from '../../i18n/labels';
@@ -224,8 +224,7 @@ export class DungeonHud {
     this.spText.setText(t('hud.sp', { current: sp, max: sp }));
     this.setBar(this.hpBar, this.hpArea, hp, maxHp);
     this.setBar(this.spBar, this.spArea, sp, sp);
-    const need = expToNextLevel(c.status.level);
-    const ratio = c.status.level >= STATUS_RULES.maxLevel ? 1 : Math.min(1, c.status.exp / need);
+    const ratio = levelProgress(c.status.level, c.status.exp, STATUS_RULES.maxLevel);
     this.setBar(this.expBar, this.expArea, ratio, 1);
     this.expText.setText(t('hud.exp', { percent: (ratio * 100).toFixed(2) }));
   }

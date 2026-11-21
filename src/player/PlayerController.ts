@@ -34,6 +34,8 @@ export type PlayerAction = 'attack' | 'hit' | 'cast' | 'death';
 export interface PlayerActionAnimations {
   /** Returns true when it played an animation for the action. */
   play(action: PlayerAction, facing: ActionDirection): boolean;
+  /** Stops every action clip (interrupted attack, death, respawn). */
+  reset?(): void;
 }
 
 const NO_ACTION_ANIMATIONS: PlayerActionAnimations = { play: () => false };

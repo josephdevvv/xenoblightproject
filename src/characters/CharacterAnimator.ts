@@ -69,6 +69,8 @@ export class CharacterAnimator {
   private direction: Direction = 'S';
   /** Extra uniform scale requested by the owner (e.g. 3 for the creation preview). */
   private baseScale = 1;
+  /** Another animator (combat clips) owns the sprite: motion changes are only recorded. */
+  private held = false;
 
   constructor(
     private readonly sprite: Phaser.GameObjects.Sprite,
@@ -91,7 +93,21 @@ export class CharacterAnimator {
     if (motion === this.motion && direction === this.direction) return;
     this.motion = motion;
     this.direction = direction;
-    this.apply(false);
+    if (!this.held) this.apply(false);
+  }
+
+  /**
+   * Combat clips (PlayerCombatAnimator) take the sprite over: while held, motion / direction changes are
+   * recorded but not shown. Releasing shows the current standing / walking state again at once.
+   */
+  setHeld(held: boolean): void {
+    if (held === this.held) return;
+    this.held = held;
+    if (!held) this.apply(true);
+  }
+
+  isHeld(): boolean {
+    return this.held;
   }
 
   getMotion(): CharacterMotion {
@@ -117,6 +133,7 @@ export class CharacterAnimator {
   }
 
   private apply(force: boolean): void {
+    if (this.held) return;
     if (this.motion === 'walk' && this.sheets.walk) {
       this.showWalk(this.sheets.walk, force);
     } else {

@@ -4,6 +4,8 @@ import { PALETTE, toColorInt } from '../config/palette';
 import { AssetManager } from '../assets/AssetManager';
 import { MONSTER_ACTIONS, MONSTER_FACINGS, type MonsterAction } from '../monsters/art/MonsterArt';
 import { MonsterAnimator } from '../monsters/MonsterAnimator';
+import { AttackVfxLayer } from '../combat/vfx/AttackVfxLayer';
+import { monsterVfxAnimKey, monsterVfxKey } from '../monsters/art/MonsterArt';
 import { MONSTER_DEFINITIONS, type MonsterId } from '../monsters/MonsterDefinition';
 import { GameServices } from '../systems/GameServices';
 import { typo } from '../ui/UITheme';
@@ -13,7 +15,7 @@ const IDS = Object.keys(MONSTER_DEFINITIONS) as MonsterId[];
 
 /**
  * Developer preview of every monster animation in all four facings (dev builds, or ?debug, with
- * ?monsters in the URL). Rows: idle, walk, attack (+ VFX on the contact frame), hit (red flash), death
+ * ?monsters in the URL). Rows: idle, walk, attack (+ its VFX on the hit frame 4, where a target would stand), hit (red flash), death
  * (held, then replayed). A magenta dot marks each ground root, and the name label sits under it exactly
  * as in the game. Keys: 1 / 2 (or Tab) switch monster. Visual check only - no gameplay.
  */
@@ -88,7 +90,14 @@ export class MonsterPreviewScene extends Phaser.Scene {
         a.setMotion(true);
         break;
       case 'attack':
-        every(1500, () => a.attack());
+        // the hit frame (4) shows the monster's VFX where its target would stand (in front of it)
+        every(1500, () =>
+          a.attack(undefined, () => {
+            const s = a.sprite;
+            const dir = { SE: [1, 1], SW: [-1, 1], NE: [1, -1], NW: [-1, -1] }[a.getFacing()];
+            this.vfxLayer().spawn({ texture: monsterVfxKey(a.art), anim: monsterVfxAnimKey(a.art, a.getFacing()), target: { hitAnchor: () => ({ x: s.x + dir[0] * 34, y: s.y - 14 + dir[1] * 10 }) } });
+          }),
+        );
         break;
       case 'hit':
         every(1100, () => a.hit());
@@ -102,6 +111,13 @@ export class MonsterPreviewScene extends Phaser.Scene {
     }
   }
 
+  private vfx: AttackVfxLayer | null = null;
+
+  private vfxLayer(): AttackVfxLayer {
+    if (!this.vfx) this.vfx = new AttackVfxLayer(this);
+    return this.vfx;
+  }
+
   private keep<T extends Phaser.GameObjects.GameObject>(o: T): T {
     this.items.push(o);
     return o;
@@ -110,6 +126,7 @@ export class MonsterPreviewScene extends Phaser.Scene {
   private clear(): void {
     for (const t of this.timers) t.remove();
     this.timers.length = 0;
+    this.vfx?.clear();
     for (const a of this.animators) a.destroy();
     this.animators.length = 0;
     for (const o of this.items) o.destroy();

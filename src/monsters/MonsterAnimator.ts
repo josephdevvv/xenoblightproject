@@ -4,18 +4,15 @@ import {
   MONSTER_ART,
   monsterAnimKey,
   monsterSheetKey,
-  monsterVfxAnimKey,
-  monsterVfxKey,
   type MonsterAction,
   type MonsterArtId,
   type MonsterFacing,
-  vfxDepthOffset,
-  vfxOffset,
 } from './art/MonsterArt';
 
 /**
  * Plays a monster's sprite animations: a looping base state (idle / walk) by facing, one-shot actions
- * (attack with its separate VFX layer, hit reaction with a red flash, death held on its last frame).
+ * (attack - its hit frame is reported to the combat system, which draws the monster's VFX ON the target
+ * (AttackVfxLayer) when the hit connects -, hit reaction with a red flash, death held on its last frame).
  *
  * The sprite is always positioned on the monster's ground root; each action/facing sets the origin to
  * that sheet's measured anchor, so switching animations never moves the creature on the ground.
@@ -23,15 +20,13 @@ import {
  */
 export class MonsterAnimator {
   readonly sprite: Phaser.GameObjects.Sprite;
-  /** Separate VFX layer (attack impact): in front of the monster facing SE / SW, behind it facing NE / NW. */
-  readonly vfx: Phaser.GameObjects.Sprite;
   private facing: MonsterFacing;
   private action: MonsterAction = 'idle';
   private walking = false;
   private oneShot: MonsterAction | null = null;
   private dead = false;
   private onOneShotDone: (() => void) | null = null;
-  /** Called once on the attack's contact frame (where the VFX starts): apply damage here. */
+  /** Called once on the attack's hit frame (global rule: frame 4): the combat system resolves the hit. */
   private onContact: (() => void) | null = null;
   private flashTimer: Phaser.Time.TimerEvent | null = null;
 
@@ -42,10 +37,8 @@ export class MonsterAnimator {
   ) {
     this.facing = facing;
     this.sprite = scene.add.sprite(0, 0, monsterSheetKey(art, 'idle'));
-    this.vfx = scene.add.sprite(0, 0, monsterVfxKey(art)).setVisible(false);
     this.sprite.on(Phaser.Animations.Events.ANIMATION_UPDATE, this.onFrame, this);
     this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.onComplete, this);
-    this.vfx.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.vfx.setVisible(false));
     this.play('idle');
   }
 
@@ -71,8 +64,8 @@ export class MonsterAnimator {
   }
 
   /**
-   * Attack once. `onContact` runs on the contact frame (VFX starts there) - the moment damage applies;
-   * `done` when the animation ends.
+   * Attack once. `onContact` runs once on the hit frame (frame 4) - the combat system resolves the hit
+   * there; `done` when the animation ends. An interrupted attack never lands.
    */
   attack(done?: () => void, onContact?: () => void): void {
     if (this.dead) return;
@@ -113,21 +106,17 @@ export class MonsterAnimator {
     this.dead = false;
     this.oneShot = null;
     this.sprite.clearTint();
-    this.vfx.setVisible(false).stop();
     this.play(this.walking ? 'walk' : 'idle');
   }
 
-  /** Puts sprite + VFX on the ground root (whole pixels) at a depth. */
+  /** Puts the sprite on the ground root (whole pixels) at a depth. */
   setRoot(x: number, y: number, depth: number): void {
     this.sprite.setPosition(x, y).setDepth(depth);
-    const off = vfxOffset(this.art, this.facing);
-    this.vfx.setPosition(x + off.x, y + off.y).setDepth(depth + vfxDepthOffset(this.facing));
   }
 
   destroy(): void {
     this.flashTimer?.remove();
     this.sprite.destroy();
-    this.vfx.destroy();
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -160,8 +149,7 @@ export class MonsterAnimator {
       if ((art.hitTintFrames as readonly number[]).includes(n)) this.sprite.setTint(HIT_TINT);
       else this.sprite.clearTint();
     }
-    if (this.action === 'attack' && n === art.attackContactFrame) {
-      this.playVfx();
+    if (this.action === 'attack' && n === art.impactFrame) {
       const contact = this.onContact;
       this.onContact = null; // once per attack: no duplicate damage
       contact?.();
@@ -180,14 +168,5 @@ export class MonsterAnimator {
       this.play(this.walking ? 'walk' : 'idle');
     }
     done?.();
-  }
-
-  private playVfx(): void {
-    const def = MONSTER_ART[this.art].meta.vfx;
-    const o = def.origins[this.facing];
-    this.vfx.setOrigin(o.x / def.frameWidth, o.y / def.frameHeight);
-    const off = vfxOffset(this.art, this.facing);
-    this.vfx.setPosition(this.sprite.x + off.x, this.sprite.y + off.y).setDepth(this.sprite.depth + vfxDepthOffset(this.facing));
-    this.vfx.setVisible(true).play(monsterVfxAnimKey(this.art, this.facing));
   }
 }

@@ -26,8 +26,6 @@ export interface MonsterCombatDefinition extends Omit<CombatStats, 'critRate' | 
   chaseSpeed: number;
   /** Gives up and walks home beyond this distance from its spawn point (tiles). */
   leashTiles: number;
-  /** EXP awarded to the player for a kill. */
-  exp: number;
   /** Time from death to reappearing at its spawn point. */
   respawnMs: number;
 }
@@ -68,7 +66,6 @@ export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>>
       attackRange: 0.9,
       chaseSpeed: 1.2,
       leashTiles: 7,
-      exp: 5,
       respawnMs: 12000,
     },
   },
@@ -93,7 +90,6 @@ export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>>
       attackRange: 1.1,
       chaseSpeed: 2.4,
       leashTiles: 9,
-      exp: 14,
       respawnMs: 20000,
     },
   },

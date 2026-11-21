@@ -86,26 +86,3 @@ export function rollAttack(attacker: CombatStats, defender: CombatStats, roll: (
   if (roll() * 100 >= hitChance(attacker, defender)) return { hit: false, crit: false, damage: 0 };
   return { hit: true, crit: false, damage: normalDamage(attacker, defender) };
 }
-
-// ------------------------------------------------------------------------------------------------
-// Experience
-// ------------------------------------------------------------------------------------------------
-
-/** EXP needed to go from `level` to `level + 1` (25 * L^1.5: 25, 71, 130, 200, 280, ... 675 at L9). */
-export function expToNextLevel(level: number): number {
-  return Math.round(25 * Math.pow(level, 1.5));
-}
-
-/** Adds EXP; returns the new level / remaining EXP (several level-ups at once are possible). */
-export function addExp(level: number, exp: number, gained: number, maxLevel: number): { level: number; exp: number; levelsGained: number } {
-  let l = level;
-  let e = exp + Math.max(0, Math.floor(gained));
-  let gainedLevels = 0;
-  while (l < maxLevel && e >= expToNextLevel(l)) {
-    e -= expToNextLevel(l);
-    l++;
-    gainedLevels++;
-  }
-  if (l >= maxLevel) e = 0;
-  return { level: l, exp: e, levelsGained: gainedLevels };
-}

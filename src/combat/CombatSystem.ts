@@ -8,6 +8,14 @@ import type { PlayerController } from '../player/PlayerController';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { COMBAT_RULES, playerCombatStats, rollAttack, type CombatStats } from './CombatRules';
 import { DamageNumbers } from './DamageNumbers';
+import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
+import { PLAYER_IMPACT_VFX } from '../characters/combat/PlayerCombatArt';
+import { monsterVfxAnimKey, monsterVfxKey } from '../monsters/art/MonsterArt';
+import { PLAYER_ATTACKS, playerImpactDelayMs, type PlayerAttackDefinition, type PlayerAttackId } from './PlayerAttacks';
+import type { AttackVfxLayer, VfxTarget } from './vfx/AttackVfxLayer';
+import { spriteHitAnchor } from './vfx/HitAnchor';
+import { monsterExpReward } from '../progression/MonsterExpRewards';
+import { KillRewardLedger } from '../progression/LevelProgression';
 
 /** How often the player re-plans the way to a moving target. */
 const REPATH_MS = 350;
@@ -15,6 +23,16 @@ const REPATH_MS = 350;
 const CONTACT_SLACK = 0.35;
 /** Fails in a row to reach a target before giving up on it. */
 const MAX_PATH_FAILS = 3;
+/** The combat stance stays this long after the last attack / hit. */
+const COMBAT_STANCE_MS = 4000;
+
+/** A player swing waiting for its hit frame (frame 4). Resolved once, then dropped. */
+interface PendingPlayerHit {
+  target: MonsterEntity;
+  attack: PlayerAttackDefinition;
+  /** Combat clock time of the hit frame. */
+  at: number;
+}
 
 /**
  * Player-versus-monster combat: the player's target and auto-attack loop (approach with pathfinding,
@@ -39,6 +57,15 @@ export class CombatSystem {
   readonly monsterContext: MonsterCombatContext;
   /** Called once when the player's HP reaches 0 (the death flow takes over; there is no auto-respawn). */
   onPlayerDefeated: (() => void) | null = null;
+  /** Attack VFX layer (on-hit effects drawn on the target's body). Set by the scene. */
+  vfx: AttackVfxLayer | null = null;
+  private pendingHits: PendingPlayerHit[] = [];
+  private queuedSkill: PlayerAttackId | null = null;
+  private lastCombatAt = -Infinity;
+  /** Kill rewards already paid (once per monster life). */
+  readonly killRewards = new KillRewardLedger();
+  private readonly spriteId: string;
+  private readonly playerTarget: VfxTarget;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -48,6 +75,8 @@ export class CombatSystem {
     rng: () => number = Math.random,
   ) {
     this.rng = rng;
+    this.spriteId = getCharacterSpriteId(character.appearance);
+    this.playerTarget = { hitAnchor: () => spriteHitAnchor(player.view.sprite) };
     this.numbers = new DamageNumbers(scene);
     this.playerHp = this.playerStats().maxHp;
     this.marker = scene.add.ellipse(0, 0, 30, 12).setStrokeStyle(1, 0xffd27a, 0.9).setVisible(false);
@@ -85,10 +114,40 @@ export class CombatSystem {
     return this.player.moveTo(point);
   }
 
+  /** Cancels the target - and any swing still waiting for its hit frame (an interrupted attack never lands). */
   clearTarget(): void {
     this.target?.setTargeted(false);
     this.target = null;
     this.marker.setVisible(false);
+    if (this.pendingHits.length) {
+      this.pendingHits = [];
+      this.player.actions.reset?.();
+    }
+  }
+
+  /**
+   * Drifter Lv.1 attack skill (and future skills): replaces the NEXT swing on the current target -
+   * same dagger_thrust animation and hit frame, different damage multiplier and impact scale.
+   * Returns false without a target. (No SP cost or cooldown is defined yet.)
+   */
+  useSkill(id: PlayerAttackId): boolean {
+    if (this.isDefeated() || !this.target || !this.target.isAlive()) return false;
+    this.queuedSkill = id;
+    return true;
+  }
+
+  getQueuedSkill(): PlayerAttackId | null {
+    return this.queuedSkill;
+  }
+
+  /** In combat: a target, or an attack / hit in the last few seconds (combat stance). */
+  isInCombat(): boolean {
+    return !this.defeated && (this.target !== null || this.elapsed - this.lastCombatAt < COMBAT_STANCE_MS);
+  }
+
+  /** Swings waiting for their hit frame (for checks). */
+  get pendingHitCount(): number {
+    return this.pendingHits.length;
   }
 
   getTarget(): MonsterEntity | null {
@@ -122,6 +181,7 @@ export class CombatSystem {
 
     if (this.defeated) return; // dead: no regeneration, no target, nothing hits the player
     this.regenerate(deltaMs);
+    this.resolvePendingHits();
     this.updateTarget(deltaMs);
   }
 
@@ -166,27 +226,59 @@ export class CombatSystem {
     }
   }
 
+  /**
+   * Starts a swing: the attack animation (dagger_thrust, or the standing frame for appearances without
+   * combat art) and a pending hit at the animation's hit frame (frame 4), timed on the combat clock from the
+   * animation's metadata - playback never decides damage. A queued skill replaces this swing.
+   */
   private playerAttack(target: MonsterEntity, stats: CombatStats): void {
     this.attackCooldownMs = stats.attackIntervalMs;
-    // No player attack art yet: the hook returns false and the standing frame (turned to the target)
-    // stays as the temporary visual. 4-direction clips plug in through PlayerController.actions.
+    const attack = PLAYER_ATTACKS[this.queuedSkill ?? 'basic'];
+    this.queuedSkill = null;
+    this.lastCombatAt = this.elapsed;
     this.player.actions.play('attack', this.player.actionFacingTowards(target.position));
-    const result = rollAttack(stats, monsterCombatStats(target.definition), this.rng);
+    this.pendingHits.push({ target, attack, at: this.elapsed + playerImpactDelayMs(this.spriteId, attack) });
+  }
+
+  private resolvePendingHits(): void {
+    if (!this.pendingHits.length) return;
+    const due = this.pendingHits.filter((h) => h.at <= this.elapsed);
+    if (!due.length) return;
+    this.pendingHits = this.pendingHits.filter((h) => h.at > this.elapsed);
+    for (const h of due) this.resolvePlayerHit(h);
+  }
+
+  /**
+   * The swing reached its hit frame: the existing rules decide (hit %, damage, crit). A target that died
+   * meanwhile takes nothing; one that moved out of reach is missed. Only a hit shows the impact VFX - on the
+   * target's body, scaled by the attack (1.0 basic, 1.5 Lv.1 skill).
+   */
+  private resolvePlayerHit(h: PendingPlayerHit): void {
+    const target = h.target;
+    if (!target.isAlive()) return;
+    const stats = this.playerStats();
     const w = target.world;
     const top = w.y - target.sprite.displayHeight * 0.75;
-    if (!result.hit) {
+    const me = this.player.getTilePosition();
+    const inReach = Math.hypot(target.position.x - me.x, target.position.y - me.y) <= stats.attackRange + CONTACT_SLACK;
+    const result = inReach ? rollAttack({ ...stats, atk: stats.atk * h.attack.atkMultiplier }, monsterCombatStats(target.definition), this.rng) : null;
+    this.lastCombatAt = this.elapsed;
+    if (!result || !result.hit) {
       this.numbers.show(w.x, top, 'MISS', 'miss');
       target.takeDamage(0); // provokes it all the same
       return;
     }
     if (!target.takeDamage(result.damage)) return; // already dying: no duplicate damage
+    this.vfx?.spawn({ texture: PLAYER_IMPACT_VFX.key, anim: PLAYER_IMPACT_VFX.animKey, target: { hitAnchor: () => spriteHitAnchor(target.sprite) }, scale: h.attack.vfxScale });
     this.numbers.show(w.x, top, String(result.damage), result.crit ? 'crit' : 'damage');
     if (!target.isAlive()) this.onKill(target);
   }
 
+  /** A monster this player defeated: EXP from the reward table, paid once for this death. */
   private onKill(monster: MonsterEntity): void {
     this.clearTarget();
-    const exp = monster.definition.combat.exp;
+    if (monster.isAlive() || !this.killRewards.claim(monster.id, monster.life)) return;
+    const exp = monsterExpReward(monster.definition.id);
     const levels = CharacterStatusService.gainExp(this.character, exp);
     const w = this.player.getWorldPosition();
     this.numbers.show(w.x, w.y - 64, `+${exp} EXP`, 'exp');
@@ -196,7 +288,10 @@ export class CombatSystem {
     }
   }
 
-  /** A monster's swing reached its contact frame (once per swing). */
+  /**
+   * A monster's swing reached its hit frame (frame 4, once per swing): the existing rules decide; a hit
+   * shows that monster's own attack VFX on the player's body, then the hit reaction plays.
+   */
   private resolveMonsterHit(monster: MonsterEntity): void {
     if (this.isDefeated() || !monster.isAlive()) return;
     const me = this.player.getTilePosition();
@@ -210,6 +305,8 @@ export class CombatSystem {
     }
     this.playerHp = Math.max(0, this.playerHp - result.damage);
     this.lastHurtAt = this.elapsed;
+    this.lastCombatAt = this.elapsed;
+    this.vfx?.spawn({ texture: monsterVfxKey(monster.animator.art), anim: monsterVfxAnimKey(monster.animator.art, monster.animator.getFacing()), target: this.playerTarget });
     this.numbers.show(w.x, w.y - 58, String(result.damage), 'playerDamage');
     this.flashPlayer();
     this.player.actions.play('hit', this.player.actionFacingTowards(monster.position));
@@ -240,6 +337,9 @@ export class CombatSystem {
     if (this.defeated) return;
     this.defeated = true;
     this.clearTarget();
+    this.pendingHits = [];
+    this.queuedSkill = null;
+    this.player.actions.reset?.();
     this.player.halt();
     this.attackCooldownMs = 0;
     this.player.view.sprite.clearTint();
@@ -253,6 +353,10 @@ export class CombatSystem {
    */
   respawnAt(point: Point): void {
     this.clearTarget();
+    this.pendingHits = [];
+    this.queuedSkill = null;
+    this.lastCombatAt = -Infinity;
+    this.player.actions.reset?.();
     this.defeated = false;
     this.player.teleport({ x: point.x, y: point.y });
     this.player.view.sprite.clearTint();

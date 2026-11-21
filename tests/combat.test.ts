@@ -2,9 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { actionDirectionFromGroundVector, directionFromGroundVector } from '../src/core/Direction';
 import {
-  addExp,
   COMBAT_RULES,
-  expToNextLevel,
   hitChance,
   hitsToKill,
   normalDamage,
@@ -14,6 +12,7 @@ import {
 } from '../src/combat/CombatRules';
 import { MONSTER_DEFINITIONS, monsterCombatStats } from '../src/monsters/MonsterDefinition';
 import { computeDerivedStats } from '../src/status/DerivedStats';
+import { monsterExpReward } from '../src/progression/MonsterExpRewards';
 import { createInitialStatus, totalStats } from '../src/status/StatTypes';
 import { MapLayout } from '../src/world/MapLayout';
 import { ASHEN_CROSSROADS } from '../src/world/maps/AshenCrossroads';
@@ -41,8 +40,8 @@ test('level-1 Drifter combat stats come from the existing derived stats', () => 
 
 /** Final configured balance (2026-11-21): exact ATK / HIT / HP; everything else as before. */
 const EXPECTED = {
-  voidmite: { atk: 15, hit: 120, maxHp: 24, def: 1, attackIntervalMs: 2600, exp: 5, chaseSpeed: 1.2 },
-  mutant_wolf: { atk: 23, hit: 200, maxHp: 45, def: 2, attackIntervalMs: 1900, exp: 14, chaseSpeed: 2.4 },
+  voidmite: { atk: 15, hit: 120, maxHp: 24, def: 1, attackIntervalMs: 2600, chaseSpeed: 1.2 },
+  mutant_wolf: { atk: 23, hit: 200, maxHp: 45, def: 2, attackIntervalMs: 1900, chaseSpeed: 2.4 },
 } as const;
 
 test('balance: exact configured ATK, HIT and HP; the other stats unchanged', () => {
@@ -54,7 +53,6 @@ test('balance: exact configured ATK, HIT and HP; the other stats unchanged', () 
     assert.equal(c.maxHp, e.maxHp, `${id} HP`);
     assert.equal(c.def, e.def);
     assert.equal(c.attackIntervalMs, e.attackIntervalMs);
-    assert.equal(c.exp, e.exp);
     assert.equal(c.chaseSpeed, e.chaseSpeed);
   }
 });
@@ -92,7 +90,7 @@ test('Mutant Wolf: tougher than the mite (more hits, harder bites, more EXP)', (
   assert.ok(wolf.maxHp > mite.maxHp && wolf.atk > mite.atk);
   assert.equal(hitChance(wolf, p), COMBAT_RULES.hitChanceMax);
   assert.ok(MONSTER_DEFINITIONS.mutant_wolf.combat.chaseSpeed > MONSTER_DEFINITIONS.voidmite.combat.chaseSpeed);
-  assert.ok(MONSTER_DEFINITIONS.mutant_wolf.combat.exp > MONSTER_DEFINITIONS.voidmite.combat.exp);
+  assert.ok(monsterExpReward('mutant_wolf') > monsterExpReward('voidmite'));
 });
 
 test('attack rolls: misses, crits that cannot miss, normal damage otherwise', () => {
@@ -108,16 +106,6 @@ test('attack rolls: misses, crits that cannot miss, normal damage otherwise', ()
   assert.equal(normalDamage({ atk: 1 }, { def: 50 }), COMBAT_RULES.minDamage);
   assert.equal(hitChance({ hit: 0 }, { flee: 999 }), COMBAT_RULES.hitChanceMin);
   assert.equal(hitChance({ hit: 999 }, { flee: 0 }), COMBAT_RULES.hitChanceMax);
-});
-
-test('EXP: curve, multi-level gains, nothing beyond the cap', () => {
-  assert.equal(expToNextLevel(1), 25);
-  assert.deepEqual(addExp(1, 20, 5, 99), { level: 2, exp: 0, levelsGained: 1 });
-  assert.deepEqual(addExp(1, 0, 25 + 71 + 3, 99), { level: 3, exp: 3, levelsGained: 2 });
-  assert.deepEqual(addExp(99, 0, 1000, 99), { level: 99, exp: 0, levelsGained: 0 });
-  // starter pacing: level 2 after 5 mites, about 2 wolves
-  const m = MONSTER_DEFINITIONS.voidmite.combat.exp;
-  assert.equal(Math.ceil(expToNextLevel(1) / m), 5);
 });
 
 test('facing helpers: 8-way walk facing and 4-way action facing from ground vectors', () => {

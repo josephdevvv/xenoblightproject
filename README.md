@@ -133,7 +133,7 @@ src/
 `node tools/import-monster-packs.mjs` copies the pixels unchanged into one sheet per action
 (`public/assets/monsters/<id>/<action>.png`, rows SE, SW, NE, NW) and writes
 `src/monsters/art/<id>.generated.json` (frame sizes, ground anchors and the attack VFX placement measured from
-the art). Timing, contact frame and hit-flash frames are in `src/monsters/art/MonsterArt.ts`. Preview every
+the art). Timing, hit frame (global rule: frame 4, `src/combat/AttackTiming.ts`) and hit-flash frames are in `src/monsters/art/MonsterArt.ts`. Preview every
 animation in all four facings with `?monsters` in the URL (dev builds, or `?debug`).
 
 ## Zone 5 city wall art (PixelLab kit)

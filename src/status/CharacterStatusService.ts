@@ -5,7 +5,7 @@ import { applyDerivedBonus, combineDerivedBonuses, type DerivedBonus } from './D
 import { passiveDerivedBonus, sanitizePassiveProgress, syncLevelRewards } from '../passives/PassiveProgress';
 import { PassiveSaveStore } from '../passives/PassiveSaveStore';
 import type { StatAllocationDraft } from './StatAllocation';
-import { addExp } from '../combat/CombatRules';
+import { addExp } from '../progression/LevelProgression';
 import { applyLevelUp, cloneStatus, createInitialStatus, STATUS_RULES, totalStats, type CharacterStatus, type StatBlock } from './StatTypes';
 import { StatusSaveStore } from './StatusSaveStore';
 
@@ -40,6 +40,7 @@ export const CharacterStatusService = {
       }
       status = createInitialStatus();
     }
+    normalizeExp(status);
     character.status = status;
     StatusSaveStore.save(character.name, status);
     loadPassives(character);
@@ -117,6 +118,17 @@ export const CharacterStatusService = {
     return () => listeners.delete(listener);
   },
 };
+
+/**
+ * Saved EXP must be progress below the current level's requirement. A save from before the EXP curve
+ * changed may hold more: those level-ups are applied now (same rewards as normal level-ups), the rest
+ * carries over. Nothing is lost and nothing is granted twice.
+ */
+function normalizeExp(status: CharacterStatus): void {
+  const r = addExp(status.level, status.exp, 0, STATUS_RULES.maxLevel);
+  if (r.levelsGained > 0) applyLevelUp(status, r.level);
+  status.exp = r.exp;
+}
 
 /** Every derived-stat bonus source of a character, combined (passives only for now). */
 function derivedBonus(character: CharacterData): DerivedBonus {

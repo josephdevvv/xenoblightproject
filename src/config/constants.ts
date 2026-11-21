@@ -43,6 +43,8 @@ export const DEPTH = {
   Ground: -300000,
   CloudShadow: -250000,
   GroundFx: -200000,
+  /** Attack / on-hit VFX: above every world object and character sprite, below fog, name plates and UI. */
+  AttackVfx: 140000,
   HighFog: 150000,
   NamePlate: 160000,
   Vignette: 190000,

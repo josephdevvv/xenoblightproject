@@ -103,7 +103,7 @@ for (const id of Object.keys(MONSTER_ART) as MonsterArtId[]) {
         assert.equal(src.width, sheet.width);
       });
     }
-    assert.ok(art.attackContactFrame >= 1 && art.attackContactFrame <= art.meta.actions.attack.frames);
+    assert.ok(art.impactFrame >= 1 && art.impactFrame <= art.meta.actions.attack.frames);
     for (const f of art.hitTintFrames) assert.ok(f >= 1 && f <= art.meta.actions.hit.frames);
     assert.equal(art.timing.death.repeat, 0, 'death plays once (and holds its last frame)');
     assert.equal(art.timing.walk.repeat, -1, 'walk loops');

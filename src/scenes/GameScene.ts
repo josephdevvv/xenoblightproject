@@ -27,6 +27,11 @@ import { PLAYER_MOVEMENT } from '../player/PlayerController';
 import { GameHud } from '../ui/GameHud';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
 import { PlayerDeathController } from '../player/death/PlayerDeathController';
+import { AttackVfxLayer } from '../combat/vfx/AttackVfxLayer';
+import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
+import { PlayerCombatAnimator } from '../characters/combat/PlayerCombatAnimator';
+import { loadPlayerCombatAssets } from '../characters/combat/PlayerCombatAssets';
+import type { PlayerCombatSet } from '../characters/combat/PlayerCombatArt';
 import { DungeonHud } from '../ui/hud/DungeonHud';
 import { StatusWindow } from '../ui/StatusWindow';
 import { LoadingScreen } from '../ui/LoadingScreen';
@@ -49,6 +54,11 @@ export class GameScene extends Phaser.Scene {
   player!: PlayerController;
   private atmosphere!: AtmosphereEffects;
   private hud!: GameHud;
+  /** Attack / on-hit VFX, drawn on the target's body above every character (DEPTH.AttackVfx). */
+  attackVfx!: AttackVfxLayer;
+  /** Player combat clips (combat idle / dagger thrust / hit reaction), when the appearance has combat art. */
+  playerCombat: PlayerCombatAnimator | null = null;
+  private combatSet: PlayerCombatSet | null = null;
   /** Death / ghost / respawn flow and the dead-state action gate. */
   death!: PlayerDeathController;
   private culler!: VisibilityCuller;
@@ -88,12 +98,19 @@ export class GameScene extends Phaser.Scene {
       this.returnToCreation();
     };
     this.input.keyboard?.on('keydown-ESC', onEscape);
+    // 1: Drifter Lv.1 attack skill (dagger thrust, 200 % ATK) as the next swing on the current target
+    const onSkill = (): void => {
+      if (this.ready && this.death.life.canPerform('attack')) this.combat.useSkill('drifter_lv1');
+    };
+    this.input.keyboard?.on('keydown-ONE', onSkill);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
     this.input.on(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
     this.input.on(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
+      this.input.keyboard?.off('keydown-ONE', onSkill);
+      this.attackVfx?.clear();
       this.input.off(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
       this.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
       this.input.off(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
@@ -115,6 +132,7 @@ export class GameScene extends Phaser.Scene {
     const alive = this.death.life.isAlive();
     this.combat.update(delta);
     if (alive) this.player.update(delta);
+    if (alive) this.playerCombat?.update(this.combat.isInCombat(), this.player.getState() === 'walk', this.player.getFacing());
     // Camera first, then draw the player and its name plate at camera-stable whole pixels. The camera
     // holds still while the player is not alive (the ghost stays on the death spot).
     const feet = this.player.getWorldPosition();
@@ -123,6 +141,7 @@ export class GameScene extends Phaser.Scene {
     this.monsters.update(delta, this.cameras.main, GameServices.get().performance, this.combat.monsterContext);
     for (const npc of this.npcs) npc.update(delta);
     this.combat.updateMarker();
+    this.attackVfx.update();
     // pointer outside the canvas keeps its last position: only a pointer over the game can hover
     this.monsterCursor.update(delta, alive && this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
@@ -146,6 +165,7 @@ export class GameScene extends Phaser.Scene {
         ),
         StatusWindow.load(),
         PassiveTreeWindow.load(),
+        loadPlayerCombatAssets(this, getCharacterSpriteId(character.appearance)).then((set) => (this.combatSet = set)),
         services.assets
           .load({ key: MONSTER_CURSOR.key, type: 'image', url: MONSTER_CURSOR.url })
           .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor over monsters`)),
@@ -207,6 +227,10 @@ export class GameScene extends Phaser.Scene {
 
     // Combat: player vs monsters, click targeting (see onPointerDown)
     this.combat = new CombatSystem(this, character, this.player, this.monsters);
+    this.attackVfx = new AttackVfxLayer(this);
+    this.combat.vfx = this.attackVfx;
+    this.playerCombat = this.combatSet ? new PlayerCombatAnimator(view, this.combatSet) : null;
+    if (this.playerCombat) this.player.actions = this.playerCombat;
     this.clickMarker = new ClickMarker(this);
     this.monsterCursor = new MonsterCursor(this.textures);
 

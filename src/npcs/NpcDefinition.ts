@@ -35,6 +35,8 @@ export interface NpcDefinition {
   tile: TileCoord;
   facing: 'SW' | 'SE' | 'NW' | 'NE';
   art: { meta: NpcSheetMeta; url: string };
+  /** Top of the head in the standing frame (frame px: middle of the head, its first row) - not weapons held above it. */
+  head: { x: number; top: number };
   idle: {
     /** Standing still on frame 1 before (and after) each play of the idle animation. */
     stillMs: number;
@@ -51,6 +53,7 @@ export const NPC_DEFINITIONS: Readonly<Record<NpcId, NpcDefinition>> = {
     facing: 'SW',
     // the city guard "Mateus": standing frame 1; frames 2-13 played once at 150 ms, then 15 s standing again
     art: { meta: cityGuard as NpcSheetMeta, url: 'assets/npcs/city_guard_01/MateusIdleAnimation.png' },
+    head: { x: 34, top: 6 },
     idle: { stillMs: 15000, frameMs: 150 },
   },
   // The two gate guards in front of the closed city gate (Zone 5), same idle routine as Mateus.
@@ -61,6 +64,7 @@ export const NPC_DEFINITIONS: Readonly<Record<NpcId, NpcDefinition>> = {
     tile: { col: 13, row: 3 },
     facing: 'SW',
     art: { meta: cityGuardJack as NpcSheetMeta, url: 'assets/npcs/city_guard_jack/DoorGuard01IdleAnimation.png' },
+    head: { x: 31, top: 8 },
     idle: { stillMs: 15000, frameMs: 150 },
   },
   city_guard_sonny: {
@@ -70,6 +74,7 @@ export const NPC_DEFINITIONS: Readonly<Record<NpcId, NpcDefinition>> = {
     tile: { col: 16, row: 3 },
     facing: 'SW',
     art: { meta: cityGuardSonny as NpcSheetMeta, url: 'assets/npcs/city_guard_sonny/DoorGuard02IdleAnimation.png' },
+    head: { x: 31, top: 8 },
     idle: { stillMs: 15000, frameMs: 150 },
   },
 };

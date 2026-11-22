@@ -91,13 +91,23 @@ export const QuestService = {
     return true;
   },
 
+  /** The Passive Tree tutorial's node is unlocked. */
+  isFirstPassiveUnlocked(character: CharacterData): boolean {
+    return character.passives !== undefined && isCenterUnlocked(character.passives);
+  },
+
+  /** Tutorial Quest 01 is over and the Passive Tree's first node is unlocked. */
+  canStart02(character: CharacterData): boolean {
+    return this.quest01(character).state === 'PASSIVE_TUTORIAL_STARTED' && this.isFirstPassiveUnlocked(character);
+  },
+
   /**
    * The steps of Tutorial Quest 02 that follow from what the character has done: it starts when Tutorial
    * Quest 01 is over and the Passive Tree's first node is unlocked, and ends when the dagger is worn. Safe to
    * call at any time.
    */
   sync02(character: CharacterData): void {
-    if (this.quest01(character).state === 'PASSIVE_TUTORIAL_STARTED' && character.passives && isCenterUnlocked(character.passives)) this.advance02(character, 'start');
+    if (this.canStart02(character)) this.advance02(character, 'start');
     if (isDaggerEquipped(character.inventory)) this.advance02(character, 'complete');
   },
 

@@ -29,6 +29,7 @@ import { Pathfinder } from '../world/navigation/Pathfinder';
 import { PathTrailView } from '../ui/world/PathTrailView';
 import { DIALOGUES } from '../dialogue/Dialogues';
 import type { PlayerAction } from '../player/death/PlayerLifeState';
+import { npcQuestMarker } from '../quests/QuestMarkers';
 import { QuestService } from '../quests/QuestService';
 import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
 import { isQuest02AtMateus, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
@@ -176,7 +177,11 @@ export class GameScene extends Phaser.Scene {
     if (alive) this.cameraFollow.update(feet.x, feet.y, delta);
     this.player.view.setRenderPosition(this.cameraFollow.renderX(feet.x), this.cameraFollow.renderY(feet.y));
     this.monsters.update(delta, this.cameras.main, GameServices.get().performance, this.combat.monsterContext);
-    for (const npc of this.npcs) npc.update(delta);
+    for (const npc of this.npcs) {
+      // from the quest state as it is when the frame is drawn: steps that follow each other at once never flicker
+      npc.questMarker.set(npcQuestMarker(this.character, npc.definition.id));
+      npc.update(delta);
+    }
     this.combat.updateMarker();
     this.attackVfx.update();
     // pointer outside the canvas keeps its last position: only a pointer over the game can hover

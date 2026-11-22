@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { Point } from '../core/types';
 import { frameOpaqueBounds } from '../combat/vfx/HitAnchor';
+import { QuestMarker } from '../ui/world/QuestMarker';
 import { createNameLabel, NAME_LABEL_COLORS, placeNameLabel } from '../ui/world/WorldNameLabel';
 import type { IsometricMap } from '../world/IsometricMap';
 import { IdleCycle } from './IdleCycle';
@@ -10,12 +11,13 @@ import { npcSheetKey, type NpcDefinition } from './NpcDefinition';
  * A stationary NPC on its tile: the idle routine (IdleCycle) picks the frame; all frames share the sheet's
  * measured ground anchor, so the feet stay on the tile. Depth: screen Y of the feet, corrected against walls (same rule as characters).
  * Name label under the feet (shared world label: same style and placement as the player and monsters),
- * fixed to the ground anchor - never following the animation.
+ * fixed to the ground anchor - never following the animation. Quest marker above the head (GameScene says which).
  */
 export class NpcEntity {
   readonly sprite: Phaser.GameObjects.Sprite;
   readonly label: Phaser.GameObjects.Text;
   readonly cycle: IdleCycle;
+  readonly questMarker: QuestMarker;
   private shown = -1;
 
   constructor(
@@ -37,6 +39,7 @@ export class NpcEntity {
     this.sprite.setDepth(map.resolveDepth(box, world.y, this.sprite.getBounds()));
     this.label = createNameLabel(scene, definition.name, NAME_LABEL_COLORS.npc);
     placeNameLabel(this.label, x, y);
+    this.questMarker = new QuestMarker(scene, { x: x - meta.anchor.x + definition.head.x, y: y - meta.anchor.y + definition.head.top });
   }
 
   /** Where it stands (tile space, tile centre). */
@@ -56,11 +59,13 @@ export class NpcEntity {
 
   update(deltaMs: number): void {
     this.showFrame(this.cycle.update(deltaMs));
+    this.questMarker.update(deltaMs);
   }
 
   destroy(): void {
     this.sprite.destroy();
     this.label.destroy();
+    this.questMarker.destroy();
   }
 
   private showFrame(frame: number): void {

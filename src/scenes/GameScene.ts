@@ -48,6 +48,13 @@ import { LoadingScreen } from '../ui/LoadingScreen';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import type { IsometricMap } from '../world/IsometricMap';
 import { DEFAULT_MAP_ID } from '../world/loading/MapRegistry';
+import { placeSavedLocation, type SavedLocation } from '../save/SavedLocation';
+import { respawnTile } from '../world/SpawnPoints';
+
+export interface GameSceneData {
+  /** Save point of a loaded save file: the player continues there; otherwise at the map's start. */
+  savedLocation?: SavedLocation | null;
+}
 
 const CULLING_DEBUG_SOURCE = 'Culling';
 const MONSTER_DEBUG_SOURCE = 'Monsters';
@@ -93,12 +100,16 @@ export class GameScene extends Phaser.Scene {
   private ready = false;
   private failed = false;
   private leaving = false;
+  /** Only for placing the player once after loading a file - respawning never uses it. */
+  private loadedLocation: SavedLocation | null = null;
 
   constructor() {
     super(SCENES.Game);
   }
 
-  create(): void {
+  create(data: GameSceneData = {}): void {
+    this.loadedLocation = data.savedLocation ?? null;
+    this.scene.settings.data = {}; // Phaser would hand the same data to the next start without any
     this.ready = false;
     this.failed = false;
     this.leaving = false;
@@ -115,7 +126,7 @@ export class GameScene extends Phaser.Scene {
       // An open UI window (Status) closes first; otherwise ESC keeps its original meaning.
       const ui = this.scene.get(SCENES.GameUI) as GameUIScene;
       if (this.scene.isActive(SCENES.GameUI) && ui.closeWindows()) return;
-      this.returnToCreation();
+      this.returnToMenu();
     };
     this.input.keyboard?.on('keydown-ESC', onEscape);
     // 1: Drifter Lv.1 attack skill (dagger thrust, 200 % ATK) as the next swing on the current target
@@ -254,6 +265,12 @@ export class GameScene extends Phaser.Scene {
       reserved: [this.player.getFootprint(), ...npcTiles],
     });
 
+    // A loaded save: back where the player stood, if one can stand there on this map
+    const saved = placeSavedLocation(this.loadedLocation, this.mapId, this.map, PLAYER_MOVEMENT.radius);
+    this.loadedLocation = null;
+    if (saved) this.player.teleport(saved);
+    const startWorld = saved ? this.map.tileToWorld(saved.x, saved.y) : spawnWorld;
+
     // Combat: player vs monsters, click targeting (see onPointerDown)
     this.combat = new CombatSystem(this, character, this.player, this.monsters);
     this.attackVfx = new AttackVfxLayer(this);
@@ -282,19 +299,17 @@ export class GameScene extends Phaser.Scene {
     // Smooth follow (same 0.12 lerp, view 24 px above the feet) without pixel jitter - see StableCameraFollow.
     cam.setRoundPixels(true);
     this.cameraFollow = new StableCameraFollow(cam, { lerp: 0.12, offsetY: -24 });
-    this.cameraFollow.update(spawnWorld.x, spawnWorld.y, 0);
-    view.setRenderPosition(this.cameraFollow.renderX(spawnWorld.x), this.cameraFollow.renderY(spawnWorld.y));
+    this.cameraFollow.update(startWorld.x, startWorld.y, 0);
+    view.setRenderPosition(this.cameraFollow.renderX(startWorld.x), this.cameraFollow.renderY(startWorld.y));
 
-    // Death -> ghost -> respawn at the save point (none exist yet: the map spawn).
+    // Death -> ghost -> respawn at the spawn point (never at a save point).
     this.death = new PlayerDeathController({
       scene: this,
       combat: this.combat,
       player: this.player,
       camera: cam,
       cameraFollow: this.cameraFollow,
-      mapId: this.mapId,
-      mapSpawn: spawn,
-      savePoint: () => null,
+      respawnAt: () => respawnTile(this.mapId, spawn),
       ui: () => (this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null),
     });
 
@@ -350,6 +365,13 @@ export class GameScene extends Phaser.Scene {
     const r = PLAYER_MOVEMENT.radius;
     const standable = this.map.isAreaFree({ minX: tile.x - r, minY: tile.y - r, maxX: tile.x + r, maxY: tile.y + r });
     if (moving && standable) this.clickMarker.show(world.x, world.y);
+  }
+
+  /** Save point for a save file: where the player stands now. null while there is no world or the player is not alive. */
+  captureSavedLocation(): SavedLocation | null {
+    if (!this.ready || !this.death.life.isAlive()) return null;
+    const { x, y } = this.player.getTilePosition();
+    return { mapId: this.mapId, x, y };
   }
 
   /** Gameplay action gate: nothing but chat while dying / dead or in a conversation. */
@@ -517,13 +539,13 @@ export class GameScene extends Phaser.Scene {
     return fallback;
   }
 
-  private returnToCreation(): void {
+  private returnToMenu(): void {
     if (this.leaving || (!this.ready && !this.failed)) return;
     this.leaving = true;
     this.scene.stop(SCENES.GameUI);
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start(SCENES.CharacterCreation);
+      this.scene.start(SCENES.MainMenu);
     });
   }
 }

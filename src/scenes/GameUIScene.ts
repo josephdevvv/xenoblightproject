@@ -19,6 +19,8 @@ import { isHotkeyPress } from '../ui/input/typing';
 import { ItemNotifications } from '../ui/notifications/ItemNotifications';
 import { availablePoints } from '../passives/PassiveProgress';
 import { CharacterStatusService } from '../status/CharacterStatusService';
+import { downloadText } from '../save/fileIO';
+import { SAVE_FILE_NAME, serializeSave } from '../save/SaveFile';
 import { SettingsWindow } from '../ui/SettingsWindow';
 import { StatusWindow } from '../ui/StatusWindow';
 import type { GameScene } from './GameScene';
@@ -119,7 +121,7 @@ export class GameUIScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-P', onP));
       this.refreshPassiveGuide(character);
     }
-    this.settingsWindow = new SettingsWindow(this, { depth: 20 });
+    this.settingsWindow = new SettingsWindow(this, { depth: 20, onSaveGame: () => downloadText(SAVE_FILE_NAME, serializeSave(character, this.gameScene()?.captureSavedLocation() ?? null)) });
     // Quests: tracker, NPC dialogue (above the windows, below the death screen).
     this.dialogueWindow = new DialogueWindow(this, 30);
     const refreshQuest = (): void => {

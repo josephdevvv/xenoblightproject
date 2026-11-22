@@ -35,6 +35,8 @@ import { localize } from '../i18n/phaser';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import { Button } from '../ui/Button';
+import { ChoiceDialog } from '../ui/ChoiceDialog';
+import { SaveService } from '../save/SaveService';
 import { createPanel, setPanelTitle } from '../ui/Panel';
 import { SettingsWindow } from '../ui/SettingsWindow';
 import { TextInputField } from '../ui/TextInputField';
@@ -63,6 +65,8 @@ export class CharacterCreationScene extends Phaser.Scene {
   /** One button per starter hairstyle slot (Bald + the gender's hairstyle). */
   private hairstyleButtons: Button[] = [];
   private settings!: SettingsWindow;
+  /** Asked when the name already has progress in this browser. */
+  private dialog!: ChoiceDialog;
   /** The message under the name field, kept as a key so it can be re-translated. */
   private message: { text: LocalizedMessage; isError: boolean } = { text: HINT, isError: false };
   private nameInput!: TextInputField;
@@ -146,12 +150,27 @@ export class CharacterCreationScene extends Phaser.Scene {
       role: 'small',
       onClick: () => this.settings.toggle(),
     });
-    this.input.keyboard?.on('keydown-ESC', () => this.settings.close());
+    this.dialog = new ChoiceDialog(this, 1100, {
+      onOpen: () => this.nameInput?.setVisible(false),
+      onClose: () => this.nameInput?.setVisible(true),
+    });
+    const backButton = new Button(this, GAME_WIDTH - 28 - 48 - 104, 18, { width: 96, height: 22, label: '', role: 'small', onClick: () => this.backToMenu() });
+    const onEscape = (): void => {
+      if (this.settings.isOpen) this.settings.close();
+      else if (this.dialog.isOpen) this.dialog.close();
+      else this.backToMenu();
+    };
+    this.input.keyboard?.on('keydown-ESC', onEscape);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.keyboard?.off('keydown-ESC', onEscape);
+      this.dialog.forget();
+    });
 
     localize(this, () => {
       title.setText(t('creation.title'));
       subtitle.setText(t('creation.subtitle'));
       settingsButton.setLabel(t('common.settings'));
+      backButton.setLabel(t('common.back'));
     });
   }
 
@@ -313,7 +332,7 @@ export class CharacterCreationScene extends Phaser.Scene {
   }
 
   private submit(): void {
-    if (this.submitting || this.settings.isOpen) return;
+    if (this.submitting || this.settings.isOpen || this.dialog.isOpen) return;
     const result = validateCharacterName(this.nameInput.value);
     if (!result.valid) {
       this.showMessage(result.error, true);
@@ -321,11 +340,42 @@ export class CharacterCreationScene extends Phaser.Scene {
       return;
     }
 
+    this.nameInput.blur();
+    if (!SaveService.hasCharacter(result.name)) {
+      this.enterGame(result.name);
+      return;
+    }
+    // Progress is never replaced without asking.
+    this.dialog.show({
+      title: t('creation.existsTitle'),
+      lines: [t('creation.existsText', { name: result.name })],
+      choices: [
+        { label: t('creation.existsContinue'), onChoose: () => this.enterGame(result.name) },
+        {
+          label: t('creation.existsStartOver'),
+          tone: 'danger',
+          onChoose: () => {
+            SaveService.erase(result.name);
+            this.enterGame(result.name);
+          },
+        },
+        { label: t('common.cancel'), tone: 'quiet', onChoose: () => undefined },
+      ],
+    });
+  }
+
+  private backToMenu(): void {
+    if (this.submitting || this.dialog.isOpen || this.settings.isOpen) return;
     this.submitting = true;
     this.nameInput.blur();
-    this.createButton.setEnabled(false);
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start(SCENES.MainMenu));
+  }
 
-    const character = this.resolveCharacter(result.name);
+  private enterGame(name: string): void {
+    this.submitting = true;
+    this.createButton.setEnabled(false);
+    const character = this.resolveCharacter(name);
     // Prototype identity = name: an existing name continues its saved status, a new name starts at level 1.
     CharacterStatusService.loadInto(character);
     CharacterStore.add(character);
@@ -333,7 +383,7 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     this.cameras.main.fadeOut(450, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start(SCENES.Game);
+      this.scene.start(SCENES.Game, {});
     });
   }
 

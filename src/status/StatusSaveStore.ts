@@ -74,7 +74,7 @@ export const StatusSaveStore = {
       return { kind: 'invalid', reason: 'not valid JSON' };
     }
     if (typeof data !== 'object' || data === null) return { kind: 'invalid', reason: 'not an object' };
-    return sanitize(data as Partial<SavedStatus>);
+    return parseSavedStatus(data);
   },
 
   /** Returns false if the browser refused to store it (private mode, quota, ...). */
@@ -117,7 +117,8 @@ export const StatusSaveStore = {
  * Turns whatever was stored into a valid status. Out-of-range or missing fields are repaired
  * field by field (reported in `repaired`); the record is only rejected when it is unusable.
  */
-function sanitize(d: Partial<SavedStatus>): LoadResult {
+export function parseSavedStatus(data: object): LoadResult {
+  const d = data as Partial<SavedStatus>;
   const repaired: string[] = [];
   const status = createInitialStatus();
 

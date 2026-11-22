@@ -59,7 +59,7 @@ export class PlayerLife {
     return this.current === 'dead' && this.set('respawning');
   }
 
-  /** The player stands at the save point again. */
+  /** The player stands at the spawn point. */
   finishRespawn(): boolean {
     if (this.current !== 'respawning') return false;
     this.respawnCount++;

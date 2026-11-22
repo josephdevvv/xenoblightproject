@@ -4,7 +4,6 @@ import { test } from 'node:test';
 import { SPRITE_FORGE_CHARACTER_VARIANTS } from '../src/assets/SpriteForgeCharacters';
 import { dissolveNoise, dissolvePixels, ghostPixels, ghostRowKeep, GHOST_OPTIONS, opaqueRows } from '../src/player/death/GhostPixels';
 import { DEAD_ALLOWED_ACTIONS, PlayerLife, type PlayerAction } from '../src/player/death/PlayerLifeState';
-import { resolveRespawnPoint } from '../src/world/SavePoints';
 import { readPng } from './helpers/png';
 
 const ALL_ACTIONS: PlayerAction[] = ['move', 'attack', 'cast', 'interact', 'loot', 'useItem', 'openWindow', 'chat'];
@@ -48,19 +47,6 @@ test('life: only chat is allowed while not alive; everything while alive; repeat
     assert.equal(life.deaths, cycle);
     assert.equal(life.respawns, cycle);
   }
-});
-
-// ----------------------------------------------------------------------------------------- save point
-
-test('respawn point: the save point on this map, else the map spawn (no save points exist yet)', () => {
-  const spawn = { x: 14.5, y: 118.5 };
-  assert.deepEqual(resolveRespawnPoint(null, 'ashen_crossroads', spawn), spawn);
-  assert.deepEqual(resolveRespawnPoint(undefined, 'ashen_crossroads', spawn), spawn);
-  assert.deepEqual(resolveRespawnPoint({ mapId: 'ashen_crossroads', tile: { x: 10.5, y: 50.5 } }, 'ashen_crossroads', spawn), { x: 10.5, y: 50.5 });
-  assert.deepEqual(resolveRespawnPoint({ mapId: 'elsewhere', tile: { x: 1, y: 1 } }, 'ashen_crossroads', spawn), spawn);
-  const result = resolveRespawnPoint(null, 'ashen_crossroads', spawn);
-  result.x = 0;
-  assert.equal(spawn.x, 14.5, 'returns a copy');
 });
 
 // ---------------------------------------------------------------------------------------------- ghost

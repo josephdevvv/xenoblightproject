@@ -24,6 +24,6 @@ export class BootScene extends Phaser.Scene {
     AssetManager.createMockupTextures(this);
     // Developer monster animation preview: ?monsters (dev builds, or production with ?debug).
     const preview = DEBUG_AVAILABLE && new URLSearchParams(location.search).has('monsters');
-    this.scene.start(preview ? SCENES.MonsterPreview : SCENES.CharacterCreation);
+    this.scene.start(preview ? SCENES.MonsterPreview : SCENES.MainMenu);
   }
 }

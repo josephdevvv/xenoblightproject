@@ -3,7 +3,6 @@ import type { Point } from '../../core/types';
 import type { CombatSystem } from '../../combat/CombatSystem';
 import type { StableCameraFollow } from '../../render/StableCameraFollow';
 import { captureSpriteFrame, type DeathOverlay } from '../../ui/death/DeathOverlay';
-import { resolveRespawnPoint, type SavePoint } from '../../world/SavePoints';
 import type { PlayerController } from '../PlayerController';
 import { PlayerLife } from './PlayerLifeState';
 
@@ -19,10 +18,8 @@ export interface PlayerDeathDeps {
   player: PlayerController;
   camera: Phaser.Cameras.Scene2D.Camera;
   cameraFollow: StableCameraFollow;
-  mapId: string;
-  mapSpawn: Point;
-  /** The character's save point (none exist yet: null = map spawn fallback). */
-  savePoint: () => SavePoint | null;
+  /** Where the player respawns (the spawn point - see world/SpawnPoints). */
+  respawnAt: () => Point;
   ui: () => DeathUi | null;
 }
 
@@ -33,7 +30,7 @@ const FADE_IN_MS = 420;
  * every action stops, the windows close, the player's CURRENT frame is captured and handed to the
  * DeathOverlay (dissolve + ghost + dark overlay + respawn button), and the real sprite is hidden. The
  * camera holds still while not alive so the ghost stays on the death spot. The respawn click (accepted
- * once) fades the overlay out, then moves the player to the save point (fallback: map spawn) with full
+ * once) fades the overlay out, then moves the player to the spawn point with full
  * HP, clears the combat state, restores controls and fades the view back in.
  * Gameplay code asks `life.canPerform(action)` - only chat is allowed while not alive.
  */
@@ -83,7 +80,7 @@ export class PlayerDeathController {
     if (!this.life.requestRespawn()) return;
     const finish = (): void => {
       const { combat, player, cameraFollow, camera, scene } = this.deps;
-      combat.respawnAt(resolveRespawnPoint(this.deps.savePoint(), this.deps.mapId, this.deps.mapSpawn));
+      combat.respawnAt(this.deps.respawnAt());
       cameraFollow.snap();
       const sprite = player.view.sprite;
       sprite.setVisible(true).setAlpha(0);

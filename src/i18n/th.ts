@@ -13,6 +13,7 @@ export const th = {
     confirm: 'ยืนยัน',
     cancel: 'ยกเลิก',
     close: 'ปิด',
+    back: 'กลับ',
     reset: 'รีเซ็ต',
     settings: 'ตั้งค่า',
   },
@@ -24,8 +25,37 @@ export const th = {
     title: 'ตั้งค่า',
     /** Shown in both languages on purpose so either reader can find it. */
     languageLabel: 'ภาษา / Language',
+    saveGame: 'บันทึกเกม',
+    saveStarted: 'เริ่มดาวน์โหลดไฟล์เซฟแล้ว',
+    saveFailed: 'บันทึกเกมไม่สำเร็จ',
+  },
+  menu: {
+    newGame: 'เริ่มต้นใหม่',
+    loadGame: 'โหลดเกม',
+    settings: 'ตั้งค่า',
+  },
+  save: {
+    confirmTitle: 'โหลดไฟล์เซฟนี้?',
+    fileInfo: '{name}  Lv {level}',
+    replaceCharacter: 'ข้อมูลของ {name} ในเบราว์เซอร์นี้จะถูกแทนที่ด้วยข้อมูลจากไฟล์',
+    replaceSession: 'เกมของ {name} ที่กำลังเล่นอยู่จะถูกปิด',
+    confirmLoad: 'โหลดจากไฟล์',
+    errors: {
+      tooLarge: 'ไฟล์ใหญ่เกินไป ไม่ใช่ไฟล์เซฟของ Xenoblight',
+      notJson: 'อ่านไฟล์ไม่ได้ ไม่ใช่ไฟล์เซฟที่ถูกต้อง',
+      notASave: 'ไฟล์นี้ไม่ใช่ไฟล์เซฟของ Xenoblight',
+      newerVersion: 'ไฟล์เซฟนี้มาจากเกมเวอร์ชันใหม่กว่า',
+      corrupted: 'ไฟล์เซฟเสียหายหรือข้อมูลไม่ครบ',
+      unsupportedCharacter: 'ตัวละครในไฟล์นี้ยังไม่รองรับในเกมเวอร์ชันนี้',
+      storage: 'เบราว์เซอร์ไม่ยอมให้บันทึกข้อมูล จึงโหลดเซฟไม่ได้',
+      unreadable: 'เปิดไฟล์ไม่ได้',
+    },
   },
   creation: {
+    existsTitle: 'มีตัวละครชื่อนี้อยู่แล้ว',
+    existsText: '{name} มีข้อมูลการเล่นอยู่ในเบราว์เซอร์นี้แล้ว จะเล่นต่อ หรือเริ่มใหม่ตั้งแต่ต้น',
+    existsContinue: 'เล่นต่อจากเดิม',
+    existsStartOver: 'เริ่มใหม่ (แทนที่ข้อมูลเดิม)',
     title: 'สร้างตัวละคร',
     subtitle: 'ไมล์สโตน 01 · ต้นแบบ',
     gender: 'เพศ',
@@ -90,7 +120,7 @@ export const th = {
   world: {
     entering: 'กำลังเข้าสู่แผนที่',
     mapLoadFailed: 'โหลดแผนที่ไม่สำเร็จ',
-    mapLoadFailedHint: 'กด ESC เพื่อกลับไปหน้าสร้างตัวละคร',
+    mapLoadFailedHint: 'กด ESC เพื่อกลับไปหน้าเมนูหลัก',
   },
   maps: {
     /** Proper name kept in English until an official Thai name exists (see i18n README notes). */
@@ -276,7 +306,7 @@ export const th = {
   },
   death: {
     title: 'ตาย...',
-    respawn: 'เกิดใหม่ที่จุดเซฟ',
+    respawn: 'เกิดใหม่ที่จุดเกิด',
   },
 };
 

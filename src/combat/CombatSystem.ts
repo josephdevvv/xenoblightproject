@@ -362,7 +362,7 @@ export class CombatSystem {
   }
 
   /**
-   * Respawn (called by the death flow at the save point). Existing rule: full HP. Every temporary combat
+   * Respawn (called by the death flow at the spawn point). Existing rule: full HP. Every temporary combat
    * state is cleared (target, cooldowns, regeneration timers, red flash).
    */
   respawnAt(point: Point): void {

@@ -38,13 +38,13 @@ Open http://localhost:5173.
 
 | Input         | Action                               |
 | ------------- | ------------------------------------ |
-| Mouse         | Character creation UI                |
+| Mouse         | Main menu, character creation UI     |
 | Enter         | Submit the name field                |
 | W / A / S / D | Move (8 directions with combinations) |
-| Esc           | Close an open window; otherwise return to character creation (in game) |
+| Esc           | Close an open window; otherwise return to the main menu |
 | Status icon / T | First slot of the HUD menu bar (top right): open / close the character Status window |
-| Menu icon (three bars) | Last slot of the HUD menu bar: Settings (language) |
-| Settings button | Character creation, top right: Settings (language) before entering the game |
+| Menu icon (three bars) | Last slot of the HUD menu bar: Settings (language, Save Game) |
+| Settings button | Main menu and character creation: Settings (language) before entering the game |
 
 W moves straight up on screen, D straight right; key combinations (e.g. W+D) move along the isometric tile axes.
 
@@ -65,10 +65,19 @@ The window is drawn in the same style as the Passive Tree and Inventory windows;
 `src/ui/status/StatusLayout.ts`. The earlier Moonsteel kit (`art-source/ui/status_moonsteel/`,
 `tools/import-status-kit.ps1`) is no longer used by the game.
 
+## Main menu, saving and loading
+
+The game starts in the main menu: **New Game** (character creation), **Load Game** and **Settings** (language).
+Progress is saved in the browser while playing, as before. In game, **Settings > Save Game** downloads
+`xenoblight_save.json`; **Load Game** opens the browser's file picker, checks the file and continues with that
+character (the same name in this browser or a running game is only replaced after asking). Damaged, foreign or
+newer files are refused with a message. Code: `src/save/` (SaveFile = format and checks, SaveService = restore,
+fileIO = download / picker), `src/scenes/MainMenuScene.ts`.
+
 ## Languages and font
 
 The game is bilingual: **Thai (default)** and English. New players always start in Thai (the browser /
-OS language is ignored). Change the language in **Settings** - the button at the top right of character
+OS language is ignored). Change the language in **Settings** - in the main menu, at the top right of character
 creation, or the menu icon (three bars) at the end of the in-game HUD menu bar. The switch applies
 immediately (no restart) and is saved in `localStorage` (`xenoblight.settings.v1`); an invalid or
 missing value falls back to Thai.
@@ -117,8 +126,9 @@ src/
     hud/                       Dungeon HUD: HudLayout (pack layout -> screen), DungeonHud, Minimap, hudPack.generated.json
     status/                    Status window layout (StatusLayout)
     text/                      Typography (Kanit loading + text roles), grapheme-safe fitText
-  SettingsWindow.ts            Settings (language) modal, used in character creation and in game
-  scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
+  SettingsWindow.ts            Settings modal (language; Save Game in game), used in the menu, character creation and in game
+  save/                        Save file: format + checks (SaveFile), restore (SaveService), download / picker (fileIO)
+  scenes/                      BootScene, MainMenuScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)
 ```
 
 ## Monster sprites (delivered packs)
@@ -207,7 +217,7 @@ replaced by a mockup. The procedural mockup generator remains only for appearanc
 row is a preview. These rules are applied in `createCharacterData`, not just the UI. Characters are saved per
 name in `localStorage` (`xenoblight.character.v1.<name>`: appearance + class; stats stay in the status save);
 the last played one pre-fills character creation after a reload, and a saved name continues that character
-unchanged.
+unchanged (or starts over - the screen asks).
 
 **App icons and logo.** `public/icons/` holds the app icon set: `XENOBLIGHT_App.ico` (multi-size 16-256 px,
 browser tab favicon) and PNGs from 16 to 512 px. `index.html` links the ICO as favicon, the 256 px PNG as

@@ -25,6 +25,7 @@ export const SCENES = {
   Boot: 'BootScene',
   /** Persistent, invisible scene hosting the asset loader and game-wide services. */
   System: 'SystemScene',
+  MainMenu: 'MainMenuScene',
   CharacterCreation: 'CharacterCreationScene',
   Game: 'GameScene',
   /** Screen-space gameplay UI (Status button + window) drawn above GameScene. */

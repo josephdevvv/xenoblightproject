@@ -41,7 +41,7 @@ export const CharacterProfileStore = {
     }
     if (raw === null) return { kind: 'missing' };
     try {
-      return parseProfile(JSON.parse(raw));
+      return parseCharacterProfile(JSON.parse(raw));
     } catch {
       return { kind: 'invalid', reason: 'not valid JSON' };
     }
@@ -100,7 +100,8 @@ export const CharacterProfileStore = {
   },
 };
 
-function parseProfile(data: unknown): ProfileLoadResult {
+/** Stored data -> profile. */
+export function parseCharacterProfile(data: unknown): ProfileLoadResult {
   if (typeof data !== 'object' || data === null) return { kind: 'invalid', reason: 'not an object' };
   const d = data as Record<string, unknown>;
   const a = d.appearance as Record<string, unknown> | undefined;

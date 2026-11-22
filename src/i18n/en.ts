@@ -8,6 +8,7 @@ export const en: Messages = {
     confirm: 'Confirm',
     cancel: 'Cancel',
     close: 'Close',
+    back: 'Back',
     reset: 'Reset',
     settings: 'Settings',
   },
@@ -18,8 +19,37 @@ export const en: Messages = {
   settings: {
     title: 'Settings',
     languageLabel: 'ภาษา / Language',
+    saveGame: 'Save Game',
+    saveStarted: 'Save file download started.',
+    saveFailed: 'The game could not be saved.',
+  },
+  menu: {
+    newGame: 'New Game',
+    loadGame: 'Load Game',
+    settings: 'Settings',
+  },
+  save: {
+    confirmTitle: 'Load this save file?',
+    fileInfo: '{name}  Lv {level}',
+    replaceCharacter: 'The data of {name} in this browser will be replaced by the file.',
+    replaceSession: 'The current game of {name} will be closed.',
+    confirmLoad: 'Load from file',
+    errors: {
+      tooLarge: 'The file is too large - not a Xenoblight save file.',
+      notJson: 'The file cannot be read - not a valid save file.',
+      notASave: 'This is not a Xenoblight save file.',
+      newerVersion: 'This save file was made by a newer version of the game.',
+      corrupted: 'The save file is damaged or incomplete.',
+      unsupportedCharacter: 'The character in this file is not supported by this version.',
+      storage: 'The browser refused to store data, so the save cannot be loaded.',
+      unreadable: 'The file could not be opened.',
+    },
   },
   creation: {
+    existsTitle: 'This name already exists',
+    existsText: '{name} already has progress in this browser. Continue, or start over from the beginning?',
+    existsContinue: 'Continue',
+    existsStartOver: 'Start over (replaces the old data)',
     title: 'Character Creation',
     subtitle: 'Milestone 01 · Prototype',
     gender: 'Gender',
@@ -84,7 +114,7 @@ export const en: Messages = {
   world: {
     entering: 'Entering',
     mapLoadFailed: 'Failed to load map',
-    mapLoadFailedHint: 'Press ESC to return to character creation',
+    mapLoadFailedHint: 'Press ESC to return to the main menu',
   },
   maps: {
     ashen_crossroads: 'Ashen Crossroads',
@@ -268,6 +298,6 @@ export const en: Messages = {
   },
   death: {
     title: 'Dead...',
-    respawn: 'Respawn at save point',
+    respawn: 'Respawn',
   },
 };

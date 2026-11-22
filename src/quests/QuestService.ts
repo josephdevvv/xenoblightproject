@@ -1,4 +1,6 @@
 import type { CharacterData } from '../data/CharacterData';
+import { hasGrant } from '../inventory/InventoryState';
+import { isCenterUnlocked } from '../passives/PassiveProgress';
 import { QuestSaveStore } from './QuestSaveStore';
 import {
   applyQuest01,
@@ -10,10 +12,12 @@ import {
   type Quest01Event,
   type Quest01Progress,
 } from './TutorialQuest01';
+import { applyQuest02, createQuest02, isDaggerEquipped, isQuest02Completed, restoreQuest02, TUTORIAL_QUEST_02, type Quest02Event, type Quest02Progress } from './TutorialQuest02';
 
 /** A character's quests by quest id. Entries of quests this build does not know are kept as stored. */
 export interface QuestLog {
   tutorial_01_find_mateus: Quest01Progress;
+  tutorial_02_rusty_dagger: Quest02Progress;
   [otherQuestId: string]: unknown;
 }
 
@@ -31,7 +35,7 @@ const completedListeners = new Set<CompletedListener>();
  * before it returns, so a reward can never be paid twice.
  */
 export const QuestService = {
-  /** Attaches the saved quests. `isNewCharacter` = the name had no saved status before. */
+  /** Attaches the saved quests (after the inventory). `isNewCharacter` = the name had no saved status before. */
   loadInto(character: CharacterData, isNewCharacter: boolean): void {
     const result = QuestSaveStore.load(character.name);
     if (result.kind === 'invalid') {
@@ -40,7 +44,8 @@ export const QuestService = {
     }
     const stored = result.kind === 'loaded' ? result.quests : {};
     const quest = sanitizeQuest01(stored[TUTORIAL_QUEST_01.id]) ?? createQuest01(isNewCharacter);
-    character.quests = { ...stored, tutorial_01_find_mateus: quest };
+    const quest02 = restoreQuest02(stored[TUTORIAL_QUEST_02.id], hasGrant(character.inventory, TUTORIAL_QUEST_02.reward.grantId));
+    character.quests = { ...stored, tutorial_01_find_mateus: quest, tutorial_02_rusty_dagger: quest02 };
     QuestSaveStore.save(character.name, character.quests);
   },
 
@@ -54,7 +59,7 @@ export const QuestService = {
     const before = this.quest01(character);
     const next = applyQuest01(before, event);
     if (!next) return false;
-    commit(character, next);
+    commit(character, { tutorial_01_find_mateus: next });
     if (isQuest01Completed(next) && !isQuest01Completed(before)) for (const l of completedListeners) l(character, TUTORIAL_QUEST_01.id);
     return true;
   },
@@ -71,8 +76,32 @@ export const QuestService = {
   /** True exactly once per character, after the quest is completed. Pays nothing itself. */
   claimReward(character: CharacterData): boolean {
     if (!character.quests || !this.canClaimReward(character)) return false;
-    commit(character, { ...this.quest01(character), rewardClaimed: true });
+    commit(character, { tutorial_01_find_mateus: { ...this.quest01(character), rewardClaimed: true } });
     return true;
+  },
+
+  quest02(character: CharacterData): Quest02Progress {
+    return character.quests?.tutorial_02_rusty_dagger ?? createQuest02();
+  },
+
+  /** Applies a step of Tutorial Quest 02. False when it is not valid now (nothing changes). */
+  advance02(character: CharacterData, event: Quest02Event): boolean {
+    if (!character.quests) return false;
+    const next = applyQuest02(this.quest02(character), event);
+    if (!next) return false;
+    commit(character, { tutorial_02_rusty_dagger: next });
+    if (isQuest02Completed(next)) for (const l of completedListeners) l(character, TUTORIAL_QUEST_02.id);
+    return true;
+  },
+
+  /**
+   * The steps of Tutorial Quest 02 that follow from what the character has done: it starts when Tutorial
+   * Quest 01 is over and the Passive Tree's first node is unlocked, and ends when the dagger is worn. Safe to
+   * call at any time.
+   */
+  sync02(character: CharacterData): void {
+    if (this.quest01(character).state === 'PASSIVE_TUTORIAL_STARTED' && character.passives && isCenterUnlocked(character.passives)) this.advance02(character, 'start');
+    if (isDaggerEquipped(character.inventory)) this.advance02(character, 'complete');
   },
 
   onChange(listener: ChangeListener): () => void {
@@ -87,8 +116,8 @@ export const QuestService = {
   },
 };
 
-function commit(character: CharacterData, quest: Quest01Progress): void {
-  character.quests = { ...character.quests, tutorial_01_find_mateus: quest };
+function commit(character: CharacterData, change: Partial<Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger'>>): void {
+  character.quests = { ...character.quests!, ...change };
   QuestSaveStore.save(character.name, character.quests);
   for (const l of changeListeners) l(character);
 }

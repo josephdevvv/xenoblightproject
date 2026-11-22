@@ -106,6 +106,7 @@ export const th = {
     menuStatus: 'สถานะ',
     menuSettings: 'ตั้งค่า',
     menuPassive: 'ผังพาสซีฟ (P)',
+    menuInventory: 'กระเป๋า (I)',
   },
   status: {
     title: 'สถานะ',
@@ -203,7 +204,55 @@ export const th = {
       opportunity: 'จังหวะโอกาส',
     },
   },
+  inventory: {
+    title: 'กระเป๋า',
+    equipmentTitle: 'อุปกรณ์สวมใส่',
+    bagTitle: 'ช่องเก็บของ',
+    detailTitle: 'รายละเอียดไอเท็ม',
+    equipment: {
+      weapon: 'อาวุธ',
+      hat: 'หมวก',
+      armor: 'ชุดเกราะ',
+      shoes: 'รองเท้า',
+      charm: 'เครื่องราง',
+    },
+    noItem: 'ยังไม่ได้เลือกไอเท็ม',
+    description: 'คำอธิบาย',
+    unequip: 'ถอดอุปกรณ์',
+    effects: 'ค่าสถานะ / เอฟเฟกต์',
+    keys: 'คลิกเพื่อเลือกช่อง  ·  I / Esc ปิด',
+    close: 'ปิด',
+  },
+  items: {
+    weapon_rusty_dagger: {
+      name: 'มีดสนิม',
+      description: 'มีดเก่าที่เต็มไปด้วยสนิม แม้จะไม่คมเหมือนเดิม แต่ยังพอใช้ป้องกันตัวได้',
+    },
+  },
+  itemInfo: {
+    weaponTypes: { dagger: 'มีดสั้น' },
+    requiredLevel: 'Lv {level}',
+    physicalAtk: 'ATK กายภาพ {value}',
+    magicAtk: 'ATK เวท {value}',
+  },
+  notifications: {
+    obtained: 'ได้รับ',
+    itemLine: '{name} x{quantity}',
+    bagFull: 'กระเป๋าเต็ม',
+    unequipFailed: 'ถอดอุปกรณ์ไม่สำเร็จ',
+    itemFailed: 'รับไอเท็มไม่สำเร็จ',
+  },
+  equipmentTutorial: {
+    openInventory: 'เปิดกระเป๋า (I)',
+    selectItem: 'เลือกมีดสนิม',
+    equipItem: 'กดช่องอาวุธเพื่อสวมใส่มีดสนิม',
+  },
   quests: {
+    tutorial_02_rusty_dagger: {
+      name: 'อาวุธเล่มแรก',
+      objective: 'กลับไปพูดคุยกับ Mateus',
+      objectiveEquip: 'สวมใส่มีดสนิม',
+    },
     tutorial_01_find_mateus: {
       name: 'ตามหา Mateus',
       objective: 'เดินทางไปพูดคุยกับ Mateus',

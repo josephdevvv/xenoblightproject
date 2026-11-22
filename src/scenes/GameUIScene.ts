@@ -3,6 +3,7 @@ import { SCENES } from '../config/constants';
 import type { CharacterData } from '../data/CharacterData';
 import { CharacterStore } from '../data/CharacterStore';
 import { DungeonHud } from '../ui/hud/DungeonHud';
+import { InventoryWindow } from '../ui/inventory/InventoryWindow';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
 import { DeathOverlay } from '../ui/death/DeathOverlay';
 import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
@@ -10,6 +11,11 @@ import { rectOfObject, SpotlightOverlay, type SpotlightTarget } from '../ui/tuto
 import { t } from '../i18n';
 import { QuestService } from '../quests/QuestService';
 import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
+import { equipmentTutorialStep, isQuest02AtMateus, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
+import { characterInventorySource } from '../inventory/CharacterInventorySource';
+import { InventoryService } from '../inventory/InventoryService';
+import { bagIndexOf } from '../inventory/InventoryState';
+import { ItemNotifications } from '../ui/notifications/ItemNotifications';
 import { availablePoints } from '../passives/PassiveProgress';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { SettingsWindow } from '../ui/SettingsWindow';
@@ -26,13 +32,16 @@ export interface GameUISceneData {
  * pointer input never reaches the world.
  */
 export class GameUIScene extends Phaser.Scene {
+  private character: CharacterData | null = null;
   private statusWindow: StatusWindow | null = null;
   private hud: DungeonHud | null = null;
   private settingsWindow: SettingsWindow | null = null;
   private passiveWindow: PassiveTreeWindow | null = null;
+  private inventoryWindow: InventoryWindow | null = null;
   private deathOverlay: DeathOverlay | null = null;
   private dialogueWindow: DialogueWindow | null = null;
   private spotlightOverlay: SpotlightOverlay | null = null;
+  private itemNotifications: ItemNotifications | null = null;
 
   constructor() {
     super(SCENES.GameUI);
@@ -43,10 +52,13 @@ export class GameUIScene extends Phaser.Scene {
     this.hud = null;
     this.settingsWindow = null;
     this.passiveWindow = null;
+    this.inventoryWindow = null;
     this.deathOverlay = null;
     this.dialogueWindow = null;
     this.spotlightOverlay = null;
+    this.itemNotifications = null;
     const character = this.resolveCharacter(data.characterId);
+    this.character = character;
     const game = this.gameScene();
     if (!character || !game?.map) {
       console.warn('[GameUI] no active character or map; UI not created');
@@ -60,11 +72,25 @@ export class GameUIScene extends Phaser.Scene {
         onStatus: () => this.canOpenWindows() && this.statusWindow?.toggle(),
         onSettings: () => this.canOpenWindows() && this.settingsWindow?.toggle(),
         onPassive: () => this.canOpenWindows() && this.togglePassiveTree(),
+        onInventory: () => this.canOpenWindows() && this.toggleInventory(),
         currentHp: () => this.gameScene()?.combat?.getPlayerHp() ?? Number.POSITIVE_INFINITY,
       },
       0,
     );
     this.statusWindow = new StatusWindow(this, character, 10);
+    // nothing is taken off while the equipment tutorial is still running
+    const canUnequip = (): boolean => QuestService.quest02(character).state !== 'EQUIPMENT_TUTORIAL';
+    this.inventoryWindow = new InventoryWindow(this, 12, characterInventorySource(character, canUnequip));
+    this.inventoryWindow.onUnequipProblem = (problem) => {
+      if (problem === 'bagFull') this.itemNotifications?.showText(t('notifications.bagFull'));
+      else if (problem === 'notSaved') this.itemNotifications?.showText(t('notifications.unequipFailed'));
+    };
+    // I toggles the Inventory (not while Settings is open on top).
+    const onI = (): void => {
+      if (this.canOpenWindows() && !this.settingsWindow?.isOpen) this.toggleInventory();
+    };
+    this.input.keyboard?.on('keydown-I', onI);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-I', onI));
     if (character.passives) {
       const passive = new PassiveTreeWindow(this, character, 14);
       this.passiveWindow = passive;
@@ -87,7 +113,11 @@ export class GameUIScene extends Phaser.Scene {
     // Quests: tracker, NPC dialogue (above the windows, below the death screen).
     this.dialogueWindow = new DialogueWindow(this, 30);
     const refreshQuest = (): void => {
-      this.hud?.setQuest(isQuest01Active(QuestService.quest01(character)) ? TUTORIAL_QUEST_01.id : null);
+      const quest02 = QuestService.quest02(character);
+      if (isQuest01Active(QuestService.quest01(character))) this.hud?.setQuest(TUTORIAL_QUEST_01.id);
+      else if (isQuest02AtMateus(quest02)) this.hud?.setQuest(TUTORIAL_QUEST_02.id);
+      else if (quest02.state === 'EQUIPMENT_TUTORIAL') this.hud?.setQuest(TUTORIAL_QUEST_02.id, 'objectiveEquip');
+      else this.hud?.setQuest(null);
       this.refreshPassiveGuide(character);
       // at once, not next frame: fast clicking through the dialogue must not reach the world behind it
       this.spotlightOverlay?.update(0, this.spotlightTarget());
@@ -99,6 +129,13 @@ export class GameUIScene extends Phaser.Scene {
     refreshQuest();
     // Tutorial spotlight: above the HUD and the windows, below dialogue and the death screen.
     this.spotlightOverlay = new SpotlightOverlay(this, 25);
+    // Notices for received items: below the minimap, above dialogue, below the death screen.
+    const notifications = new ItemNotifications(this, { ...this.hud.belowMinimap, right: Math.min(this.scale.width - 4, this.hud.belowMinimap.right + 8) }, 36);
+    this.itemNotifications = notifications;
+    const offGained = InventoryService.onGained((c, itemId, quantity) => {
+      if (c === character) notifications.showItem(itemId, quantity);
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offGained);
     // Death screen above everything (HUD, windows): blocks all input while the player is not alive.
     const death = new DeathOverlay(this, 40);
     this.deathOverlay = death;
@@ -108,15 +145,18 @@ export class GameUIScene extends Phaser.Scene {
       this.hud = null;
       this.settingsWindow = null;
       this.passiveWindow = null;
+      this.inventoryWindow = null;
       this.deathOverlay = null;
       this.dialogueWindow = null;
       this.spotlightOverlay = null;
+      this.itemNotifications = null;
     });
   }
 
   update(_time: number, delta: number): void {
     this.deathOverlay?.update(delta);
     this.spotlightOverlay?.update(delta, this.spotlightTarget());
+    this.itemNotifications?.update(delta);
     const game = this.gameScene();
     if (!this.hud || !game?.player) return;
     this.hud.update(
@@ -180,6 +220,10 @@ export class GameUIScene extends Phaser.Scene {
       this.passiveWindow.close();
       return true;
     }
+    if (this.inventoryWindow?.isOpen) {
+      this.inventoryWindow.close();
+      return true;
+    }
     if (this.statusWindow?.isOpen) {
       this.statusWindow.close();
       return true;
@@ -197,17 +241,43 @@ export class GameUIScene extends Phaser.Scene {
     return this.spotlightOverlay;
   }
 
+  /** Notices on the right below the minimap. */
+  get notifications(): ItemNotifications | null {
+    return this.itemNotifications;
+  }
+
   /**
-   * The control the Passive Tree tutorial asks for now: its menu button, then the center node, then UNLOCK
-   * (the tutorial's own steps - they advance only when the thing was really done). None while the player may
-   * not act (conversation, dying, dead) or another window is open; it comes back by itself afterwards.
+   * The control a tutorial asks for now. None while the player may not act (conversation, dying, dead) or
+   * another window is open; it comes back by itself afterwards.
    */
   private spotlightTarget(): SpotlightTarget | null {
+    if (!this.canOpenWindows() || this.statusWindow?.isOpen || this.settingsWindow?.isOpen) return null;
+    return this.passiveSpotlight() ?? this.equipmentSpotlight();
+  }
+
+  /**
+   * Passive Tree tutorial: its menu button, then the center node, then UNLOCK (the tutorial's own steps - they
+   * advance only when the thing was really done).
+   */
+  private passiveSpotlight(): SpotlightTarget | null {
     const w = this.passiveWindow;
     const step = w?.tutorial;
-    if (!w || !step || !this.canOpenWindows() || this.statusWindow?.isOpen || this.settingsWindow?.isOpen) return null;
+    if (!w || !step || this.inventoryWindow?.isOpen) return null;
     const control = step === 'open' ? this.hud?.passiveButton : w.tutorialControl;
     return { id: step, rect: () => rectOfObject(this, control), label: t(`passive.tutorial.${step}`) };
+  }
+
+  /** Equipment tutorial (Tutorial Quest 02): Inventory button, the dagger in the bag, the Weapon slot. */
+  private equipmentSpotlight(): SpotlightTarget | null {
+    const { character, inventoryWindow: w } = this;
+    if (!character || !w || this.passiveWindow?.isOpen) return null;
+    const step = equipmentTutorialStep(QuestService.quest02(character), character.inventory, w.isOpen, w.selection.current);
+    if (!step) return null;
+    const control =
+      step === 'openInventory'
+        ? this.hud?.inventoryButton
+        : w.slotZone(step === 'selectItem' ? { kind: 'bag', index: bagIndexOf(character.inventory, TUTORIAL_QUEST_02.reward.itemId) } : { kind: 'equipment', slot: 'weapon' });
+    return { id: step, rect: () => rectOfObject(this, control), label: t(`equipmentTutorial.${step}`) };
   }
 
   /** The NPC dialogue window. */
@@ -233,11 +303,27 @@ export class GameUIScene extends Phaser.Scene {
     return this.passiveWindow?.isOpen ?? false;
   }
 
-  /** Opens / closes the Passive Tree (one modal window at a time: Status closes first). */
+  get isInventoryOpen(): boolean {
+    return this.inventoryWindow?.isOpen ?? false;
+  }
+
+  /** Opens / closes the Inventory (one modal window at a time: Status and the Passive Tree close first). */
+  toggleInventory(): void {
+    const w = this.inventoryWindow;
+    if (!w) return;
+    if (!w.isOpen) {
+      if (this.statusWindow?.isOpen) this.statusWindow.close();
+      if (this.passiveWindow?.isOpen) this.passiveWindow.close();
+    }
+    w.toggle();
+  }
+
+  /** Opens / closes the Passive Tree (one modal window at a time: Status and the Inventory close first). */
   togglePassiveTree(): void {
     const w = this.passiveWindow;
     if (!w) return;
     if (!w.isOpen && this.statusWindow?.isOpen) this.statusWindow.close();
+    if (!w.isOpen && this.inventoryWindow?.isOpen) this.inventoryWindow.close();
     w.toggle();
   }
 

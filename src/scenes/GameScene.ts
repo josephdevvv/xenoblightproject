@@ -13,6 +13,7 @@ import { MonsterSpawner } from '../monsters/MonsterSpawner';
 import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { t } from '../i18n';
+import { loadItemIcons } from '../items/ItemIcons';
 import { GameServices, type Services } from '../systems/GameServices';
 import type { GameUIScene } from './GameUIScene';
 import { VisibilityCuller } from '../systems/performance/VisibilityCuller';
@@ -20,7 +21,7 @@ import { StableCameraFollow } from '../render/StableCameraFollow';
 import { CombatSystem } from '../combat/CombatSystem';
 import type { MonsterEntity } from '../monsters/MonsterEntity';
 import { ClickMarker } from '../ui/world/ClickMarker';
-import { npcSheetKey, npcsOnMap } from '../npcs/NpcDefinition';
+import { npcSheetKey, npcsOnMap, type NpcId } from '../npcs/NpcDefinition';
 import { NpcEntity } from '../npcs/NpcEntity';
 import { NpcInteraction } from '../npcs/NpcInteraction';
 import { PathTrail } from '../world/navigation/PathTrail';
@@ -30,6 +31,8 @@ import { DIALOGUES } from '../dialogue/Dialogues';
 import type { PlayerAction } from '../player/death/PlayerLifeState';
 import { QuestService } from '../quests/QuestService';
 import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
+import { isQuest02AtMateus, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
+import { InventoryService } from '../inventory/InventoryService';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
 import { PLAYER_MOVEMENT } from '../player/PlayerController';
 import { GameHud } from '../ui/GameHud';
@@ -191,6 +194,7 @@ export class GameScene extends Phaser.Scene {
         ),
         StatusWindow.load(),
         PassiveTreeWindow.load(),
+        loadItemIcons(),
         loadPlayerCombatAssets(this, spriteId, PLAYER_ART_OWNER).then((set) => (this.combatSet = set)),
         services.assets
           .load({ key: MONSTER_CURSOR.key, type: 'image', url: MONSTER_CURSOR.url })
@@ -264,6 +268,11 @@ export class GameScene extends Phaser.Scene {
       onManualMove?.();
       this.npcInteraction.cancel();
     };
+    // Tutorial Quest 02 follows what the player does (first passive node, dagger worn)
+    const syncQuest = (c: CharacterData): void => {
+      if (c === character) QuestService.sync02(c);
+    };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, CharacterStatusService.onChange(syncQuest));
     this.questTrail = new PathTrail(new Pathfinder(this.map.layout, { radius: PLAYER_MOVEMENT.radius }));
     this.questTrailView = new PathTrailView(this, (x, y) => this.map.tileToWorld(x, y));
     this.clickMarker = new ClickMarker(this);
@@ -358,18 +367,27 @@ export class GameScene extends Phaser.Scene {
 
   // -------------------------------------------------------------------------------------------
   // Tutorial Quest 01: find Mateus -> talk -> the existing Passive Tree tutorial
+  // Tutorial Quest 02: back to Mateus -> talk (Rusty Dagger) -> equipment tutorial
   // -------------------------------------------------------------------------------------------
 
   /** The NPC the active quest sends the player to (dotted path), or null. */
   questNpc(): NpcEntity | null {
-    if (!isQuest01Active(QuestService.quest01(this.character))) return null;
-    return this.npcs.find((n) => n.definition.id === TUTORIAL_QUEST_01.npcId) ?? null;
+    const id = this.questNpcId();
+    return id === null ? null : (this.npcs.find((n) => n.definition.id === id) ?? null);
+  }
+
+  private questNpcId(): NpcId | null {
+    if (isQuest01Active(QuestService.quest01(this.character))) return TUTORIAL_QUEST_01.npcId;
+    return isQuest02AtMateus(QuestService.quest02(this.character)) ? TUTORIAL_QUEST_02.npcId : null;
   }
 
   /** Entering the map: new characters get the quest; a handoff that was cut off is finished. */
   private beginTutorialQuest(character: CharacterData): void {
     QuestService.advance(character, 'start');
     QuestService.advance(character, 'startPassiveTutorial');
+    QuestService.sync02(character);
+    // the dagger's record was lost (unreadable save): the equipment tutorial needs it - still only once
+    if (QuestService.quest02(character).state === 'EQUIPMENT_TUTORIAL') InventoryService.grantOnce(character, TUTORIAL_QUEST_02.reward);
   }
 
   /** NPCs that react to a click now (the others behave as before: the click is a walk command). */
@@ -379,16 +397,58 @@ export class GameScene extends Phaser.Scene {
   }
 
   private talkTo(npc: NpcEntity): void {
-    const dialogue = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene).dialogue : null;
-    if (!dialogue || dialogue.isOpen || npc !== this.questNpc() || !QuestService.advance(this.character, 'talk')) return;
-    (this.scene.get(SCENES.GameUI) as GameUIScene).closeAllWindows();
+    const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
+    const dialogue = ui?.dialogue;
+    if (!ui || !dialogue || dialogue.isOpen || npc !== this.questNpc()) return;
+    const { character } = this;
+    const name = npc.definition.name;
+    if (QuestService.advance(character, 'talk')) {
+      this.beginConversation(ui);
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_01.dialogueId], () => {
+        this.combat.setSuspended(false);
+        QuestService.advance(character, 'finishDialogue');
+        QuestService.advance(character, 'startPassiveTutorial');
+        QuestService.sync02(character);
+      });
+    } else if (QuestService.advance02(character, 'talk')) {
+      this.beginConversation(ui);
+      dialogue.open(
+        name,
+        DIALOGUES[TUTORIAL_QUEST_02.dialogueId],
+        () => {
+          this.combat.setSuspended(false);
+          QuestService.advance02(character, 'finishDialogue');
+          QuestService.sync02(character);
+        },
+        {
+          beforeStep: (step) => step !== TUTORIAL_QUEST_02.rewardBeforeStep || this.giveQuest02Reward(ui),
+          onInterrupted: () => {
+            this.combat.setSuspended(false);
+            QuestService.advance02(character, 'cancelTalk');
+          },
+        },
+      );
+    }
+  }
+
+  private beginConversation(ui: GameUIScene): void {
+    ui.closeAllWindows();
     this.combat.setSuspended(true);
     this.player.halt();
-    dialogue.open(npc.definition.name, DIALOGUES[TUTORIAL_QUEST_01.dialogueId], () => {
-      this.combat.setSuspended(false);
-      QuestService.advance(this.character, 'finishDialogue');
-      QuestService.advance(this.character, 'startPassiveTutorial');
-    });
+  }
+
+  /**
+   * The Rusty Dagger, once per character. False = it could not be given: the reason is shown, the conversation
+   * ends and Mateus can be asked again - the quest never goes on without the item.
+   */
+  private giveQuest02Reward(ui: GameUIScene): boolean {
+    const error = InventoryService.grantOnce(this.character, TUTORIAL_QUEST_02.reward);
+    if (error !== null && error !== 'alreadyGranted') {
+      console.error(`[quests] ${TUTORIAL_QUEST_02.id}: reward not given (${error})`);
+      ui.notifications?.showText(t(error === 'bagFull' ? 'notifications.bagFull' : 'notifications.itemFailed'));
+      return false;
+    }
+    return QuestService.advance02(this.character, 'grantReward');
   }
 
   private onPointerUp(pointer: Phaser.Input.Pointer): void {

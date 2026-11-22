@@ -12,6 +12,13 @@ const NEXT = { width: 30, height: 24, inset: 5 } as const;
 /** Gentle blink of the arrow. */
 const BLINK = { from: 1, to: 0.35, ms: 650 } as const;
 
+export interface DialogueHooks {
+  /** Asked before a later step is shown (0-based). False = the conversation is broken off instead. */
+  beforeStep?: (step: number) => boolean;
+  /** The conversation was broken off (window already closed); onFinished does not run. */
+  onInterrupted?: () => void;
+}
+
 /**
  * NPC dialogue: speaker name, one line of dialogue at a time, a blinking arrow at the bottom right. A left
  * click anywhere inside the window (text, empty space or arrow) goes to the next step and closes it after
@@ -29,6 +36,7 @@ export class DialogueWindow {
   private readonly textWidth: number;
   private session: DialogueSession | null = null;
   private onFinished: (() => void) | null = null;
+  private hooks: DialogueHooks = {};
   /** A left press that began on the window and has not been released, moved off or used yet. */
   private pressed = false;
 
@@ -77,9 +85,10 @@ export class DialogueWindow {
   }
 
   /** Opens a conversation; `onFinished` runs once, after the last step was confirmed and the window closed. */
-  open(speaker: string, lines: readonly string[], onFinished: () => void): void {
+  open(speaker: string, lines: readonly string[], onFinished: () => void, hooks: DialogueHooks = {}): void {
     this.session = new DialogueSession(lines);
     this.onFinished = onFinished;
+    this.hooks = hooks;
     this.nameText.setText(speaker);
     this.drawPanel();
     this.setVisible(true);
@@ -89,15 +98,25 @@ export class DialogueWindow {
   private advance(): void {
     const session = this.session;
     if (!session) return;
+    const { onFinished, hooks } = this;
+    if (!session.isLastStep && hooks.beforeStep?.(session.step + 1) === false) {
+      this.close();
+      hooks.onInterrupted?.();
+      return;
+    }
     if (!session.next()) {
       this.showLine();
       return;
     }
-    const done = this.onFinished;
+    this.close();
+    onFinished?.();
+  }
+
+  private close(): void {
     this.session = null;
     this.onFinished = null;
+    this.hooks = {};
     this.setVisible(false);
-    done?.();
   }
 
   private showLine(): void {

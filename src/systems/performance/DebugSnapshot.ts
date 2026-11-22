@@ -2,9 +2,7 @@ import Phaser from 'phaser';
 import { SCENES } from '../../config/constants';
 import type { Services } from '../GameServices';
 
-/** Debug tools are available in dev builds, or in production only when the URL contains ?debug. */
-export const DEBUG_AVAILABLE: boolean =
-  import.meta.env.DEV || (typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug'));
+export { DEBUG_AVAILABLE } from './DebugAvailable';
 
 /** Show the overlay at startup only when explicitly requested with ?debug. */
 export const DEBUG_SHOW_ON_START: boolean =

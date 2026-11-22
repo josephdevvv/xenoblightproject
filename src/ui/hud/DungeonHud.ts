@@ -30,6 +30,8 @@ export interface DungeonHudOptions {
   onSettings: () => void;
   /** Opens / closes the Passive Tree. */
   onPassive: () => void;
+  /** Opens / closes the Inventory. */
+  onInventory: () => void;
   /** Current HP (combat); max HP when absent. SP has no consumer yet and stays at max. */
   currentHp?: () => number;
 }
@@ -73,12 +75,17 @@ export class DungeonHud {
   private readonly questName: Phaser.GameObjects.Text;
   private readonly questObjective: Phaser.GameObjects.Text;
   private questId: string | null = null;
+  private questObjectiveKey = 'objective';
   private lastTile = '';
   private lastHp: number | null = null;
   /** Passive Tree menu slot: unspent-points pip. */
   private readonly passivePip: Phaser.GameObjects.Rectangle;
   /** The Passive Tree menu button (tutorial spotlight target). */
   readonly passiveButton: Phaser.GameObjects.Zone;
+  /** The Inventory menu button (tutorial spotlight target). */
+  readonly inventoryButton: Phaser.GameObjects.Zone;
+  /** Where notices below the minimap start: its right edge, under the map name. */
+  readonly belowMinimap: { right: number; top: number };
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -134,6 +141,8 @@ export class DungeonHud {
     const coord = this.space.point(M, TEXT.coordinates);
     this.coordText = this.text(coordBox.x + coordBox.width / 2, coord.y, '', 'small', PALETTE.pale).setOrigin(0.5, 0);
     const mapName = this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, '', 'small', PALETTE.silver).setOrigin(1, 0);
+    const mapFrame = this.space.frame(M, REF_ELEMENTS.minimap);
+    this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: Math.ceil(mapName.y + mapName.height) + 2 };
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
     this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]), 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
       // Tiny character-sheet glyph: head + shoulders.
@@ -158,6 +167,18 @@ export class DungeonHud {
       g.fillRect(cx - 1, cy + 6, 3, 2);
     });
     this.passivePip = scene.add.rectangle(passiveSlot.x + passiveSlot.width - 3, passiveSlot.y + 1, 2, 2, toColorInt('#d3424b')).setOrigin(0, 0).setDepth(depth + 3).setVisible(false);
+    // Inventory (third slot): a bag.
+    this.inventoryButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[2]), 'hud.menuInventory', () => this.options.onInventory(), (g, slot, color) => {
+      const cx = slot.x + Math.floor(slot.width / 2);
+      g.fillStyle(toColorInt(color), 1);
+      g.fillRect(cx - 2, slot.y + 1, 5, 1);
+      g.fillRect(cx - 3, slot.y + 2, 1, 2);
+      g.fillRect(cx + 3, slot.y + 2, 1, 2);
+      g.fillRect(cx - 5, slot.y + 4, 11, 3);
+      g.fillRect(cx - 5, slot.y + 8, 4, 3);
+      g.fillRect(cx + 2, slot.y + 8, 4, 3);
+      g.fillRect(cx, slot.y + 8, 1, 2);
+    });
     // The pack's menu button (three bars, baked into the art) opens Settings.
     this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuMore), 'hud.menuSettings', () => this.options.onSettings(), null);
 
@@ -180,15 +201,16 @@ export class DungeonHud {
   }
 
   /** Quest tracker: the active quest's name and objective, or the placeholder text. */
-  setQuest(questId: string | null): void {
+  setQuest(questId: string | null, objectiveKey = 'objective'): void {
     this.questId = questId;
+    this.questObjectiveKey = objectiveKey;
     this.refreshQuest();
   }
 
   private refreshQuest(): void {
     const id = this.questId;
     this.questName.setText(id ? labels.questName(id) : t('hud.noActiveQuest')).setColor(id ? '#ffd27a' : PALETTE.gray);
-    this.questObjective.setText(id ? labels.questObjective(id) : '');
+    this.questObjective.setText(id ? labels.questObjective(id, this.questObjectiveKey) : '');
   }
 
   /** Per-frame: coordinates, minimap and HP (only redrawn when it changes). */

@@ -1,9 +1,11 @@
 import type { CharacterData, LocalizedMessage } from '../data/CharacterData';
-import { DEBUG_AVAILABLE } from '../systems/performance/DebugSnapshot';
+import { DEBUG_AVAILABLE } from '../systems/performance/DebugAvailable';
 import { computeDerivedStats, type DerivedStats } from './DerivedStats';
 import { applyDerivedBonus, combineDerivedBonuses, type DerivedBonus } from './DerivedBonuses';
 import { passiveDerivedBonus, sanitizePassiveProgress, syncLevelRewards } from '../passives/PassiveProgress';
 import { PassiveSaveStore } from '../passives/PassiveSaveStore';
+import { InventorySaveStore } from '../inventory/InventorySaveStore';
+import { createInventory, equipmentDerivedBonus, sanitizeInventory } from '../inventory/InventoryState';
 import { QuestService } from '../quests/QuestService';
 import type { StatAllocationDraft } from './StatAllocation';
 import { addExp } from '../progression/LevelProgression';
@@ -45,13 +47,14 @@ export const CharacterStatusService = {
     character.status = status;
     StatusSaveStore.save(character.name, status);
     loadPassives(character);
+    loadInventory(character);
     QuestService.loadInto(character, result.kind === 'missing');
     return status;
   },
 
   /**
    * Derived stats: formulas from level + TOTAL main stats, then every derived-stat bonus source
-   * (passive tree now, equipment later) applied once on top.
+   * (passive tree, equipment) applied once on top.
    */
   derived(character: CharacterData): DerivedStats {
     return applyDerivedBonus(computeDerivedStats(character.status.level, totalStats(character.status)), derivedBonus(character));
@@ -63,7 +66,7 @@ export const CharacterStatusService = {
     return applyDerivedBonus(computeDerivedStats(status.level, totalStats({ ...status, base })), derivedBonus(character));
   },
 
-  /** Tells listeners the character changed outside this service (passive upgrade / reset). */
+  /** Tells listeners the character changed outside this service (passive upgrade / reset, equipment). */
   refresh(character: CharacterData): void {
     notify(character);
   },
@@ -132,9 +135,9 @@ function normalizeExp(status: CharacterStatus): void {
   status.exp = r.exp;
 }
 
-/** Every derived-stat bonus source of a character, combined (passives only for now). */
+/** Every derived-stat bonus source of a character, combined. */
 function derivedBonus(character: CharacterData): DerivedBonus {
-  return combineDerivedBonuses(passiveDerivedBonus(character.passives));
+  return combineDerivedBonuses(passiveDerivedBonus(character.passives), equipmentDerivedBonus(character.inventory));
 }
 
 /** Loads (and repairs) the passive progress, granting any level rewards still owed, and saves it. */
@@ -148,6 +151,22 @@ function loadPassives(character: CharacterData): void {
   if (result.kind === 'loaded' && repaired.length > 0) console.warn(`[passives] repaired save for "${character.name}":`, repaired);
   character.passives = progress;
   PassiveSaveStore.save(character.name, progress);
+}
+
+/** Loads (and repairs) the bag and worn equipment. Nothing is written: a new character simply has no record yet. */
+function loadInventory(character: CharacterData): void {
+  const result = InventorySaveStore.load(character.name);
+  if (result.kind === 'invalid') {
+    console.warn(`[inventory] unreadable save for "${character.name}" (${result.reason}); kept a backup and started fresh`);
+    InventorySaveStore.backupInvalid(character.name);
+  }
+  if (result.kind !== 'loaded') {
+    character.inventory = createInventory();
+    return;
+  }
+  const { state, repaired } = sanitizeInventory(result.data);
+  if (repaired.length > 0) console.warn(`[inventory] repaired save for "${character.name}":`, repaired);
+  character.inventory = state;
 }
 
 /** Level-ups grant Drifter passive points (1 per level up to 10), each level only once. */

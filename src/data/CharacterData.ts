@@ -1,3 +1,4 @@
+import type { InventoryState } from '../inventory/InventoryState';
 import type { PassiveProgress } from '../passives/PassiveProgress';
 import type { QuestLog } from '../quests/QuestService';
 import { createInitialStatus, type CharacterStatus } from '../status/StatTypes';
@@ -28,6 +29,8 @@ export interface CharacterData {
   passives?: PassiveProgress;
   /** Quest progress. Loaded with the status (QuestService). */
   quests?: QuestLog;
+  /** Bag and worn equipment. Loaded with the status; changed only by InventoryService. */
+  inventory?: InventoryState;
 }
 
 export const NAME_MIN_LENGTH = 3;

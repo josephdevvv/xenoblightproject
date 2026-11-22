@@ -60,7 +60,7 @@ interface NodeView {
 }
 
 /** A rectangle button on the baked art: hit zone, game-rendered label, 1-px hover outline, dim veil. */
-class FrameButton {
+export class FrameButton {
   readonly label: Phaser.GameObjects.Text;
   private readonly hover: Phaser.GameObjects.Graphics;
   private readonly veil: Phaser.GameObjects.Rectangle;
@@ -95,6 +95,14 @@ class FrameButton {
   resetHover(): void {
     this.hover.setVisible(false);
     this.pressed = false;
+  }
+
+  /** Shows or removes the button (a removed one takes no clicks). */
+  setVisible(on: boolean): void {
+    this.label.setVisible(on);
+    this.zone.setVisible(on);
+    if (this.zone.input) this.zone.input.enabled = on;
+    if (!on) this.resetHover();
   }
 
   get bounds(): Rect {

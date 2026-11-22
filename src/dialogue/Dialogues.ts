@@ -8,6 +8,11 @@ export const DIALOGUES = {
     'แถวนี้มันเถื่อน ไม่แน่จริงอยู่ไม่ได้ เจ้าควรจะรู้วิธีเอาตัวรอดเบื้องต้นก่อน',
     'ข้าจะบอกวิธีการเพิ่มพลังพื้นฐานให้แก่เจ้า เอาล่ะทำตามนะ',
   ],
+  mateus_rusty_dagger: [
+    'เอาล่ะ เจ้าได้สัมผัสความแข็งแกร่งของตัวเจ้าเองแล้ว',
+    'ข้าจะมอบมีดให้ 1 เล่ม เพื่อให้เจ้าเอาไปใช้ปราบสัตว์ประหลาด',
+    'เอาล่ะลองใช้สิ่งนี้ดู',
+  ],
 } as const satisfies Record<string, readonly string[]>;
 
 export type DialogueId = keyof typeof DIALOGUES;
@@ -27,6 +32,11 @@ export class DialogueSession {
 
   get step(): number {
     return this.index;
+  }
+
+  /** The line shown now is the last one. */
+  get isLastStep(): boolean {
+    return this.index === this.lines.length - 1;
   }
 
   get isDone(): boolean {

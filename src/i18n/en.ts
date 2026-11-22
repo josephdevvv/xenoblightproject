@@ -99,6 +99,7 @@ export const en: Messages = {
     menuStatus: 'Status',
     menuSettings: 'Settings',
     menuPassive: 'Passive Tree (P)',
+    menuInventory: 'Inventory (I)',
   },
   status: {
     title: 'Status',
@@ -195,7 +196,55 @@ export const en: Messages = {
       opportunity: 'Opportunity',
     },
   },
+  inventory: {
+    title: 'INVENTORY',
+    equipmentTitle: 'Equipment',
+    bagTitle: 'Inventory',
+    detailTitle: 'Item Details',
+    equipment: {
+      weapon: 'Weapon',
+      hat: 'Hat',
+      armor: 'Armor',
+      shoes: 'Shoes',
+      charm: 'Charm',
+    },
+    noItem: 'No item selected',
+    description: 'Description',
+    unequip: 'Unequip',
+    effects: 'Stats / Effects',
+    keys: 'Click to select a slot  ·  I / Esc close',
+    close: 'CLOSE',
+  },
+  items: {
+    weapon_rusty_dagger: {
+      name: 'Rusty Dagger',
+      description: 'An old dagger covered in rust. Its edge has dulled, but it can still serve as a weapon for self-defense.',
+    },
+  },
+  itemInfo: {
+    weaponTypes: { dagger: 'Dagger' },
+    requiredLevel: 'Lv {level}',
+    physicalAtk: 'Physical ATK {value}',
+    magicAtk: 'Magic ATK {value}',
+  },
+  notifications: {
+    obtained: 'Obtained',
+    itemLine: '{name} x{quantity}',
+    bagFull: 'Inventory full',
+    unequipFailed: 'The item could not be unequipped',
+    itemFailed: 'The item could not be received',
+  },
+  equipmentTutorial: {
+    openInventory: 'Open the Inventory (I)',
+    selectItem: 'Select the Rusty Dagger',
+    equipItem: 'Click the Weapon slot to equip the Rusty Dagger',
+  },
   quests: {
+    tutorial_02_rusty_dagger: {
+      name: 'First Weapon',
+      objective: 'Return to Mateus and talk to him',
+      objectiveEquip: 'Equip the Rusty Dagger',
+    },
     tutorial_01_find_mateus: {
       name: 'Find Mateus',
       objective: 'Travel to Mateus and talk to him',

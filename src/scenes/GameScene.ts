@@ -22,13 +22,21 @@ import type { MonsterEntity } from '../monsters/MonsterEntity';
 import { ClickMarker } from '../ui/world/ClickMarker';
 import { npcSheetKey, npcsOnMap } from '../npcs/NpcDefinition';
 import { NpcEntity } from '../npcs/NpcEntity';
+import { NpcInteraction } from '../npcs/NpcInteraction';
+import { PathTrail } from '../world/navigation/PathTrail';
+import { Pathfinder } from '../world/navigation/Pathfinder';
+import { PathTrailView } from '../ui/world/PathTrailView';
+import { DIALOGUES } from '../dialogue/Dialogues';
+import type { PlayerAction } from '../player/death/PlayerLifeState';
+import { QuestService } from '../quests/QuestService';
+import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
 import { PLAYER_MOVEMENT } from '../player/PlayerController';
 import { GameHud } from '../ui/GameHud';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
 import { PlayerDeathController } from '../player/death/PlayerDeathController';
 import { AttackVfxLayer } from '../combat/vfx/AttackVfxLayer';
-import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
+import { getCharacterSpriteId, walkSpriteIdOf } from '../characters/CharacterAssetIds';
 import { PlayerCombatAnimator } from '../characters/combat/PlayerCombatAnimator';
 import { loadPlayerCombatAssets } from '../characters/combat/PlayerCombatAssets';
 import type { PlayerCombatSet } from '../characters/combat/PlayerCombatArt';
@@ -41,6 +49,8 @@ import { DEFAULT_MAP_ID } from '../world/loading/MapRegistry';
 
 const CULLING_DEBUG_SOURCE = 'Culling';
 const MONSTER_DEBUG_SOURCE = 'Monsters';
+/** Cache owner of the player's own art (standing, walk, combat sheets, impact VFX) while this scene runs. */
+const PLAYER_ART_OWNER = 'player-art';
 /** Minimum distance (world px, rendered coordinates) between a monster and the player spawn. */
 const MONSTER_MIN_SPAWN_DISTANCE_PX = 20;
 
@@ -65,8 +75,14 @@ export class GameScene extends Phaser.Scene {
   private cameraFollow!: StableCameraFollow;
   monsters!: MonsterSpawner;
   combat!: CombatSystem;
-  /** Stationary NPCs on this map (idle routines only - no interaction yet). */
+  /** Stationary NPCs on this map. */
   npcs: NpcEntity[] = [];
+  /** Left click on an NPC that has something to say (walk there, then talk). */
+  npcInteraction!: NpcInteraction<NpcEntity>;
+  /** Dotted path on the ground to the active quest's NPC. */
+  questTrail!: PathTrail;
+  questTrailView!: PathTrailView;
+  private character!: CharacterData;
   clickMarker!: ClickMarker;
   monsterCursor!: MonsterCursor;
   private readonly monstersWithArt = new Set<MonsterId>();
@@ -85,6 +101,7 @@ export class GameScene extends Phaser.Scene {
     this.failed = false;
     this.leaving = false;
     const character = this.resolveCharacter();
+    this.character = character;
 
     this.cameras.main.setBackgroundColor(PALETTE.void);
     this.loading = new LoadingScreen(this).show(t('world.entering'));
@@ -92,6 +109,7 @@ export class GameScene extends Phaser.Scene {
     const onEscape = (): void => {
       // dying / dead / respawning: only the respawn button leaves the death screen
       if (this.death && !this.death.life.isAlive()) return;
+      if (this.isTalking()) return; // a conversation ends with its own NEXT button
       // An open UI window (Status) closes first; otherwise ESC keeps its original meaning.
       const ui = this.scene.get(SCENES.GameUI) as GameUIScene;
       if (this.scene.isActive(SCENES.GameUI) && ui.closeWindows()) return;
@@ -100,7 +118,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-ESC', onEscape);
     // 1: Drifter Lv.1 attack skill (dagger thrust, 200 % ATK) as the next swing on the current target
     const onSkill = (): void => {
-      if (this.ready && this.death.life.canPerform('attack')) this.combat.useSkill('drifter_lv1');
+      if (this.ready && this.canPerform('attack')) this.combat.useSkill('drifter_lv1');
     };
     this.input.keyboard?.on('keydown-ONE', onSkill);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
@@ -110,7 +128,7 @@ export class GameScene extends Phaser.Scene {
       this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
       this.input.keyboard?.off('keydown-ONE', onSkill);
-      this.attackVfx?.clear();
+      this.attackVfx?.dispose();
       this.input.off(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
       this.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
       this.input.off(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
@@ -120,6 +138,7 @@ export class GameScene extends Phaser.Scene {
       services?.debugSources.delete(CULLING_DEBUG_SOURCE);
       services?.debugSources.delete(MONSTER_DEBUG_SOURCE);
       services?.cache.releaseOwner(this.monsterOwner());
+      services?.cache.releaseOwner(PLAYER_ART_OWNER);
       services?.maps.exit(this.mapId);
     });
 
@@ -131,7 +150,11 @@ export class GameScene extends Phaser.Scene {
     // Combat decides first (target approach / attacks), then the player moves - only while alive.
     const alive = this.death.life.isAlive();
     this.combat.update(delta);
-    if (alive) this.player.update(delta);
+    if (alive && !this.isTalking()) this.player.update(delta);
+    if (alive) this.npcInteraction.update();
+    else this.npcInteraction.cancel();
+    this.questTrail.update(delta, this.player.getTilePosition(), alive ? (this.questNpc()?.position ?? null) : null);
+    this.questTrailView.draw(this.questTrail);
     if (alive) this.playerCombat?.update(this.combat.isInCombat(), this.player.getState() === 'walk', this.player.getFacing());
     // Camera first, then draw the player and its name plate at camera-stable whole pixels. The camera
     // holds still while the player is not alive (the ghost stays on the death spot).
@@ -143,7 +166,7 @@ export class GameScene extends Phaser.Scene {
     this.combat.updateMarker();
     this.attackVfx.update();
     // pointer outside the canvas keeps its last position: only a pointer over the game can hover
-    this.monsterCursor.update(delta, alive && this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
+    this.monsterCursor.update(delta, alive && !this.isTalking() && this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
     this.atmosphere.update(delta);
     this.culler.update();
@@ -152,6 +175,9 @@ export class GameScene extends Phaser.Scene {
 
   private async loadWorld(character: CharacterData): Promise<void> {
     const services = await GameServices.ready();
+    // Hold the character's sheets from now on: map entry cleans the cache before the player's view exists.
+    const spriteId = getCharacterSpriteId(character.appearance);
+    for (const key of [spriteId, walkSpriteIdOf(spriteId)]) services.cache.retain(key, PLAYER_ART_OWNER);
     try {
       const [prepared] = await Promise.all([
         services.maps.enter(this, this.mapId, { onProgress: (p) => this.loading.setProgress(p) }),
@@ -165,7 +191,7 @@ export class GameScene extends Phaser.Scene {
         ),
         StatusWindow.load(),
         PassiveTreeWindow.load(),
-        loadPlayerCombatAssets(this, getCharacterSpriteId(character.appearance)).then((set) => (this.combatSet = set)),
+        loadPlayerCombatAssets(this, spriteId, PLAYER_ART_OWNER).then((set) => (this.combatSet = set)),
         services.assets
           .load({ key: MONSTER_CURSOR.key, type: 'image', url: MONSTER_CURSOR.url })
           .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor over monsters`)),
@@ -176,6 +202,7 @@ export class GameScene extends Phaser.Scene {
       this.loading.hide();
       this.cameras.main.fadeIn(500, 0, 0, 0);
       this.ready = true;
+      this.beginTutorialQuest(character);
       // Screen-space UI (HUD + Status window) lives in its own overlay scene so UI clicks never
       // reach the world.
       this.scene.launch(SCENES.GameUI, { characterId: character.id });
@@ -231,6 +258,14 @@ export class GameScene extends Phaser.Scene {
     this.combat.vfx = this.attackVfx;
     this.playerCombat = this.combatSet ? new PlayerCombatAnimator(view, this.combatSet) : null;
     if (this.playerCombat) this.player.actions = this.playerCombat;
+    this.npcInteraction = new NpcInteraction<NpcEntity>(this.player, (npc) => this.talkTo(npc));
+    const onManualMove = this.player.onManualMove;
+    this.player.onManualMove = () => {
+      onManualMove?.();
+      this.npcInteraction.cancel();
+    };
+    this.questTrail = new PathTrail(new Pathfinder(this.map.layout, { radius: PLAYER_MOVEMENT.radius }));
+    this.questTrailView = new PathTrailView(this, (x, y) => this.map.tileToWorld(x, y));
     this.clickMarker = new ClickMarker(this);
     this.monsterCursor = new MonsterCursor(this.textures);
 
@@ -281,13 +316,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Left click: a monster under the pointer is targeted (approach + attack until it dies); anywhere else
-   * on walkable ground the player walks there. Clicks on the HUD / open windows never reach the world.
+   * Left click: a monster under the pointer is targeted (approach + attack until it dies); an NPC with
+   * something to say is approached and talked to; anywhere else on walkable ground the player walks there. Clicks on the HUD / open windows never reach the world.
    */
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
-    if (!this.ready || !pointer.leftButtonDown() || !this.death.life.canPerform('move') || this.isOverUi(pointer)) return;
+    if (!this.ready || !pointer.leftButtonDown() || !this.canPerform('move') || this.isOverUi(pointer)) return;
+    this.npcInteraction.cancel(); // any new command replaces a pending approach
     const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
     const monster = this.pickMonster(world.x, world.y);
+    const npc = this.pickTalkingNpc(world.x, world.y);
+    if (npc && (!monster || npc.sprite.depth >= monster.sprite.depth)) {
+      if (!this.canPerform('interact')) return;
+      this.combat.clearTarget();
+      this.npcInteraction.request(npc);
+      return;
+    }
     if (monster) {
       this.monsterCursor.press();
       this.combat.attack(monster);
@@ -300,6 +343,52 @@ export class GameScene extends Phaser.Scene {
     const r = PLAYER_MOVEMENT.radius;
     const standable = this.map.isAreaFree({ minX: tile.x - r, minY: tile.y - r, maxX: tile.x + r, maxY: tile.y + r });
     if (moving && standable) this.clickMarker.show(world.x, world.y);
+  }
+
+  /** Gameplay action gate: nothing but chat while dying / dead or in a conversation. */
+  canPerform(action: PlayerAction): boolean {
+    if (!this.death?.life.canPerform(action)) return false;
+    return action === 'chat' || !this.isTalking();
+  }
+
+  /** An NPC conversation is open. */
+  isTalking(): boolean {
+    return this.scene.isActive(SCENES.GameUI) && (this.scene.get(SCENES.GameUI) as GameUIScene).isDialogueOpen;
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Tutorial Quest 01: find Mateus -> talk -> the existing Passive Tree tutorial
+  // -------------------------------------------------------------------------------------------
+
+  /** The NPC the active quest sends the player to (dotted path), or null. */
+  questNpc(): NpcEntity | null {
+    if (!isQuest01Active(QuestService.quest01(this.character))) return null;
+    return this.npcs.find((n) => n.definition.id === TUTORIAL_QUEST_01.npcId) ?? null;
+  }
+
+  /** Entering the map: new characters get the quest; a handoff that was cut off is finished. */
+  private beginTutorialQuest(character: CharacterData): void {
+    QuestService.advance(character, 'start');
+    QuestService.advance(character, 'startPassiveTutorial');
+  }
+
+  /** NPCs that react to a click now (the others behave as before: the click is a walk command). */
+  private pickTalkingNpc(x: number, y: number): NpcEntity | null {
+    const npc = this.questNpc();
+    return npc?.contains(x, y) ? npc : null;
+  }
+
+  private talkTo(npc: NpcEntity): void {
+    const dialogue = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene).dialogue : null;
+    if (!dialogue || dialogue.isOpen || npc !== this.questNpc() || !QuestService.advance(this.character, 'talk')) return;
+    (this.scene.get(SCENES.GameUI) as GameUIScene).closeAllWindows();
+    this.combat.setSuspended(true);
+    this.player.halt();
+    dialogue.open(npc.definition.name, DIALOGUES[TUTORIAL_QUEST_01.dialogueId], () => {
+      this.combat.setSuspended(false);
+      QuestService.advance(this.character, 'finishDialogue');
+      QuestService.advance(this.character, 'startPassiveTutorial');
+    });
   }
 
   private onPointerUp(pointer: Phaser.Input.Pointer): void {

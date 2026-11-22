@@ -55,8 +55,15 @@ export class AttackVfxLayer {
     return { created: this.active.length + this.pool.length, spawned: this.spawned, pooled: this.pool.length };
   }
 
+  /** Ends every effect now (its sprite goes back to the pool). */
   clear(): void {
     for (const e of [...this.active]) this.release(e.sprite);
+  }
+
+  /** Scene shutdown: Phaser destroys the sprites itself (some already are) - only forget them. */
+  dispose(): void {
+    this.active.length = 0;
+    this.pool.length = 0;
   }
 
   private create(): Phaser.GameObjects.Sprite {

@@ -70,6 +70,9 @@ export class DungeonHud {
   private readonly minimap: Minimap;
   private readonly unsubscribe: () => void;
   private readonly nameMaxWidth: number;
+  private readonly questName: Phaser.GameObjects.Text;
+  private readonly questObjective: Phaser.GameObjects.Text;
+  private questId: string | null = null;
   private lastTile = '';
   private lastHp: number | null = null;
   /** Passive Tree menu slot: unspent-points pip and the pulsing tutorial guide + hint. */
@@ -117,10 +120,11 @@ export class DungeonHud {
     this.expText = this.text(this.expArea.x + this.expArea.width / 2, this.expArea.y + this.expArea.height / 2, '', 'small', PALETTE.pale, false)
       .setOrigin(0.5);
 
-    // 4. Quest tracker + AUTO (placeholders: no quest or auto-play system yet).
+    // 4. Quest tracker (setQuest) + AUTO (placeholder: no auto-play system yet).
     const Q = '02_quest_auto';
     const pin = this.space.frame(Q, REF_ELEMENTS.questPins[0]);
-    const questText = this.text(pin.x + pin.width + 4, pin.y + 1, '', 'small', PALETTE.gray);
+    this.questName = this.text(pin.x + pin.width + 4, pin.y + 1, '', 'small', PALETTE.gray);
+    this.questObjective = this.text(pin.x + pin.width + 4, pin.y + 17, '', 'small', PALETTE.silver);
     const auto = this.space.point(Q, TEXT.auto_label);
     const autoText = this.text(auto.x, auto.y, '', 'small', PALETTE.slate);
 
@@ -177,7 +181,7 @@ export class DungeonHud {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribe());
 
     localize(scene, () => {
-      questText.setText(t('hud.noActiveQuest'));
+      this.refreshQuest();
       autoText.setText(t('hud.auto'));
       mapName.setText(labels.map(options.map.definition.id));
       this.refreshStatus();
@@ -194,6 +198,18 @@ export class DungeonHud {
     if (openHint) this.passiveGuideTween.resume();
     else this.passiveGuideTween.pause();
     this.passivePip.setVisible(hasPoints && !openHint);
+  }
+
+  /** Quest tracker: the active quest's name and objective, or the placeholder text. */
+  setQuest(questId: string | null): void {
+    this.questId = questId;
+    this.refreshQuest();
+  }
+
+  private refreshQuest(): void {
+    const id = this.questId;
+    this.questName.setText(id ? labels.questName(id) : t('hud.noActiveQuest')).setColor(id ? '#ffd27a' : PALETTE.gray);
+    this.questObjective.setText(id ? labels.questObjective(id) : '');
   }
 
   /** Per-frame: coordinates, minimap and HP (only redrawn when it changes). */

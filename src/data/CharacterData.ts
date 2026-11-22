@@ -1,4 +1,5 @@
 import type { PassiveProgress } from '../passives/PassiveProgress';
+import type { QuestLog } from '../quests/QuestService';
 import { createInitialStatus, type CharacterStatus } from '../status/StatTypes';
 import type { Gender } from './AppearanceCatalog';
 import { DEFAULT_STARTER_CHOICE, STARTER_CLASS_ID, starterAppearance, type StarterChoice } from './StarterCharacters';
@@ -25,6 +26,8 @@ export interface CharacterData {
   status: CharacterStatus;
   /** Passive tree ranks and passive points (separate from stat points). Loaded with the status. */
   passives?: PassiveProgress;
+  /** Quest progress. Loaded with the status (QuestService). */
+  quests?: QuestLog;
 }
 
 export const NAME_MIN_LENGTH = 3;

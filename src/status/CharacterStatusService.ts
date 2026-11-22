@@ -4,6 +4,7 @@ import { computeDerivedStats, type DerivedStats } from './DerivedStats';
 import { applyDerivedBonus, combineDerivedBonuses, type DerivedBonus } from './DerivedBonuses';
 import { passiveDerivedBonus, sanitizePassiveProgress, syncLevelRewards } from '../passives/PassiveProgress';
 import { PassiveSaveStore } from '../passives/PassiveSaveStore';
+import { QuestService } from '../quests/QuestService';
 import type { StatAllocationDraft } from './StatAllocation';
 import { addExp } from '../progression/LevelProgression';
 import { applyLevelUp, cloneStatus, createInitialStatus, STATUS_RULES, totalStats, type CharacterStatus, type StatBlock } from './StatTypes';
@@ -44,6 +45,7 @@ export const CharacterStatusService = {
     character.status = status;
     StatusSaveStore.save(character.name, status);
     loadPassives(character);
+    QuestService.loadInto(character, result.kind === 'missing');
     return status;
   },
 

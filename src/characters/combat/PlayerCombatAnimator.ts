@@ -4,29 +4,12 @@ import type { PlayerAction, PlayerActionAnimations } from '../../player/PlayerCo
 import { bodyNormalizeFor } from '../CharacterBodyMetrics';
 import { CHARACTER_CANVAS_ROOT, CHARACTER_FRAME_HEIGHT, CHARACTER_FRAME_WIDTH } from '../CharacterSheetLayout';
 import type { CharacterView } from '../CharacterView';
-import { playerCombatAnimKey, playerCombatSheetKey, PLAYER_COMBAT_ACTIONS, type PlayerCombatAction, type PlayerCombatSet } from './PlayerCombatArt';
+import { playerCombatAnimKey, type PlayerCombatAction, type PlayerCombatSet } from './PlayerCombatArt';
 
 /** 8-way facing -> the 4 combat facings (combat sheets have SE, SW, NE, NW). */
 const FOUR_WAY: Record<Direction, ActionDirection> = { N: 'NE', NE: 'NE', E: 'SE', SE: 'SE', S: 'SW', SW: 'SW', W: 'NW', NW: 'NW' };
 
 const CLIP_FOR: Partial<Record<PlayerAction, PlayerCombatAction>> = { attack: 'dagger_thrust', hit: 'hit_reaction', cast: 'self_heal_cast' };
-
-/** Registers the 4-facing animations of a combat set (rows / frames / timing / loop from its metadata). */
-export function registerPlayerCombatAnimations(anims: Phaser.Animations.AnimationManager, set: PlayerCombatSet): void {
-  for (const action of PLAYER_COMBAT_ACTIONS) {
-    const sheet = set.actions[action];
-    sheet.rows.forEach((facing, row) => {
-      const key = playerCombatAnimKey(set, action, facing);
-      if (anims.exists(key)) return;
-      anims.create({
-        key,
-        frames: anims.generateFrameNumbers(playerCombatSheetKey(set, action), { start: row * sheet.frames, end: row * sheet.frames + sheet.frames - 1 }),
-        frameRate: 1000 / sheet.frameMs,
-        repeat: sheet.repeat,
-      });
-    });
-  }
-}
 
 /**
  * The player's combat clips on the character sprite (implements the PlayerController action hook):

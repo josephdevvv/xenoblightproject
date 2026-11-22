@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import type { Point } from '../core/types';
+import { frameOpaqueBounds } from '../combat/vfx/HitAnchor';
 import { createNameLabel, NAME_LABEL_COLORS, placeNameLabel } from '../ui/world/WorldNameLabel';
 import type { IsometricMap } from '../world/IsometricMap';
 import { IdleCycle } from './IdleCycle';
@@ -35,6 +37,21 @@ export class NpcEntity {
     this.sprite.setDepth(map.resolveDepth(box, world.y, this.sprite.getBounds()));
     this.label = createNameLabel(scene, definition.name, NAME_LABEL_COLORS.npc);
     placeNameLabel(this.label, x, y);
+  }
+
+  /** Where it stands (tile space, tile centre). */
+  get position(): Point {
+    const { col, row } = this.definition.tile;
+    return { x: col + 0.5, y: row + 0.5 };
+  }
+
+  /** Is a world point on the visible figure (plus a few px of slack)? */
+  contains(x: number, y: number, slack = 4): boolean {
+    const b = frameOpaqueBounds(this.sprite);
+    if (!b) return false;
+    const left = this.sprite.x - this.sprite.displayOriginX;
+    const top = this.sprite.y - this.sprite.displayOriginY;
+    return x >= left + b.left - slack && x <= left + b.right + 1 + slack && y >= top + b.top - slack && y <= top + b.bottom + 1 + slack;
   }
 
   update(deltaMs: number): void {

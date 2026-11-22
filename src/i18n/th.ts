@@ -203,6 +203,12 @@ export const th = {
       opportunity: 'จังหวะโอกาส',
     },
   },
+  quests: {
+    tutorial_01_find_mateus: {
+      name: 'ตามหา Mateus',
+      objective: 'เดินทางไปพูดคุยกับ Mateus',
+    },
+  },
   death: {
     title: 'ตาย...',
     respawn: 'เกิดใหม่ที่จุดเซฟ',

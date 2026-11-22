@@ -15,6 +15,8 @@ export const labels = {
   statLabel: (stat: string) => translate(`status.stats.${stat}.label`),
   statDescription: (stat: string) => translate(`status.stats.${stat}.description`),
   derived: (key: string) => translate(`status.derived.${key}`),
+  questName: (id: string) => translate(`quests.${id}.name`),
+  questObjective: (id: string) => translate(`quests.${id}.objective`),
   passiveNode: (id: string) => translate(`passive.nodes.${id}`),
   passiveClass: (treeId: string) => translate(`passive.classNames.${treeId}`),
 };

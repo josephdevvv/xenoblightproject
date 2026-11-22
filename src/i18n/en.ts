@@ -195,6 +195,12 @@ export const en: Messages = {
       opportunity: 'Opportunity',
     },
   },
+  quests: {
+    tutorial_01_find_mateus: {
+      name: 'Find Mateus',
+      objective: 'Travel to Mateus and talk to him',
+    },
+  },
   death: {
     title: 'Dead...',
     respawn: 'Respawn at save point',

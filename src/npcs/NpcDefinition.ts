@@ -5,8 +5,8 @@ import cityGuardSonny from './art/city_guard_sonny.generated.json';
 
 /**
  * Non-player characters. Data only: a stable id (used later by quests / dialogue), a display name, where it
- * stands, its art and its idle routine. No quests, dialogue, interaction, rewards or combat exist yet - the
- * id is kept stable so those systems can attach to it later.
+ * stands, its art and its idle routine. Quests and dialogue refer to the id (src/quests, src/dialogue);
+ * nothing about them is stored here.
  */
 
 export type NpcId = 'city_guard_01' | 'city_guard_jack' | 'city_guard_sonny';

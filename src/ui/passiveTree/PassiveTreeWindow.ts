@@ -175,6 +175,8 @@ export class PassiveTreeWindow {
   private open = false;
   /** Called when the window opens / closes / the tutorial step changes (HUD guidance). */
   onStateChange: (() => void) | null = null;
+  /** When the tutorial may guide the player (the tree itself always works). */
+  tutorialEnabled: () => boolean = () => true;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -267,6 +269,7 @@ export class PassiveTreeWindow {
 
   /** The current tutorial step (HUD shows 'open'; the window shows 'select' / 'unlock'). */
   get tutorial(): PassiveTutorialStep {
+    if (!this.tutorialEnabled()) return null;
     return tutorialStep(this.progress(), this.open, this.selectedId);
   }
 

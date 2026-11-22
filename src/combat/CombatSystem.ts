@@ -52,6 +52,8 @@ export class CombatSystem {
   private lastHurtAt = -Infinity;
   private regenCarry = 0;
   private defeated = false;
+  /** A conversation is open: no player commands, and the player cannot be fought (see setSuspended). */
+  private suspended = false;
   private elapsed = 0;
   private readonly rng: () => number;
   readonly monsterContext: MonsterCombatContext;
@@ -99,7 +101,7 @@ export class CombatSystem {
 
   /** Left click on a monster: target it, walk into range and attack until it dies. */
   attack(monster: MonsterEntity): void {
-    if (this.isDefeated() || !monster.isAlive()) return;
+    if (this.isDefeated() || this.suspended || !monster.isAlive()) return;
     if (this.target !== monster) this.clearTarget();
     this.target = monster;
     monster.setTargeted(true);
@@ -109,7 +111,7 @@ export class CombatSystem {
 
   /** Left click on the ground: cancel the target and walk there. Returns false when unreachable. */
   moveTo(point: Point): boolean {
-    if (this.isDefeated()) return false;
+    if (this.isDefeated() || this.suspended) return false;
     this.clearTarget();
     return this.player.moveTo(point);
   }
@@ -131,13 +133,24 @@ export class CombatSystem {
    * Returns false without a target. (No SP cost or cooldown is defined yet.)
    */
   useSkill(id: PlayerAttackId): boolean {
-    if (this.isDefeated() || !this.target || !this.target.isAlive()) return false;
+    if (this.isDefeated() || this.suspended || !this.target || !this.target.isAlive()) return false;
     this.queuedSkill = id;
     return true;
   }
 
   getQueuedSkill(): PlayerAttackId | null {
     return this.queuedSkill;
+  }
+
+  /**
+   * Talking to an NPC: the target and any pending swing are dropped, and - as while defeated - monsters
+   * see no player to fight (they walk home), since the player cannot act.
+   */
+  setSuspended(on: boolean): void {
+    this.suspended = on;
+    if (!on) return;
+    this.clearTarget();
+    this.queuedSkill = null;
   }
 
   /** In combat: a target, or an attack / hit in the last few seconds (combat stance). */
@@ -177,10 +190,11 @@ export class CombatSystem {
   update(deltaMs: number): void {
     this.elapsed += deltaMs;
     this.attackCooldownMs = Math.max(0, this.attackCooldownMs - deltaMs);
-    this.monsterContext.player = this.isDefeated() ? null : this.player.getTilePosition();
+    this.monsterContext.player = this.isDefeated() || this.suspended ? null : this.player.getTilePosition();
 
     if (this.defeated) return; // dead: no regeneration, no target, nothing hits the player
     this.regenerate(deltaMs);
+    if (this.suspended) return;
     this.resolvePendingHits();
     this.updateTarget(deltaMs);
   }
@@ -293,7 +307,7 @@ export class CombatSystem {
    * shows that monster's own attack VFX on the player's body, then the hit reaction plays.
    */
   private resolveMonsterHit(monster: MonsterEntity): void {
-    if (this.isDefeated() || !monster.isAlive()) return;
+    if (this.isDefeated() || this.suspended || !monster.isAlive()) return;
     const me = this.player.getTilePosition();
     const reach = monster.definition.combat.attackRange + CONTACT_SLACK;
     if (Math.hypot(monster.position.x - me.x, monster.position.y - me.y) > reach) return; // stepped out of reach

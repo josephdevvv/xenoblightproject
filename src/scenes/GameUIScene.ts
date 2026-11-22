@@ -5,6 +5,9 @@ import { CharacterStore } from '../data/CharacterStore';
 import { DungeonHud } from '../ui/hud/DungeonHud';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
 import { DeathOverlay } from '../ui/death/DeathOverlay';
+import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
+import { QuestService } from '../quests/QuestService';
+import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
 import { availablePoints } from '../passives/PassiveProgress';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { SettingsWindow } from '../ui/SettingsWindow';
@@ -26,6 +29,7 @@ export class GameUIScene extends Phaser.Scene {
   private settingsWindow: SettingsWindow | null = null;
   private passiveWindow: PassiveTreeWindow | null = null;
   private deathOverlay: DeathOverlay | null = null;
+  private dialogueWindow: DialogueWindow | null = null;
 
   constructor() {
     super(SCENES.GameUI);
@@ -37,6 +41,7 @@ export class GameUIScene extends Phaser.Scene {
     this.settingsWindow = null;
     this.passiveWindow = null;
     this.deathOverlay = null;
+    this.dialogueWindow = null;
     const character = this.resolveCharacter(data.characterId);
     const game = this.gameScene();
     if (!character || !game?.map) {
@@ -48,9 +53,9 @@ export class GameUIScene extends Phaser.Scene {
       {
         character,
         map: game.map,
-        onStatus: () => this.statusWindow?.toggle(),
-        onSettings: () => this.settingsWindow?.toggle(),
-        onPassive: () => this.togglePassiveTree(),
+        onStatus: () => this.canOpenWindows() && this.statusWindow?.toggle(),
+        onSettings: () => this.canOpenWindows() && this.settingsWindow?.toggle(),
+        onPassive: () => this.canOpenWindows() && this.togglePassiveTree(),
         currentHp: () => this.gameScene()?.combat?.getPlayerHp() ?? Number.POSITIVE_INFINITY,
       },
       0,
@@ -60,20 +65,32 @@ export class GameUIScene extends Phaser.Scene {
       const passive = new PassiveTreeWindow(this, character, 14);
       this.passiveWindow = passive;
       passive.onStateChange = () => this.refreshPassiveGuide(character);
+      // the passive tutorial begins after the conversation with Mateus (Tutorial Quest 01)
+      passive.tutorialEnabled = () => QuestService.isPassiveTutorialOpen(character);
       const unsubscribe = CharacterStatusService.onChange((c) => {
         if (c === character) this.refreshPassiveGuide(character);
       });
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
       // P toggles the tree (not while Settings is open on top).
       const onP = (): void => {
-        const alive = this.gameScene()?.death?.life.canPerform('openWindow') ?? true;
-        if (alive && !this.settingsWindow?.isOpen) this.togglePassiveTree();
+        if (this.canOpenWindows() && !this.settingsWindow?.isOpen) this.togglePassiveTree();
       };
       this.input.keyboard?.on('keydown-P', onP);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-P', onP));
       this.refreshPassiveGuide(character);
     }
     this.settingsWindow = new SettingsWindow(this, { depth: 20 });
+    // Quests: tracker, NPC dialogue (above the windows, below the death screen).
+    this.dialogueWindow = new DialogueWindow(this, 30);
+    const refreshQuest = (): void => {
+      this.hud?.setQuest(isQuest01Active(QuestService.quest01(character)) ? TUTORIAL_QUEST_01.id : null);
+      this.refreshPassiveGuide(character);
+    };
+    const offQuest = QuestService.onChange((c) => {
+      if (c === character) refreshQuest();
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offQuest);
+    refreshQuest();
     // Death screen above everything (HUD, windows): blocks all input while the player is not alive.
     const death = new DeathOverlay(this, 40);
     this.deathOverlay = death;
@@ -84,6 +101,7 @@ export class GameUIScene extends Phaser.Scene {
       this.settingsWindow = null;
       this.passiveWindow = null;
       this.deathOverlay = null;
+      this.dialogueWindow = null;
     });
   }
 
@@ -156,6 +174,20 @@ export class GameUIScene extends Phaser.Scene {
       return true;
     }
     return false;
+  }
+
+  /** Windows open only while the player may act: not in a conversation, not dying / dead. */
+  private canOpenWindows(): boolean {
+    return this.gameScene()?.canPerform('openWindow') ?? true;
+  }
+
+  /** The NPC dialogue window. */
+  get dialogue(): DialogueWindow | null {
+    return this.dialogueWindow;
+  }
+
+  get isDialogueOpen(): boolean {
+    return this.dialogueWindow?.isOpen ?? false;
   }
 
   /** The death screen (DeathUi for PlayerDeathController). */

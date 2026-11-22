@@ -74,7 +74,7 @@ export function restoreQuest02(raw: unknown, rewardGiven: boolean): Quest02Progr
 
 /** The dagger is worn. */
 export function isDaggerEquipped(inventory: InventoryState | undefined): boolean {
-  return inventory?.equipment.weapon === TUTORIAL_QUEST_02.reward.itemId;
+  return inventory?.equipment.weapon?.itemId === TUTORIAL_QUEST_02.reward.itemId;
 }
 
 export type EquipmentTutorialStep = 'openInventory' | 'selectItem' | 'equipItem';

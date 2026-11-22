@@ -100,6 +100,7 @@ export class FrameButton {
   /** Shows or removes the button (a removed one takes no clicks). */
   setVisible(on: boolean): void {
     this.label.setVisible(on);
+    this.veil.setVisible(on && !this.enabled);
     this.zone.setVisible(on);
     if (this.zone.input) this.zone.input.enabled = on;
     if (!on) this.resetHover();

@@ -1,7 +1,7 @@
 import type Phaser from 'phaser';
 import { PALETTE } from '../../config/palette';
 import { t } from '../../i18n';
-import type { ItemInfo } from '../../inventory/InventorySlots';
+import type { ItemInfo, SlotAction } from '../../inventory/InventorySlots';
 import { fitText } from '../text/fitText';
 import type { TypographyRole } from '../text/Typography';
 import { wrapText } from '../text/wrapText';
@@ -11,8 +11,8 @@ import { DETAIL_LINE_HEIGHT, iconScale, type DetailSection, type InventoryLayout
 import { drawOutline, drawSlotFrame, INV_COLORS } from './inventoryTheme';
 
 /**
- * Right panel: icon, name, type, description and stats / effects of one item, or the empty placeholder. A worn
- * item also has the UNEQUIP button.
+ * Right panel: icon, name, type, description and stats / effects of one item, or the empty placeholder. One
+ * button at the bottom: EQUIP for a bag item, UNEQUIP for a worn one, none otherwise.
  */
 export class ItemDetailPanel {
   private readonly icon: Phaser.GameObjects.Image;
@@ -23,15 +23,15 @@ export class ItemDetailPanel {
   private readonly effectsCaption: Phaser.GameObjects.Text;
   private readonly effects: Phaser.GameObjects.Text[];
   private readonly buttonFrame: Phaser.GameObjects.Graphics;
-  private readonly unequipButton: FrameButton;
+  private readonly actionButton: FrameButton;
   private item: ItemInfo | null = null;
-  private worn = false;
+  private action: SlotAction | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
     root: Phaser.GameObjects.Container,
     private readonly layout: InventoryLayout,
-    onUnequip: () => void,
+    onAction: () => void,
   ) {
     const D = layout.detail;
     const [ix, iy, iw, ih] = D.icon;
@@ -53,13 +53,18 @@ export class ItemDetailPanel {
     this.buttonFrame = scene.add.graphics();
     drawOutline(this.buttonFrame, D.button, 0, INV_COLORS.line);
     root.add(this.buttonFrame);
-    this.unequipButton = new FrameButton(scene, root, D.button, INV_COLORS.lineText, onUnequip);
+    this.actionButton = new FrameButton(scene, root, D.button, INV_COLORS.lineText, onAction);
   }
 
-  /** Shows an item; null = the "No item selected" placeholder. `worn`: it can be taken off. */
-  show(item: ItemInfo | null, worn = false): void {
+  /** The click zone of the button while it does `kind` (tutorial spotlight target). */
+  actionZone(kind: SlotAction['kind']): Phaser.GameObjects.Zone | null {
+    return this.action?.kind === kind ? this.actionButton.zone : null;
+  }
+
+  /** Shows an item and what can be done with it; null = the "No item selected" placeholder. */
+  show(item: ItemInfo | null, action: SlotAction | null = null): void {
     this.item = item;
-    this.worn = worn && item !== null;
+    this.action = item ? action : null;
     this.refresh();
   }
 
@@ -80,9 +85,13 @@ export class ItemDetailPanel {
     }
     this.fill(this.description, item ? this.wrap(item.description, this.description[0], textWidth) : [], textWidth);
     this.fill(this.effects, item?.effects ?? [], textWidth);
-    this.unequipButton.label.setText(t('inventory.unequip'));
-    this.unequipButton.setVisible(this.worn);
-    this.buttonFrame.setVisible(this.worn);
+    const { action } = this;
+    if (action) {
+      this.actionButton.label.setText(actionLabel(action));
+      this.actionButton.setEnabled(action.kind === 'unequip' || action.problem === null);
+    }
+    this.actionButton.setVisible(action !== null);
+    this.buttonFrame.setVisible(action !== null);
   }
 
   /** One text per line; when there are more lines than texts, the last one ends in "..". */
@@ -106,4 +115,11 @@ export class ItemDetailPanel {
   private text(x: number, y: number, role: TypographyRole, color: string): Phaser.GameObjects.Text {
     return this.scene.add.text(x, y, '', typo(role, color));
   }
+}
+
+/** The button says what it does, or why it cannot. */
+function actionLabel(action: SlotAction): string {
+  if (action.kind === 'unequip') return t('inventory.unequip');
+  if (action.problem === 'levelTooLow') return t('inventory.equipNeedsLevel', { level: action.requiredLevel });
+  return t('inventory.equip');
 }

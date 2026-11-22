@@ -32,11 +32,20 @@ export interface ItemInfo {
   icon: { texture: string; frame?: string | number } | null;
 }
 
+/** Where a bag item is worn, and why it cannot be worn now (null = it can). */
+export interface EquipOption {
+  slot: EquipmentSlotId;
+  requiredLevel: number;
+  problem: 'levelTooLow' | null;
+}
+
 /** Why an item could not be taken off. */
 export type UnequipProblem = 'emptySlot' | 'bagFull' | 'notSaved' | 'notAllowed';
 
 export interface InventorySource {
   itemAt(slot: SlotRef): ItemInfo | null;
+  /** How the item in a bag slot can be worn; null = empty or not wearable. */
+  equipOption(bagIndex: number): EquipOption | null;
   /** Equips the item in a bag slot. False = not possible, nothing changed. */
   equip(bagIndex: number, slot: EquipmentSlotId): boolean;
   /** Takes off the item in an equipment slot: the bag slot it went to, or the reason nothing changed. */
@@ -50,11 +59,23 @@ export interface InventorySource {
 /** Every slot empty. */
 export const EMPTY_INVENTORY: InventorySource = {
   itemAt: () => null,
+  equipOption: () => null,
   equip: () => false,
   unequip: () => ({ error: 'emptySlot' }),
   canUnequip: () => false,
   onChange: () => () => undefined,
 };
+
+/** What can be done with the item in a slot (one thing at a time). */
+export type SlotAction = ({ kind: 'equip' } & EquipOption) | { kind: 'unequip' };
+
+/** Bag item that can be worn -> equip; worn item -> unequip; anything else -> nothing. */
+export function slotAction(source: InventorySource, slot: SlotRef | null): SlotAction | null {
+  if (!slot || !source.itemAt(slot)) return null;
+  if (slot.kind === 'equipment') return source.canUnequip() ? { kind: 'unequip' } : null;
+  const option = source.equipOption(slot.index);
+  return option ? { kind: 'equip', ...option } : null;
+}
 
 /** The selected slot of the window: at most one over equipment and bag together. */
 export class SlotSelection {

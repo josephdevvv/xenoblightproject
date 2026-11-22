@@ -15,6 +15,7 @@ import { equipmentTutorialStep, isQuest02AtMateus, TUTORIAL_QUEST_02 } from '../
 import { characterInventorySource } from '../inventory/CharacterInventorySource';
 import { InventoryService } from '../inventory/InventoryService';
 import { bagIndexOf } from '../inventory/InventoryState';
+import { isHotkeyPress } from '../ui/input/typing';
 import { ItemNotifications } from '../ui/notifications/ItemNotifications';
 import { availablePoints } from '../passives/PassiveProgress';
 import { CharacterStatusService } from '../status/CharacterStatusService';
@@ -64,26 +65,35 @@ export class GameUIScene extends Phaser.Scene {
       console.warn('[GameUI] no active character or map; UI not created');
       return;
     }
+    const currentHp = (): number => this.gameScene()?.combat?.getPlayerHp() ?? Number.POSITIVE_INFINITY;
     this.hud = new DungeonHud(
       this,
       {
         character,
         map: game.map,
-        onStatus: () => this.canOpenWindows() && this.statusWindow?.toggle(),
+        onStatus: () => this.canOpenWindows() && this.toggleStatus(),
         onSettings: () => this.canOpenWindows() && this.settingsWindow?.toggle(),
         onPassive: () => this.canOpenWindows() && this.togglePassiveTree(),
         onInventory: () => this.canOpenWindows() && this.toggleInventory(),
-        currentHp: () => this.gameScene()?.combat?.getPlayerHp() ?? Number.POSITIVE_INFINITY,
+        currentHp,
       },
       0,
     );
-    this.statusWindow = new StatusWindow(this, character, 10);
+    this.statusWindow = new StatusWindow(this, character, 10, currentHp);
+    // T toggles the Status window, as its HUD button does: not while typing, with Settings open on top, or
+    // while a tutorial spotlight shuts other controls out.
+    const onT = (e: KeyboardEvent): void => {
+      if (!isHotkeyPress(e, document.activeElement as HTMLElement | null)) return;
+      if (this.canOpenWindows() && !this.settingsWindow?.isOpen && !this.spotlightOverlay?.isActive) this.toggleStatus();
+    };
+    this.input.keyboard?.on('keydown-T', onT);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-T', onT));
     // nothing is taken off while the equipment tutorial is still running
     const canUnequip = (): boolean => QuestService.quest02(character).state !== 'EQUIPMENT_TUTORIAL';
     this.inventoryWindow = new InventoryWindow(this, 12, characterInventorySource(character, canUnequip));
-    this.inventoryWindow.onUnequipProblem = (problem) => {
+    this.inventoryWindow.onProblem = (action, problem) => {
       if (problem === 'bagFull') this.itemNotifications?.showText(t('notifications.bagFull'));
-      else if (problem === 'notSaved') this.itemNotifications?.showText(t('notifications.unequipFailed'));
+      else if (problem === 'notSaved') this.itemNotifications?.showText(t(action === 'equip' ? 'notifications.equipFailed' : 'notifications.unequipFailed'));
     };
     // I toggles the Inventory (not while Settings is open on top).
     const onI = (): void => {
@@ -157,6 +167,7 @@ export class GameUIScene extends Phaser.Scene {
     this.deathOverlay?.update(delta);
     this.spotlightOverlay?.update(delta, this.spotlightTarget());
     this.itemNotifications?.update(delta);
+    this.statusWindow?.update();
     const game = this.gameScene();
     if (!this.hud || !game?.player) return;
     this.hud.update(
@@ -267,7 +278,7 @@ export class GameUIScene extends Phaser.Scene {
     return { id: step, rect: () => rectOfObject(this, control), label: t(`passive.tutorial.${step}`) };
   }
 
-  /** Equipment tutorial (Tutorial Quest 02): Inventory button, the dagger in the bag, the Weapon slot. */
+  /** Equipment tutorial (Tutorial Quest 02): Inventory button, the dagger in the bag, EQUIP. */
   private equipmentSpotlight(): SpotlightTarget | null {
     const { character, inventoryWindow: w } = this;
     if (!character || !w || this.passiveWindow?.isOpen) return null;
@@ -276,7 +287,9 @@ export class GameUIScene extends Phaser.Scene {
     const control =
       step === 'openInventory'
         ? this.hud?.inventoryButton
-        : w.slotZone(step === 'selectItem' ? { kind: 'bag', index: bagIndexOf(character.inventory, TUTORIAL_QUEST_02.reward.itemId) } : { kind: 'equipment', slot: 'weapon' });
+        : step === 'selectItem'
+          ? w.slotZone({ kind: 'bag', index: bagIndexOf(character.inventory, TUTORIAL_QUEST_02.reward.itemId) })
+          : w.equipZone;
     return { id: step, rect: () => rectOfObject(this, control), label: t(`equipmentTutorial.${step}`) };
   }
 
@@ -301,6 +314,17 @@ export class GameUIScene extends Phaser.Scene {
 
   get isPassiveTreeOpen(): boolean {
     return this.passiveWindow?.isOpen ?? false;
+  }
+
+  /** Opens / closes the Status window (one modal window at a time: the Inventory and the Passive Tree close first). */
+  toggleStatus(): void {
+    const w = this.statusWindow;
+    if (!w) return;
+    if (!w.isOpen) {
+      if (this.inventoryWindow?.isOpen) this.inventoryWindow.close();
+      if (this.passiveWindow?.isOpen) this.passiveWindow.close();
+    }
+    w.toggle();
   }
 
   get isInventoryOpen(): boolean {

@@ -67,13 +67,13 @@ test('rules: every one of the five slots can be emptied into the first free bag 
     const bag = [...createInventory().bag];
     bag[0] = { itemId: 'x', quantity: 3 };
     bag[2] = { itemId: 'y', quantity: 1 };
-    const worn = Object.fromEntries(EQUIPMENT_SLOTS.map((id) => [id, `item_${id}`])) as InventoryState['equipment'];
+    const worn = Object.fromEntries(EQUIPMENT_SLOTS.map((id) => [id, { itemId: `item_${id}`, instanceId: `id_${id}` }])) as InventoryState['equipment'];
     const s: InventoryState = { bag, equipment: worn, grants: ['g'] };
     const frozen = JSON.stringify(s);
     const r = unequipToBag(s, slot);
     assert.ok(r.ok);
     assert.equal(r.bagIndex, 1);
-    assert.deepEqual(r.state.bag[1], { itemId: `item_${slot}`, quantity: 1 });
+    assert.deepEqual(r.state.bag[1], { itemId: `item_${slot}`, quantity: 1, instanceId: `id_${slot}` });
     assert.deepEqual(r.state.equipment, { ...worn, [slot]: null });
     assert.deepEqual(r.state.grants, ['g']);
     assert.equal(count(r.state), count(s));
@@ -83,7 +83,7 @@ test('rules: every one of the five slots can be emptied into the first free bag 
 });
 
 test('full bag: refused, nothing lost; works again with one free slot', () => {
-  const full: InventoryState = { ...createInventory(), bag: Array.from({ length: INVENTORY_SLOT_COUNT }, () => ({ itemId: 'x', quantity: 1 })), equipment: { ...createInventory().equipment, weapon: DAGGER } };
+  const full: InventoryState = { ...createInventory(), bag: Array.from({ length: INVENTORY_SLOT_COUNT }, () => ({ itemId: 'x', quantity: 1 })), equipment: { ...createInventory().equipment, weapon: { itemId: DAGGER, instanceId: 'a' } } };
   for (const slot of EQUIPMENT_SLOTS) assert.deepEqual(unequipToBag(full, slot), { ok: false, error: slot === 'weapon' ? 'bagFull' : 'emptySlot' });
   const bag = [...full.bag];
   bag[INVENTORY_SLOT_COUNT - 1] = null;
@@ -98,14 +98,14 @@ test('equip -> unequip -> re-equip: bonus removed and restored through the norma
     assert.deepEqual(InventoryService.unequip(c, 'weapon'), { bagIndex: 0 });
     assert.equal(melee(c), 10);
     assert.deepEqual(equipmentDerivedBonus(c.inventory), { flat: {}, maxHpPercent: 0 });
-    assert.deepEqual([c.inventory!.equipment.weapon, c.inventory!.bag[0]], [null, { itemId: DAGGER, quantity: 1 }]);
+    assert.deepEqual([c.inventory!.equipment.weapon, c.inventory!.bag[0]?.itemId, c.inventory!.bag[0]?.quantity], [null, DAGGER, 1]);
     const reloaded = enter('Alpha');
     assert.deepEqual(reloaded.inventory, c.inventory);
     assert.equal(melee(reloaded), 10);
     assert.equal(InventoryService.equip(reloaded, 0, 'weapon'), null);
     assert.equal(melee(reloaded), 14);
     const again = enter('Alpha');
-    assert.deepEqual([again.inventory!.equipment.weapon, count(again.inventory!), melee(again)], [DAGGER, 1, 14]);
+    assert.deepEqual([again.inventory!.equipment.weapon?.itemId, count(again.inventory!), melee(again)], [DAGGER, 1, 14]);
   });
 });
 
@@ -116,7 +116,7 @@ test('rapid repeats never double or lose the item', () => {
     assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [1, null]);
     for (let round = 0; round < 50; round++) {
       for (let i = 0; i < 3; i++) InventoryService.equip(c, bagIndexOf(c.inventory, DAGGER), 'weapon');
-      assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [1, DAGGER]);
+      assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon?.itemId], [1, DAGGER]);
       for (let i = 0; i < 3; i++) InventoryService.unequip(c, 'weapon');
       assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [1, null]);
     }
@@ -134,7 +134,7 @@ test('not saved or bag full: the item stays worn with its bonus, nothing is anno
     const worn = c.inventory!;
     c.inventory = { ...worn, bag: worn.bag.map(() => ({ itemId: 'x', quantity: 1 })) };
     assert.deepEqual(InventoryService.unequip(c, 'weapon'), { error: 'bagFull' });
-    assert.deepEqual([c.inventory.equipment.weapon, melee(c), changes], [DAGGER, 14, 0]);
+    assert.deepEqual([c.inventory.equipment.weapon?.itemId, melee(c), changes], [DAGGER, 14, 0]);
     assert.deepEqual(InventoryService.unequip(c, 'hat'), { error: 'emptySlot' });
     off();
   });
@@ -168,7 +168,7 @@ test('while the equipment tutorial runs nothing can be taken off; afterwards it 
     c.quests = { ...c.quests!, tutorial_02_rusty_dagger: { state: 'EQUIPMENT_TUTORIAL' } };
     assert.equal(source.canUnequip(), false);
     assert.deepEqual(source.unequip('weapon'), { error: 'notAllowed' });
-    assert.equal(c.inventory!.equipment.weapon, DAGGER);
+    assert.equal(c.inventory!.equipment.weapon?.itemId, DAGGER);
     QuestService.sync02(c);
     assert.equal(source.canUnequip(), true);
     assert.deepEqual(source.unequip('weapon'), { bagIndex: 0 });

@@ -30,8 +30,11 @@ export const InventoryService = {
   grantOnce(character: CharacterData, { grantId, itemId, quantity }: ItemGrant): GrantError | 'notSaved' | null {
     const saved = loadSavedInventory(character.name);
     if (saved !== null) {
-      const stored = sanitizeInventory(saved).state;
-      if (hasGrant(stored, grantId) && !hasGrant(character.inventory, grantId)) announce(character, stored);
+      const { state: stored, newIds } = sanitizeInventory(saved);
+      if (hasGrant(stored, grantId) && !hasGrant(character.inventory, grantId)) {
+        if (newIds > 0) InventorySaveStore.save(character.name, stored);
+        announce(character, stored);
+      }
     }
     const result = grantOnce(this.state(character), grantId, itemId, quantity);
     if (!result.ok) return result.error;
@@ -40,7 +43,7 @@ export const InventoryService = {
     return null;
   },
 
-  /** Equips the item in a bag slot. null = done. */
+  /** Equips the item in a bag slot (a worn one goes back to that slot - one saved step). null = done. */
   equip(character: CharacterData, bagIndex: number, slot: EquipmentSlotId): EquipError | 'notSaved' | null {
     const result = equipFromBag(this.state(character), bagIndex, slot, character.status.level);
     if (!result.ok) return result.error;

@@ -44,7 +44,6 @@ import { PlayerCombatAnimator } from '../characters/combat/PlayerCombatAnimator'
 import { loadPlayerCombatAssets } from '../characters/combat/PlayerCombatAssets';
 import type { PlayerCombatSet } from '../characters/combat/PlayerCombatArt';
 import { DungeonHud } from '../ui/hud/DungeonHud';
-import { StatusWindow } from '../ui/StatusWindow';
 import { LoadingScreen } from '../ui/LoadingScreen';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import type { IsometricMap } from '../world/IsometricMap';
@@ -192,7 +191,6 @@ export class GameScene extends Phaser.Scene {
             .load({ key: npcSheetKey(n), type: 'spritesheet', url: n.art.url, frameWidth: n.art.meta.frameWidth, frameHeight: n.art.meta.frameHeight })
             .catch((e: Error) => console.warn(`[npcs] ${n.id} not shown: ${e.message}`)),
         ),
-        StatusWindow.load(),
         PassiveTreeWindow.load(),
         loadItemIcons(),
         loadPlayerCombatAssets(this, spriteId, PLAYER_ART_OWNER).then((set) => (this.combatSet = set)),

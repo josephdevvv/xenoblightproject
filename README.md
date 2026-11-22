@@ -42,7 +42,7 @@ Open http://localhost:5173.
 | Enter         | Submit the name field                |
 | W / A / S / D | Move (8 directions with combinations) |
 | Esc           | Close an open window; otherwise return to character creation (in game) |
-| Status icon   | First slot of the HUD menu bar (top right): open / close the character Status window |
+| Status icon / T | First slot of the HUD menu bar (top right): open / close the character Status window |
 | Menu icon (three bars) | Last slot of the HUD menu bar: Settings (language) |
 | Settings button | Character creation, top right: Settings (language) before entering the game |
 
@@ -50,11 +50,10 @@ W moves straight up on screen, D straight right; key combinations (e.g. W+D) mov
 
 ### Character Status window
 
-Click the **Status** icon (first slot of the HUD menu bar, top right; hover shows its name). The window shows level, available stat points, the six main stats
-(STR, DEX, INT, VIT, AGI, LUK) with **+** buttons, and every derived stat. Allocation is staged: **+** only selects
-a point; **RESET** clears the selection, **CONFIRM** applies and saves, **CANCEL** / **X** / **Esc** discard and close.
-The derived list previews the result ("PREVIEW") and scrolls one row with the mouse wheel or by dragging. (S stays "move down", so there is no
-keyboard shortcut.)
+Click the **Status** icon (first slot of the HUD menu bar, top right; hover shows its name). The window shows level, remaining stat points, the six main stats
+(STR, AGI, VIT, INT, DEX, LUK) with **+** buttons, and every derived stat in sections. Allocation is staged: **+** only selects
+a point; **RESET** clears the selection, **CONFIRM** applies and saves, **CLOSE** / **Esc** discard and close.
+The derived stats preview the result (`now > after`). (**T** opens and closes the window; S stays "move down".)
 
 Status is saved in `localStorage`, one entry per character name (case-insensitive), and loaded when a character
 with that name is created again.
@@ -62,14 +61,9 @@ with that name is created again.
 **Test points (development only):** in `npm run dev` - or a production build opened with `?debug` - the window
 shows a **DEV +10** button that grants free stat points (**Shift + click**: +100). Normal players never see it.
 
-The window is drawn with the Moonsteel status kit (`art-source/ui/status_moonsteel/`, a 480x270 canvas at the
-game's pixel density, used 1:1). After replacing its layer PNGs, re-crop them:
-
-```
-powershell -ExecutionPolicy Bypass -File tools/import-status-kit.ps1
-```
-
-Text positions on the kit live in `src/ui/status/StatusKitLayout.ts`.
+The window is drawn in the same style as the Passive Tree and Inventory windows; its layout lives in
+`src/ui/status/StatusLayout.ts`. The earlier Moonsteel kit (`art-source/ui/status_moonsteel/`,
+`tools/import-status-kit.ps1`) is no longer used by the game.
 
 ## Languages and font
 
@@ -121,7 +115,7 @@ src/
   settings/                    Player settings store (language), localStorage
   ui/                          Button, OptionSelector, ColorSwatchPicker, TextInputField, Panel, ScrollArea, name plate, StatusWindow
     hud/                       Dungeon HUD: HudLayout (pack layout -> screen), DungeonHud, Minimap, hudPack.generated.json
-    status/                    Status window kit layout (StatusKitLayout) + statusKit.generated.json
+    status/                    Status window layout (StatusLayout)
     text/                      Typography (Kanit loading + text roles), grapheme-safe fitText
   SettingsWindow.ts            Settings (language) modal, used in character creation and in game
   scenes/                      BootScene, CharacterCreationScene, GameScene, GameUIScene (screen-space UI overlay)

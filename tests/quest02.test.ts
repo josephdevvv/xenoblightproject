@@ -79,7 +79,7 @@ function afterPassiveTutorial(name: string): CharacterData {
   return c;
 }
 
-const items = (s: InventoryState): string[] => [...s.bag.flatMap((x) => (x ? Array.from({ length: x.quantity }, () => x.itemId) : [])), ...Object.values(s.equipment).filter((x): x is string => x !== null)];
+const items = (s: InventoryState): string[] => [...s.bag.flatMap((x) => (x ? Array.from({ length: x.quantity }, () => x.itemId) : [])), ...Object.values(s.equipment).flatMap((x) => (x ? [x.itemId] : []))];
 
 // -------------------------------------------------------------------------------------------- dialogue
 
@@ -190,7 +190,7 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
 
     const c3 = enter('Alpha');
     assert.equal(QuestService.quest02(c3).state, 'COMPLETED');
-    assert.equal(c3.inventory!.equipment.weapon, DAGGER);
+    assert.equal(c3.inventory!.equipment.weapon?.itemId, DAGGER);
     assert.equal(bagIndexOf(c3.inventory, DAGGER), -1);
     assert.equal(InventoryService.grantOnce(c3, reward), 'alreadyGranted');
     assert.equal(gained.length, 1);
@@ -298,7 +298,7 @@ test('bag: first free slot, stacks only stackable items, all or nothing, the giv
   const s0 = createInventory();
   const frozen = JSON.stringify(s0);
   const s1 = must(addItem(s0, 'dagger', 2, lookup)).state;
-  assert.deepEqual(s1.bag.slice(0, 3), [{ itemId: 'dagger', quantity: 1 }, { itemId: 'dagger', quantity: 1 }, null]);
+  assert.deepEqual(s1.bag.slice(0, 3).map((x) => x && [x.itemId, x.quantity]), [['dagger', 1], ['dagger', 1], null]);
   const s2 = must(addItem(must(addItem(s1, 'potion', 3, lookup)).state, 'potion', 4, lookup)).state;
   assert.deepEqual(s2.bag[2], { itemId: 'potion', quantity: 7 });
   assert.equal(JSON.stringify(s0), frozen);
@@ -314,22 +314,20 @@ test('equip: moves the item, swaps the worn one back, checks slot and level, nev
   let s = must(addItem(must(addItem(createInventory(), 'dagger', 1, lookup)).state, 'other', 1, lookup)).state;
   for (const slot of EQUIPMENT_SLOTS) if (slot !== 'weapon') assert.deepEqual(equipFromBag(s, 0, slot, 10, lookup), { ok: false, error: 'wrongSlot' });
   s = must(equipFromBag(s, 0, 'weapon', 1, lookup)).state;
-  assert.deepEqual([s.bag[0], s.equipment.weapon], [null, 'dagger']);
+  assert.deepEqual([s.bag[0], s.equipment.weapon?.itemId], [null, 'dagger']);
   assert.deepEqual(equipFromBag(s, 1, 'weapon', 4, lookup), { ok: false, error: 'levelTooLow' });
   s = must(equipFromBag(s, 1, 'weapon', 5, lookup)).state;
-  assert.deepEqual([s.bag[1]?.itemId, s.equipment.weapon], ['dagger', 'other']);
+  assert.deepEqual([s.bag[1]?.itemId, s.equipment.weapon?.itemId], ['dagger', 'other']);
   assert.deepEqual(items(s).sort(), ['dagger', 'other']);
-  const twin = must(addItem(s, 'other', 1, lookup)).state;
-  assert.deepEqual(equipFromBag(twin, 0, 'weapon', 9, lookup), { ok: false, error: 'alreadyEquipped' });
   for (const i of [-1, 20, 999]) assert.deepEqual(equipFromBag(s, i, 'weapon', 9, lookup), { ok: false, error: 'emptySlot' });
 });
 
 test('bonus: additive on top of the unchanged formulas; a dagger\'s Physical ATK is melee', () => {
-  const s: InventoryState = { ...createInventory(), equipment: { weapon: DAGGER, hat: null, armor: null, shoes: null, charm: null } };
+  const s: InventoryState = { ...createInventory(), equipment: { weapon: { itemId: DAGGER, instanceId: 'a' }, hat: null, armor: null, shoes: null, charm: null } };
   assert.deepEqual(equipmentDerivedBonus(s), { flat: { meleeAtk: 4 }, maxHpPercent: 0 });
   assert.deepEqual(equipmentDerivedBonus(createInventory()), { flat: {}, maxHpPercent: 0 });
   assert.deepEqual(equipmentDerivedBonus(undefined), { flat: {}, maxHpPercent: 0 });
-  const mixed: InventoryState = { ...s, equipment: { ...s.equipment, weapon: 'other', hat: 'hat' } };
+  const mixed: InventoryState = { ...s, equipment: { ...s.equipment, weapon: { itemId: 'other', instanceId: 'b' }, hat: { itemId: 'hat', instanceId: 'c' } } };
   assert.deepEqual(equipmentDerivedBonus(mixed, lookup).flat, { meleeAtk: 10, matk: 2, rangedAtk: 1, maxHp: 10 });
 });
 
@@ -340,11 +338,11 @@ test('stored data of any shape becomes a valid state; unknown items are kept', (
     assert.deepEqual(items(state), []);
   }
   const { state, repaired } = sanitizeInventory({ bag: [null, { itemId: 'future', quantity: 2 }, { itemId: 'dagger', quantity: -3 }], equipment: { weapon: 'hat', hat: 'unknown', ring: 'dagger' }, grants: ['a', 'a', 7] }, lookup);
-  assert.deepEqual(state.bag.slice(0, 3), [{ itemId: 'hat', quantity: 1 }, { itemId: 'future', quantity: 2 }, { itemId: 'dagger', quantity: 1 }]);
-  assert.deepEqual([state.equipment.weapon, state.equipment.hat, state.grants], [null, 'unknown', ['a']]);
+  assert.deepEqual(state.bag.slice(0, 3).map((x) => x && [x.itemId, x.quantity]), [['hat', 1], ['future', 2], ['dagger', 1]]);
+  assert.deepEqual([state.equipment.weapon, state.equipment.hat?.itemId, state.grants], [null, 'unknown', ['a']]);
   assert.ok(repaired.length > 0);
   const good = must(grantOnce(createInventory(), 'g', DAGGER, 1)).state;
-  assert.deepEqual(sanitizeInventory(JSON.parse(JSON.stringify(good))), { state: good, repaired: [] });
+  assert.deepEqual(sanitizeInventory(JSON.parse(JSON.stringify(good))), { state: good, repaired: [], newIds: 0 });
 });
 
 // --------------------------------------------------------------------------------- window texts and tutorial

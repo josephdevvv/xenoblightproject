@@ -153,7 +153,10 @@ function loadPassives(character: CharacterData): void {
   PassiveSaveStore.save(character.name, progress);
 }
 
-/** Loads (and repairs) the bag and worn equipment. Nothing is written: a new character simply has no record yet. */
+/**
+ * Loads (and repairs) the bag and worn equipment. A new character simply has no record yet; only equipment
+ * saved before item instances existed is written back, so its new instance ids stay the same from now on.
+ */
 function loadInventory(character: CharacterData): void {
   const result = InventorySaveStore.load(character.name);
   if (result.kind === 'invalid') {
@@ -164,7 +167,8 @@ function loadInventory(character: CharacterData): void {
     character.inventory = createInventory();
     return;
   }
-  const { state, repaired } = sanitizeInventory(result.data);
+  const { state, repaired, newIds } = sanitizeInventory(result.data);
+  if (newIds > 0) InventorySaveStore.save(character.name, state);
   if (repaired.length > 0) console.warn(`[inventory] repaired save for "${character.name}":`, repaired);
   character.inventory = state;
 }

@@ -1,233 +1,180 @@
 import Phaser from 'phaser';
-import { PALETTE, toColorInt } from '../config/palette';
+import { PALETTE } from '../config/palette';
 import type { CharacterData, LocalizedMessage } from '../data/CharacterData';
 import { t, translate, type TranslationParams } from '../i18n';
 import { labels } from '../i18n/labels';
 import { localize } from '../i18n/phaser';
 import { CharacterStatusService, STATUS_DEV_TOOLS_ENABLED } from '../status/CharacterStatusService';
-import { DERIVED_DISPLAY, formatStatValue, type DerivedStats } from '../status/DerivedStats';
+import { DERIVED_DISPLAY, formatStatValue } from '../status/DerivedStats';
 import { StatAllocationDraft } from '../status/StatAllocation';
 import { MAIN_STATS, type MainStat, type StatBlock } from '../status/StatTypes';
-import { GameServices } from '../systems/GameServices';
-import { ScrollArea } from './ScrollArea';
-import type { TypographyRole } from './text/Typography';
+import { drawOutline, drawPanelFrame, INV_COLORS as C } from './inventory/inventoryTheme';
+import { FrameButton } from './passiveTree/PassiveTreeWindow';
+import type { Rect } from './passiveTree/PassiveTreeLayout';
+import { statusLayout, type SecondaryKey, type StatRowLayout } from './status/StatusLayout';
 import { fitText } from './text/fitText';
-import { STATUS_KIT, STATUS_KIT_HEIGHT, STATUS_KIT_LAYERS, STATUS_KIT_WIDTH, statusKitTextureKey, type KitRect } from './status/StatusKitLayout';
+import type { TypographyRole } from './text/Typography';
 import { typo } from './UITheme';
 
-const ACCENT = toColorInt(PALETTE.accentLight);
+/** A value that the selected (not yet confirmed) points would change. */
+const PREVIEW_COLOR = '#ffd27a';
+const PERCENT_STATS = new Set<string>(DERIVED_DISPLAY.filter((d) => d.percent).map((d) => d.key));
 
 interface StatRow {
+  layout: StatRowLayout;
+  name: Phaser.GameObjects.Text;
+  description: Phaser.GameObjects.Text;
+  value: Phaser.GameObjects.Text;
+  suffix: Phaser.GameObjects.Text;
+  plus: FrameButton;
+}
+
+interface SecondaryRow {
+  key: SecondaryKey;
+  right: number;
+  x: number;
   label: Phaser.GameObjects.Text;
   value: Phaser.GameObjects.Text;
-  desc: Phaser.GameObjects.Text;
-  suffix: Phaser.GameObjects.Text;
-  plus: KitButton;
-}
-
-interface DerivedRow {
-  key: keyof DerivedStats;
-  percent: boolean;
-  value: Phaser.GameObjects.Text;
 }
 
 /**
- * A control baked into the kit art: an invisible hit zone, a 1-px hover outline on the art's inner
- * border, an optional game-rendered label, and a dimming veil when disabled.
- */
-class KitButton {
-  private readonly outline: Phaser.GameObjects.Graphics;
-  private readonly veil: Phaser.GameObjects.Rectangle;
-  private readonly zone: Phaser.GameObjects.Zone;
-  readonly label: Phaser.GameObjects.Text | null;
-  private enabled = true;
-  private pressed = false;
-
-  constructor(scene: Phaser.Scene, root: Phaser.GameObjects.Container, rect: KitRect, label: string | null, onClick: () => void) {
-    const [x, y, w, h] = rect;
-    this.label = label !== null
-      ? scene.add.text(x + w / 2, y + h / 2, label, typo('button', PALETTE.pale)).setOrigin(0.5)
-      : null;
-    if (this.label) this.label.setPosition(Math.round(this.label.x), Math.round(this.label.y));
-    this.outline = scene.add.graphics().setVisible(false);
-    // Inner (light) border of the art: 2 px dark outer frame + 1 px light line.
-    strokePixelRect(this.outline, x + 2, y + 2, w - 4, h - 4, ACCENT);
-    this.veil = scene.add.rectangle(x, y, w, h, STATUS_KIT.fill, 0.62).setOrigin(0, 0).setVisible(false);
-    this.zone = scene.add.zone(x, y, w, h).setOrigin(0, 0).setInteractive({ useHandCursor: true });
-    this.zone.on('pointerover', () => this.outline.setVisible(this.enabled));
-    this.zone.on('pointerout', () => {
-      this.pressed = false;
-      this.outline.setVisible(false);
-    });
-    this.zone.on('pointerdown', () => (this.pressed = true));
-    this.zone.on('pointerup', () => {
-      const fire = this.pressed && this.enabled;
-      this.pressed = false;
-      if (fire) onClick();
-    });
-    root.add([this.outline, ...(this.label ? [this.label] : []), this.veil, this.zone]);
-  }
-
-  setEnabled(enabled: boolean): void {
-    this.enabled = enabled;
-    this.veil.setVisible(!enabled);
-    if (!enabled) this.outline.setVisible(false);
-  }
-
-  get isEnabled(): boolean {
-    return this.enabled;
-  }
-
-  /** Clear hover state (used when a modal change swallows the pointerout). */
-  resetHover(): void {
-    this.outline.setVisible(false);
-    this.pressed = false;
-  }
-}
-
-/** Crisp 1-px rectangle outline from filled strips (stroked shapes straddle pixel edges). */
-function strokePixelRect(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number, color: number): void {
-  g.fillStyle(color, 1);
-  g.fillRect(x, y, w, 1);
-  g.fillRect(x, y + h - 1, w, 1);
-  g.fillRect(x, y, 1, h);
-  g.fillRect(x + w - 1, y, 1, h);
-}
-
-/**
- * Character Status window, drawn with the Moonsteel status kit: level, stat points, the six main
- * stats with staged (+) allocation, and every derived stat. Pending points only become real on
- * CONFIRM; RESET clears them; CANCEL / X / Esc discard them and close.
- * All objects live in a screen-space overlay scene, so clicks here never reach the world.
+ * Character Status window in the style of the Passive Tree and Inventory windows: name and level, remaining
+ * stat points, the six main stats with staged (+) allocation, and every derived stat in sections. Pending
+ * points only become real on CONFIRM; RESET clears them; CLOSE / Esc discard them and close. A modal blocker
+ * swallows every click outside, so nothing reaches the HUD or the world.
  */
 export class StatusWindow {
-  /** Loads the kit layer textures (once). A missing layer is reported and skipped. */
-  static async load(): Promise<void> {
-    const services = await GameServices.ready();
-    await Promise.all(
-      STATUS_KIT_LAYERS.map((layer) =>
-        services.assets
-          .load({ key: statusKitTextureKey(layer.id), type: 'image', url: layer.url })
-          .catch((e: Error) => console.warn(`[status] ${e.message}`)),
-      ),
-    );
-  }
-
   private readonly root: Phaser.GameObjects.Container;
   private readonly blocker: Phaser.GameObjects.Rectangle;
-  private readonly derivedArea: ScrollArea;
+  private readonly plusFrames: Phaser.GameObjects.Graphics;
   private readonly draft: StatAllocationDraft;
   private readonly statRows = new Map<MainStat, StatRow>();
-  private readonly derivedRows: DerivedRow[] = [];
+  private readonly secondaryRows: SecondaryRow[] = [];
   private readonly nameText: Phaser.GameObjects.Text;
   private readonly levelText: Phaser.GameObjects.Text;
   private readonly pointsText: Phaser.GameObjects.Text;
   private readonly captionText: Phaser.GameObjects.Text;
   private readonly summaryText: Phaser.GameObjects.Text;
   private readonly messageText: Phaser.GameObjects.Text;
-  private readonly confirmButton: KitButton;
-  private readonly resetButton: KitButton;
-  private readonly buttons: KitButton[] = [];
-  private readonly unsubscribe: () => void;
+  private readonly confirmButton: FrameButton;
+  private readonly resetButton: FrameButton;
+  private readonly buttons: FrameButton[] = [];
+  private readonly nameRight: number;
+  private readonly messageWidth: number;
   /** Last result message, kept as a key so it follows language changes. */
   private message: { text: LocalizedMessage; color: string } | null = null;
+  private shownHp = -1;
   private open = false;
 
+  /** `currentHp`: HP now (combat); max HP when absent. SP has no consumer yet and stays at max (as in the HUD). */
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly character: CharacterData,
     depth: number,
+    private readonly currentHp: () => number = () => Number.POSITIVE_INFINITY,
   ) {
     const { width: sw, height: sh } = scene.scale;
-    const ox = Math.round((sw - STATUS_KIT_WIDTH) / 2);
-    const oy = Math.round((sh - STATUS_KIT_HEIGHT) / 2);
-
-    // Modal blocker: swallows every pointer event outside the window while it is open.
-    this.blocker = scene.add.rectangle(0, 0, sw, sh, 0x000000, 0.45).setOrigin(0, 0).setDepth(depth).setInteractive();
-    this.root = scene.add.container(ox, oy).setDepth(depth + 1);
-
-    // 1. Kit layers in render order; a window-sized zone keeps clicks on empty areas from falling through.
-    const frame = STATUS_KIT_LAYERS[0];
-    if (frame) this.root.add(scene.add.zone(frame.x, frame.y, frame.width, frame.height).setOrigin(0, 0).setInteractive());
-    for (const layer of STATUS_KIT_LAYERS) {
-      const key = statusKitTextureKey(layer.id);
-      if (scene.textures.exists(key)) this.root.add(scene.add.image(layer.x, layer.y, key).setOrigin(0, 0));
-    }
+    const L = statusLayout(sw, sh);
+    const [wx, wy, ww, wh] = L.window;
     this.draft = new StatAllocationDraft(character.status);
+    this.blocker = scene.add.rectangle(0, 0, sw, sh, 0x000000, 0.55).setOrigin(0, 0).setDepth(depth).setInteractive();
+    this.root = scene.add.container(wx, wy).setDepth(depth + 1);
 
-    // 2. Header: title next to the kit's accent bars; name + level on the right; close button.
-    const H = STATUS_KIT.header;
-    const title = this.text(H.titleX, H.textY, '', 'section', PALETTE.white);
-    this.root.add(title);
-    this.levelText = this.text(H.rightX, H.textY, '', 'label', PALETTE.accentLight).setOrigin(1, 0);
-    this.nameText = this.text(H.rightX, H.textY, '', 'label', PALETTE.white).setOrigin(1, 0);
-    this.root.add([this.levelText, this.nameText]);
-    this.buttons.push(new KitButton(scene, this.root, STATUS_KIT.close, null, () => this.close()));
+    // 1. Chrome; a window-sized zone keeps clicks on empty areas inside.
+    this.root.add(scene.add.zone(0, 0, ww, wh).setOrigin(0, 0).setInteractive());
+    const g = scene.add.graphics();
+    drawPanelFrame(g, [0, 0, ww, wh]);
+    drawPanelFrame(g, L.title);
+    drawPanelFrame(g, L.points);
+    const [tx, ty, tw, th] = L.title;
+    g.fillStyle(C.red, 1);
+    for (const x of [tx + 12, tx + tw - 16]) g.fillRect(x, ty + Math.floor(th / 2) - 2, 4, 4);
+    const panels: Rect[] = [L.panels.primary, L.panels.secondary];
+    for (const p of panels) {
+      drawPanelFrame(g, p);
+      g.fillStyle(C.dim, 1).fillRect(p[0] + L.caption.x, p[1] + L.caption.rule, p[2] - L.caption.x * 2, 1);
+    }
+    drawPanelFrame(g, L.footer);
+    for (const r of [L.buttons.reset, L.buttons.confirm]) drawOutline(g, r, 0, C.line);
+    drawOutline(g, L.buttons.close, 0, C.red);
+    if (STATUS_DEV_TOOLS_ENABLED) drawOutline(g, L.buttons.dev, 0, C.dim);
+    for (const { rect } of L.stats) {
+      g.fillStyle(C.slotFill, 1).fillRect(...rect);
+      drawOutline(g, rect, 0, C.dim);
+      g.fillStyle(C.slotCorner, 1).fillRect(rect[0], rect[1], 2, rect[3]);
+    }
+    for (const s of L.sections) g.fillStyle(C.dim, 1).fillRect(s.x, s.ruleY, s.width, 1);
+    this.plusFrames = scene.add.graphics();
+    this.root.add([g, this.plusFrames]);
 
-    // 3. Section captions under the y-37 rules.
-    this.pointsText = this.text(STATUS_KIT.sectionLeft.cx, STATUS_KIT.sectionLeft.y, '', 'small', PALETTE.silver).setOrigin(0.5, 0);
-    const derivedTitle = this.text(STATUS_KIT.sectionRight.cx, STATUS_KIT.sectionRight.y, '', 'small', PALETTE.silver).setOrigin(0.5, 0);
-    this.root.add([this.pointsText, derivedTitle]);
+    // 2. Header: name + level on the left, title in the centre box, remaining points in the right box.
+    this.nameText = this.text(L.name.x, L.name.y, 'label', PALETTE.white).setOrigin(0, 0.5);
+    this.levelText = this.text(L.name.x, L.name.y, 'label', PALETTE.silver).setOrigin(0, 0.5);
+    this.nameRight = L.name.right;
+    const title = this.text(tx + Math.floor(tw / 2), ty + Math.floor(th / 2), 'section', C.lineText).setOrigin(0.5);
+    const [px, py, pw, ph] = L.points;
+    this.pointsText = this.text(px + Math.floor(pw / 2), py + Math.floor(ph / 2), 'label', C.lineText).setOrigin(0.5);
+    this.root.add([this.nameText, this.levelText, title, this.pointsText]);
 
-    // 4. Main stat rows.
-    MAIN_STATS.forEach((stat, i) => this.buildStatRow(stat, i));
+    // 3. Panel captions.
+    const [primary, secondary] = panels;
+    const primaryTitle = this.text(primary[0] + L.caption.x, primary[1] + L.caption.y, 'small', PALETTE.silver);
+    const secondaryTitle = this.text(secondary[0] + L.caption.x, secondary[1] + L.caption.y, 'small', PALETTE.silver);
+    this.captionText = this.text(secondary[0] + secondary[2] - L.caption.x, secondary[1] + L.caption.y, 'small', PALETTE.gray).setOrigin(1, 0);
+    this.root.add([primaryTitle, secondaryTitle, this.captionText]);
 
-    // 5. Derived panel: caption on the panel's title rule, rows between the baked lines (scrolls by one row).
-    const D = STATUS_KIT.derived;
-    this.captionText = this.text(D.captionRight, D.captionY, '', 'small', PALETTE.gray).setOrigin(1, 0);
-    this.root.add(this.captionText);
-    this.derivedArea = new ScrollArea(scene, ox + D.listX, oy + D.listY, D.listW, D.listH, depth + 2, D.rowPitch);
-    const derivedLabels: { key: string; text: Phaser.GameObjects.Text }[] = [];
-    DERIVED_DISPLAY.forEach((entry, i) => {
-      const rowY = i * D.rowPitch + D.textOffsetY;
-      const labelText = this.text(2, rowY, '', 'small', PALETTE.silver);
-      derivedLabels.push({ key: entry.key, text: labelText });
-      const value = this.text(D.valueRight - D.listX, rowY, '', 'small', PALETTE.white).setOrigin(1, 0);
-      this.derivedArea.content.add([labelText, value]);
-      this.derivedRows.push({ key: entry.key, percent: entry.percent ?? false, value });
+    // 4. Main stats and the message line under them.
+    for (const row of L.stats) this.buildStatRow(row);
+    this.messageText = this.text(L.message.x, L.message.y, 'small', PALETTE.error);
+    this.messageWidth = L.message.width;
+    this.root.add(this.messageText);
+
+    // 5. Secondary stats in sections.
+    const captions = L.sections.map((s) => {
+      const caption = this.text(s.x, s.captionY, 'small', C.redText);
+      this.root.add(caption);
+      for (const { key, y } of s.rows) {
+        const label = this.text(s.x, y, 'small', PALETTE.silver);
+        const value = this.text(s.x + s.width, y, 'small', PALETTE.white).setOrigin(1, 0);
+        this.root.add([label, value]);
+        this.secondaryRows.push({ key, x: s.x, right: s.x + s.width, label, value });
+      }
+      return { id: s.id, caption };
     });
-    this.derivedArea.setContentHeight(DERIVED_DISPLAY.length * D.rowPitch);
 
-    // 6. Message line, footer summary and buttons.
-    this.messageText = this.text(STATUS_KIT.message.x, STATUS_KIT.message.y, '', 'small', PALETTE.error);
-    this.summaryText = this.text(STATUS_KIT.summary.cx, STATUS_KIT.summary.y, '', 'small', PALETTE.pale).setOrigin(0.5, 0);
-    this.root.add([this.messageText, this.summaryText]);
-
-    const F = STATUS_KIT.footer;
-    this.resetButton = new KitButton(scene, this.root, F.reset, '', () => this.reset());
+    // 6. Footer: allocation summary and buttons.
+    this.summaryText = this.text(L.summary.x, L.summary.y, 'small', PALETTE.silver).setOrigin(0, 0.5);
+    this.root.add(this.summaryText);
     if (STATUS_DEV_TOOLS_ENABLED) {
       // DEV ONLY: +10 test points (Shift + click: +100).
-      this.buttons.push(
-        new KitButton(scene, this.root, F.dev, t('status.devGrant'), () => {
-          const shift = this.scene.input.activePointer.event?.shiftKey ?? false;
-          CharacterStatusService.devGrantPoints(this.character, shift ? 100 : 10);
-        }),
-      );
-    } else {
-      // The kit bakes a fourth button; without dev tools it is unused, so hide it.
-      const [x, y, w, h] = F.dev;
-      this.root.add(scene.add.rectangle(x, y, w, h, STATUS_KIT.fill).setOrigin(0, 0));
+      const dev = new FrameButton(scene, this.root, L.buttons.dev, PALETTE.gray, () => {
+        const shift = this.scene.input.activePointer.event?.shiftKey ?? false;
+        CharacterStatusService.devGrantPoints(this.character, shift ? 100 : 10);
+      });
+      dev.label.setText(t('status.devGrant'));
+      this.buttons.push(dev);
     }
-    const cancel = new KitButton(scene, this.root, F.cancel, '', () => this.close());
-    this.confirmButton = new KitButton(scene, this.root, F.confirm, '', () => this.confirm());
-    this.confirmButton.label?.setColor(PALETTE.white);
-    this.buttons.push(this.resetButton, cancel, this.confirmButton);
+    this.resetButton = new FrameButton(scene, this.root, L.buttons.reset, C.lineText, () => this.reset());
+    this.confirmButton = new FrameButton(scene, this.root, L.buttons.confirm, C.lineText, () => this.confirm());
+    const close = new FrameButton(scene, this.root, L.buttons.close, C.redText, () => this.close());
+    this.buttons.push(this.resetButton, this.confirmButton, close);
 
-    this.unsubscribe = CharacterStatusService.onChange((changed) => {
+    const unsubscribe = CharacterStatusService.onChange((changed) => {
       if (changed !== this.character) return;
       this.draft.rebase(changed.status);
       this.refresh();
     });
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribe());
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
 
     localize(scene, () => {
       title.setText(t('status.title'));
-      derivedTitle.setText(t('status.derivedTitle'));
-      for (const d of derivedLabels) d.text.setText(labels.derived(d.key));
-      for (const [stat, row] of this.statRows) row.label.setText(labels.statLabel(stat));
-      this.resetButton.label?.setText(t('common.reset'));
-      cancel.label?.setText(t('common.cancel'));
-      this.confirmButton.label?.setText(t('common.confirm'));
+      primaryTitle.setText(t('status.primaryTitle'));
+      secondaryTitle.setText(t('status.derivedTitle'));
+      for (const { id, caption } of captions) caption.setText(t(`status.sections.${id}`));
+      for (const row of this.statRows.values()) row.name.setText(labels.statLabel(row.layout.stat));
+      this.resetButton.label.setText(t('status.buttons.reset'));
+      this.confirmButton.label.setText(t('status.buttons.confirm'));
+      close.label.setText(t('status.buttons.close'));
       this.showMessage(this.message);
       this.refresh();
     });
@@ -242,7 +189,6 @@ export class StatusWindow {
   show(): void {
     this.draft.reset(this.character.status);
     this.showMessage(null);
-    this.derivedArea.scrollTo(0);
     this.setVisible(true);
     this.refresh();
   }
@@ -259,16 +205,24 @@ export class StatusWindow {
     else this.show();
   }
 
-  private buildStatRow(stat: MainStat, i: number): void {
-    const R = STATUS_KIT.row(i);
-    const label = this.text(R.labelX, R.textY, labels.statLabel(stat), 'label', PALETTE.white);
-    const desc = this.text(R.descX, R.smallTextY, '', 'small', PALETTE.gray);
-    const suffix = this.text(R.labelZoneRight, R.smallTextY, '', 'small', PALETTE.accentLight).setOrigin(1, 0);
-    const value = this.text(R.valueRight, R.textY, '', 'number', PALETTE.white).setOrigin(1, 0);
-    this.root.add([label, desc, suffix, value]);
-    const plus = new KitButton(this.scene, this.root, R.plus, null, () => this.addPoint(stat));
+  /** Every frame: current HP follows combat (redrawn only when it changes). */
+  update(): void {
+    if (this.open && this.hpNow() !== this.shownHp) this.refresh();
+  }
+
+  // ---------------------------------------------------------------------------------------------
+
+  private buildStatRow(layout: StatRowLayout): void {
+    const { stat } = layout;
+    const name = this.text(layout.labelX, layout.nameY, 'label', PALETTE.white);
+    const description = this.text(layout.labelX, layout.descriptionY, 'small', PALETTE.gray);
+    const value = this.text(layout.valueRight, layout.valueY, 'section', PALETTE.white).setOrigin(1, 0.5);
+    const suffix = this.text(0, layout.valueY, 'small', PREVIEW_COLOR).setOrigin(1, 0.5);
+    this.root.add([name, description, value, suffix]);
+    const plus = new FrameButton(this.scene, this.root, layout.plus, C.lineText, () => this.addPoint(stat));
+    plus.label.setStyle(typo('heading', C.lineText)).setText('+');
     this.buttons.push(plus);
-    this.statRows.set(stat, { label, value, desc, suffix, plus });
+    this.statRows.set(stat, { layout, name, description, value, suffix, plus });
   }
 
   private addPoint(stat: MainStat): void {
@@ -297,60 +251,71 @@ export class StatusWindow {
 
   private showMessage(message: { text: LocalizedMessage; color: string } | null): void {
     this.message = message;
-    if (!message) this.messageText.setText('');
-    else this.messageText.setColor(message.color).setText(translate(message.text.key, message.text.params as TranslationParams | undefined));
+    if (message) this.messageText.setColor(message.color);
+    fitText(this.messageText, message ? translate(message.text.key, message.text.params as TranslationParams | undefined) : '', this.messageWidth);
+  }
+
+  private hpNow(): number {
+    return Math.min(Math.round(CharacterStatusService.derived(this.character).maxHp), Math.round(this.currentHp()));
   }
 
   private refresh(): void {
     if (!this.open) return;
     const status = this.character.status;
     this.levelText.setText(t('status.level', { level: status.level }));
-    this.nameText.setX(this.levelText.x - this.levelText.width - 8);
-    fitText(this.nameText, this.character.name, 180);
-    this.pointsText.setText(t('status.statPoints', { points: status.statPoints }));
+    fitText(this.nameText, this.character.name, this.nameRight - this.nameText.x - this.levelText.width - 10);
+    this.levelText.setX(this.nameText.x + Math.ceil(this.nameText.width) + 10);
+    const left = this.draft.remainingAfterConfirm;
+    this.pointsText.setText(t('status.statPoints', { points: left })).setColor(left > 0 ? C.redText : C.lineText);
 
     const preview: StatBlock = { ...status.base };
+    this.plusFrames.clear();
     for (const stat of MAIN_STATS) {
       const row = this.statRows.get(stat)!;
       const p = this.draft.pendingFor(stat);
       preview[stat] = this.draft.previewBase(stat);
       const bonus = status.bonus[stat];
-      row.value.setText(`${preview[stat]}`).setColor(p > 0 ? PALETTE.accentLight : PALETTE.white);
+      row.value.setText(`${preview[stat]}`).setColor(p > 0 ? PREVIEW_COLOR : PALETTE.white);
       const parts: string[] = [];
       if (p > 0) parts.push(`+${p}`);
       if (bonus !== 0) parts.push(`(${bonus > 0 ? '+' : ''}${bonus})`);
-      row.suffix.setText(parts.join(' '));
-      // The description gives way to the pending / bonus marker when space runs out.
-      const descRight = parts.length > 0 ? row.suffix.x - row.suffix.width - 4 : row.suffix.x;
-      fitText(row.desc, labels.statDescription(stat), descRight - row.desc.x);
-      row.plus.setEnabled(this.draft.canAdd(stat));
+      row.suffix.setText(parts.join(' ')).setX(row.layout.valueRight - Math.ceil(row.value.width) - 6);
+      const descriptionRight = Math.min(row.layout.descriptionRight, row.suffix.x - Math.ceil(row.suffix.width) - 6);
+      fitText(row.description, labels.statDescription(stat), descriptionRight - row.layout.labelX);
+      const canAdd = this.draft.canAdd(stat);
+      row.plus.setEnabled(canAdd);
+      drawOutline(this.plusFrames, row.layout.plus, 0, canAdd ? C.line : C.dim);
     }
 
-    // Derived stats preview the pending allocation so players see what they are buying.
+    // Secondary stats preview the pending allocation so players see what they are buying.
     const current = CharacterStatusService.derived(this.character);
     const next = CharacterStatusService.previewDerived(this.character, preview);
-    for (const row of this.derivedRows) {
-      const now = formatStatValue(current[row.key], row.percent);
-      const after = formatStatValue(next[row.key], row.percent);
-      row.value.setText(now === after ? now : `${now} > ${after}`).setColor(now === after ? PALETTE.white : PALETTE.accentLight);
+    this.shownHp = this.hpNow();
+    for (const row of this.secondaryRows) {
+      const percent = PERCENT_STATS.has(row.key);
+      const now = formatStatValue(current[row.key], percent);
+      const after = formatStatValue(next[row.key], percent);
+      const filled = row.key === 'maxHp' ? `${this.shownHp} / ` : row.key === 'maxSp' ? `${now} / ` : '';
+      row.value.setText(filled + (now === after ? now : `${now} > ${after}`)).setColor(now === after ? PALETTE.white : PREVIEW_COLOR);
+      const name = row.key === 'maxHp' ? t('status.vitals.hp') : row.key === 'maxSp' ? t('status.vitals.sp') : labels.derived(row.key);
+      fitText(row.label, name, row.right - row.x - Math.ceil(row.value.width) - 8);
     }
 
     const pending = this.draft.hasPending();
-    this.captionText.setText(t(pending ? 'status.captionPreview' : 'status.captionCurrent')).setColor(pending ? PALETTE.accentLight : PALETTE.gray);
-    this.summaryText.setText(t('status.summary', { selected: this.draft.selected, left: this.draft.remainingAfterConfirm }));
+    this.captionText.setText(t(pending ? 'status.captionPreview' : 'status.captionCurrent')).setColor(pending ? PREVIEW_COLOR : PALETTE.gray);
+    this.summaryText.setText(t('status.summary', { selected: this.draft.selected, left })).setColor(pending ? PREVIEW_COLOR : PALETTE.silver);
     this.confirmButton.setEnabled(pending);
     this.resetButton.setEnabled(pending);
   }
 
-  private text(x: number, y: number, value: string, role: TypographyRole, color: string, extra: Phaser.Types.GameObjects.Text.TextStyle = {}): Phaser.GameObjects.Text {
-    return this.scene.add.text(Math.round(x), Math.round(y), value, typo(role, color, extra));
+  private text(x: number, y: number, role: TypographyRole, color: string): Phaser.GameObjects.Text {
+    return this.scene.add.text(Math.round(x), Math.round(y), '', typo(role, color));
   }
 
   private setVisible(visible: boolean): void {
     this.open = visible;
     this.root.setVisible(visible);
     this.blocker.setVisible(visible);
-    this.derivedArea.setVisible(visible);
     // Hidden objects must not catch input.
     if (visible) this.blocker.setInteractive();
     else this.blocker.disableInteractive();

@@ -7,7 +7,8 @@ import type { InventoryState } from './InventoryState';
  * and received one-time grants are ONE record, written in one step. Other saves are never touched.
  */
 const KEY_PREFIX = 'xenoblight.inventory.v1.';
-const SAVE_VERSION = 1;
+/** 2: worn items and single bag items are instances (ItemInstance); version 1 is read and upgraded. */
+const SAVE_VERSION = 2;
 
 export function inventorySaveKey(name: string): string {
   return KEY_PREFIX + characterNameKey(name);

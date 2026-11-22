@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE } from '../../config/palette';
 import { t } from '../../i18n';
 import { localize } from '../../i18n/phaser';
-import { EMPTY_INVENTORY, SlotSelection, type InventorySource, type SlotRef, type UnequipProblem } from '../../inventory/InventorySlots';
+import { EMPTY_INVENTORY, slotAction, SlotSelection, type InventorySource, type SlotAction, type SlotRef, type UnequipProblem } from '../../inventory/InventorySlots';
 import type { Rect } from '../passiveTree/PassiveTreeLayout';
 import { FrameButton } from '../passiveTree/PassiveTreeWindow';
 import { typo } from '../UITheme';
@@ -13,10 +13,16 @@ import { drawOutline, drawPanelFrame, INV_COLORS } from './inventoryTheme';
 import { ItemDetailPanel } from './ItemDetailPanel';
 
 /**
+ * After EQUIP the same button says UNEQUIP (and the other way round): further clicks are ignored for a moment,
+ * so a double click never undoes itself.
+ */
+const ACTION_PAUSE_MS = 400;
+
+/**
  * Inventory + Equipment: equipment slots | bag grid | item description, in one window. Click a slot to select
  * it (one at a time over both slot panels); the right panel shows its item, or "No item selected" for an empty
- * slot. With a bag item selected, a click on the equipment slot it belongs in equips it; a selected worn item
- * has an UNEQUIP button that puts it back into the bag. A modal blocker swallows every click outside, so nothing
+ * slot. Its one button equips the selected bag item (a worn one goes back to that bag slot) or takes the
+ * selected worn item off; the selection follows the item. A modal blocker swallows every click outside, so nothing
  * reaches the HUD or the world. CLOSE / I (GameUIScene) / Esc (GameScene) closes.
  */
 export class InventoryWindow {
@@ -32,11 +38,12 @@ export class InventoryWindow {
   private readonly hint: Phaser.GameObjects.Text;
   private readonly closeButton: FrameButton;
   private open = false;
-  /** An item could not be taken off (message for the player). */
-  onUnequipProblem: ((problem: UnequipProblem) => void) | null = null;
+  private actionPauseUntil = 0;
+  /** Equipping / taking off did not work (message for the player). */
+  onProblem: ((action: SlotAction['kind'], problem: UnequipProblem) => void) | null = null;
 
   constructor(
-    scene: Phaser.Scene,
+    private readonly scene: Phaser.Scene,
     depth: number,
     private readonly source: InventorySource = EMPTY_INVENTORY,
   ) {
@@ -69,10 +76,10 @@ export class InventoryWindow {
     this.hint = scene.add.text(L.hint.x, L.hint.y, '', typo('small', PALETTE.slate)).setOrigin(0, 0.5);
     this.root.add([this.title, ...this.captions, this.hint]);
 
-    const onClick = (slot: SlotRef): void => this.clickSlot(slot);
+    const onClick = (slot: SlotRef): void => this.selection.select(slot);
     this.equipment = new EquipmentPanel(scene, this.root, L, source, this.selection, onClick);
     this.grid = new InventoryGridPanel(scene, this.root, L, source, this.selection, onClick);
-    this.detail = new ItemDetailPanel(scene, this.root, L, () => this.unequipSelected());
+    this.detail = new ItemDetailPanel(scene, this.root, L, () => this.doAction());
     this.closeButton = new FrameButton(scene, this.root, L.close, INV_COLORS.redText, () => this.close());
 
     this.selection.onChange(() => this.showSelected());
@@ -89,6 +96,11 @@ export class InventoryWindow {
   /** The click zone of a slot (tutorial spotlight target). */
   slotZone(slot: SlotRef): Phaser.GameObjects.Zone | null {
     return (slot.kind === 'bag' ? this.grid : this.equipment).slots.zoneOf(slot);
+  }
+
+  /** The click zone of EQUIP while it is offered (tutorial spotlight target). */
+  get equipZone(): Phaser.GameObjects.Zone | null {
+    return this.detail.actionZone('equip');
   }
 
   show(): void {
@@ -110,24 +122,33 @@ export class InventoryWindow {
 
   // ---------------------------------------------------------------------------------------------
 
-  private clickSlot(slot: SlotRef): void {
-    const from = this.selection.current;
-    if (slot.kind === 'equipment' && from?.kind === 'bag') this.source.equip(from.index, slot.slot);
-    this.selection.select(slot);
-  }
-
   private showSelected(): void {
     const slot = this.selection.current;
-    this.detail.show(slot ? this.source.itemAt(slot) : null, slot?.kind === 'equipment' && this.source.canUnequip());
+    this.detail.show(slot ? this.source.itemAt(slot) : null, slotAction(this.source, slot));
   }
 
-  /** Takes off the selected worn item; the selection follows it into the bag. */
-  private unequipSelected(): void {
+  /** The item panel's button: equips or takes off the selected item. */
+  private doAction(): void {
     const slot = this.selection.current;
-    if (slot?.kind !== 'equipment') return;
-    const result = this.source.unequip(slot.slot);
-    if ('error' in result) this.onUnequipProblem?.(result.error);
-    else this.selection.select({ kind: 'bag', index: result.bagIndex });
+    const action = slotAction(this.source, slot);
+    const now = this.scene.time.now;
+    if (!slot || !action || now < this.actionPauseUntil) return;
+    if (slot.kind === 'bag') {
+      if (action.kind !== 'equip' || action.problem !== null) return;
+      if (!this.source.equip(slot.index, action.slot)) {
+        this.onProblem?.('equip', 'notSaved');
+        return;
+      }
+      this.selection.select({ kind: 'equipment', slot: action.slot });
+    } else {
+      const result = this.source.unequip(slot.slot);
+      if ('error' in result) {
+        this.onProblem?.('unequip', result.error);
+        return;
+      }
+      this.selection.select({ kind: 'bag', index: result.bagIndex });
+    }
+    this.actionPauseUntil = now + ACTION_PAUSE_MS;
   }
 
   private refresh(): void {

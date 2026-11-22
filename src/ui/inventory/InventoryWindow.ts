@@ -40,7 +40,7 @@ export class InventoryWindow {
   private open = false;
   private actionPauseUntil = 0;
   /** Equipping / taking off did not work (message for the player). */
-  onProblem: ((action: SlotAction['kind'], problem: UnequipProblem) => void) | null = null;
+  onProblem: ((action: SlotAction['kind'], problem: UnequipProblem | 'failed') => void) | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -136,7 +136,7 @@ export class InventoryWindow {
     if (slot.kind === 'bag') {
       if (action.kind !== 'equip' || action.problem !== null) return;
       if (!this.source.equip(slot.index, action.slot)) {
-        this.onProblem?.('equip', 'notSaved');
+        this.onProblem?.('equip', 'failed');
         return;
       }
       this.selection.select({ kind: 'equipment', slot: action.slot });

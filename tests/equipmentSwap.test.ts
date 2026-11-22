@@ -1,47 +1,18 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createCharacterData, type CharacterData } from '../src/data/CharacterData';
+import type { CharacterData } from '../src/data/CharacterData';
 import { characterInventorySource } from '../src/inventory/CharacterInventorySource';
-import { inventorySaveKey } from '../src/inventory/InventorySaveStore';
 import { InventoryService } from '../src/inventory/InventoryService';
 import { EQUIPMENT_SLOTS, INVENTORY_SLOT_COUNT, slotAction } from '../src/inventory/InventorySlots';
 import { addItem, bagIndexOf, createInventory, equipFromBag, equipOption, sanitizeInventory, unequipToBag, type InventoryState } from '../src/inventory/InventoryState';
 import { newInstanceId, type ItemInstance } from '../src/inventory/ItemInstance';
 import { itemDefinition } from '../src/items/ItemCatalog';
 import type { ItemDefinition } from '../src/items/ItemDefinition';
-import { TUTORIAL_QUEST_02 } from '../src/quests/TutorialQuest02';
 import { CharacterStatusService } from '../src/status/CharacterStatusService';
 import { isHotkeyPress, isTypingTarget } from '../src/ui/input/typing';
+import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
 const DAGGER = 'weapon_rusty_dagger';
-
-function withStorage(fn: (s: { store: Map<string, string>; failing: boolean }) => void): void {
-  const s = { store: new Map<string, string>(), failing: false };
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = {
-    getItem: (k: string) => s.store.get(k) ?? null,
-    setItem: (k: string, v: string) => {
-      if (s.failing) throw new Error('quota');
-      s.store.set(k, String(v));
-    },
-    removeItem: (k: string) => void s.store.delete(k),
-  };
-  const warn = console.warn;
-  console.warn = () => undefined;
-  try {
-    fn(s);
-  } finally {
-    console.warn = warn;
-    g.localStorage = previous;
-  }
-}
-
-function enter(name: string): CharacterData {
-  const c = createCharacterData(name, { gender: 'male', hairstyleId: 'mohawk' });
-  CharacterStatusService.loadInto(c);
-  return c;
-}
 
 /** Every instance of a state: where it is and its options. */
 function instances(s: InventoryState): Record<string, { at: string; itemId: string; options?: unknown }> {
@@ -140,20 +111,13 @@ test('unequip keeps identity and options too', () => {
   assert.deepEqual(again.state.equipment.weapon, A);
 });
 
-test('saves from before instances are upgraded once: same items, ids that stay', () => {
-  withStorage(({ store }) => {
-    const bag = Array.from({ length: INVENTORY_SLOT_COUNT }, () => null as unknown);
-    bag[4] = { itemId: DAGGER, quantity: 1 };
-    const grants = [TUTORIAL_QUEST_02.reward.grantId];
-    store.set(inventorySaveKey('Old'), JSON.stringify({ version: 1, name: 'Old', bag, equipment: { weapon: DAGGER, hat: null, armor: null, shoes: null, charm: null }, grants, updatedAt: 1 }));
-    const c = enter('Old');
-    const first = instances(c.inventory!);
-    assert.deepEqual(Object.values(first).map((x) => [x.at, x.itemId]).sort(), [['bag 4', DAGGER], ['weapon', DAGGER]]);
-    assert.deepEqual(instances(enter('Old').inventory!), first, 'saved: the same ids after every reload');
-    assert.deepEqual(c.inventory!.grants, grants);
-    assert.equal(InventoryService.grantOnce(c, TUTORIAL_QUEST_02.reward), 'alreadyGranted');
-    assert.ok(!store.has(inventorySaveKey('New')) && enter('New') && !store.has(inventorySaveKey('New')), 'a new character still has no record');
-  });
+test('records from before instances are upgraded: same items, each with an id', () => {
+  const bag = Array.from({ length: INVENTORY_SLOT_COUNT }, () => null as unknown);
+  bag[4] = { itemId: DAGGER, quantity: 1 };
+  const { state, newIds } = sanitizeInventory({ bag, equipment: { weapon: DAGGER, hat: null, armor: null, shoes: null, charm: null }, grants: ['g'] });
+  assert.deepEqual(Object.values(instances(state)).map((x) => [x.at, x.itemId]).sort(), [['bag 4', DAGGER], ['weapon', DAGGER]]);
+  assert.deepEqual([state.grants, newIds], [['g'], 2]);
+  assert.deepEqual(sanitizeInventory(JSON.parse(JSON.stringify(state))), { state, repaired: [], newIds: 0 }, 'the ids stay');
 });
 
 test('broken data: a repeated id gets a new one, options are kept, several single items in one slot are separated', () => {
@@ -172,7 +136,7 @@ test('broken data: a repeated id gets a new one, options are kept, several singl
 
 /** Two daggers, the first worn. */
 function twoDaggers(name: string): { c: CharacterData; first: string; second: string } {
-  const c = enter(name);
+  const c = newCharacter(name);
   assert.equal(InventoryService.grantOnce(c, { grantId: 'a', itemId: DAGGER, quantity: 1 }), null);
   assert.equal(InventoryService.grantOnce(c, { grantId: 'b', itemId: DAGGER, quantity: 1 }), null);
   const [first, second] = [c.inventory!.bag[0]!.instanceId!, c.inventory!.bag[1]!.instanceId!];
@@ -181,8 +145,8 @@ function twoDaggers(name: string): { c: CharacterData; first: string; second: st
 }
 
 test('service: Rusty Dagger A <-> B, +4 exactly once, saved, survives a reload', () => {
-  withStorage(() => {
-    const base = CharacterStatusService.derived(enter('Base'));
+  withoutStorage(() => {
+    const base = CharacterStatusService.derived(newCharacter('Base'));
     const { c, first, second } = twoDaggers('Alpha');
     const worn = { ...base, meleeAtk: base.meleeAtk + 4 };
     assert.deepEqual(CharacterStatusService.derived(c), worn);
@@ -191,7 +155,7 @@ test('service: Rusty Dagger A <-> B, +4 exactly once, saved, survives a reload',
     assert.equal(source.equip(1, 'weapon'), true);
     assert.deepEqual([c.inventory!.equipment.weapon?.instanceId, c.inventory!.bag[1]?.instanceId], [second, first]);
     assert.deepEqual(CharacterStatusService.derived(c), worn, 'not stacked');
-    const reloaded = enter('Alpha');
+    const reloaded = saveAndLoad(c);
     assert.deepEqual(reloaded.inventory, c.inventory);
     assert.deepEqual(CharacterStatusService.derived(reloaded), worn);
     for (let i = 0; i < 101; i++) assert.equal(InventoryService.equip(reloaded, 1, 'weapon'), null);
@@ -204,19 +168,12 @@ test('service: Rusty Dagger A <-> B, +4 exactly once, saved, survives a reload',
   });
 });
 
-test('service: one swap = one save and one announcement; a swap that cannot be saved changes nothing', () => {
-  withStorage((s) => {
+test('service: one swap = one announcement; a swap that is not possible changes nothing', () => {
+  withoutStorage(() => {
     const { c } = twoDaggers('Alpha');
     let changes = 0;
     const off = InventoryService.onChange(() => changes++);
     const before = c.inventory;
-    const stored = s.store.get(inventorySaveKey('Alpha'));
-    s.failing = true;
-    assert.equal(InventoryService.equip(c, 1, 'weapon'), 'notSaved');
-    assert.equal(c.inventory, before);
-    assert.equal(s.store.get(inventorySaveKey('Alpha')), stored);
-    assert.equal(changes, 0);
-    s.failing = false;
     assert.equal(InventoryService.equip(c, 5, 'weapon'), 'emptySlot');
     assert.equal(InventoryService.equip(c, 1, 'hat'), 'wrongSlot');
     assert.equal(c.inventory, before);
@@ -227,7 +184,7 @@ test('service: one swap = one save and one announcement; a swap that cannot be s
 });
 
 test('random equip / unequip / swap sequences never lose, double or rename an instance', () => {
-  withStorage(() => {
+  withoutStorage(() => {
     const { c } = twoDaggers('Alpha');
     InventoryService.grantOnce(c, { grantId: 'c', itemId: DAGGER, quantity: 1 });
     const ids = Object.keys(instances(c.inventory!)).sort();
@@ -239,7 +196,7 @@ test('random equip / unequip / swap sequences never lose, double or rename an in
       assert.deepEqual(Object.keys(instances(c.inventory!)).sort(), ids);
     }
     assert.ok(bagIndexOf(c.inventory, DAGGER) >= 0);
-    assert.deepEqual(enter('Alpha').inventory, c.inventory);
+    assert.deepEqual(saveAndLoad(c).inventory, c.inventory);
   });
 });
 

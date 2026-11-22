@@ -20,7 +20,6 @@ import {
   type PassiveProgress,
 } from '../src/passives/PassiveProgress';
 import { DRIFTER_TREE, PASSIVE_TREES, type PassiveTreeDefinition, type PassiveTreeId } from '../src/passives/PassiveTree';
-import { PassiveSaveStore, passiveSaveKey } from '../src/passives/PassiveSaveStore';
 import { applyDerivedBonus, combineDerivedBonuses, emptyDerivedBonus } from '../src/status/DerivedBonuses';
 import { computeDerivedStats } from '../src/status/DerivedStats';
 import { createStatBlock } from '../src/status/StatTypes';
@@ -200,61 +199,33 @@ test('tutorial: open the tree -> select the center -> unlock; closing resumes at
 
 // ----------------------------------------------------------------------------------- save / reload
 
-function withStorage(fn: (store: Map<string, string>) => void): void {
-  const store = new Map<string, string>();
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, String(v)),
-    removeItem: (k: string) => void store.delete(k),
-  };
-  try {
-    fn(store);
-  } finally {
-    g.localStorage = previous;
+/** What a save file does to passive progress: JSON, repair, owed level rewards. */
+function reload(p: PassiveProgress | null, level: number): PassiveProgress {
+  return sanitizePassiveProgress(p === null ? null : JSON.parse(JSON.stringify(p)), level).progress;
+}
+
+test('save file round trip: ranks, points, rewarded level and tutorial survive; loading never re-grants', () => {
+  let p = reload(null, 4);
+  assert.equal(availablePoints(p), 4);
+  const r = upgradeNode(p, 'drifters_resolve');
+  assert.ok(r.ok);
+  p = upgradeNode(r.progress, 'swiftness').ok ? (upgradeNode(r.progress, 'swiftness') as { progress: PassiveProgress }).progress : p;
+  for (let i = 0; i < 3; i++) {
+    const again = reload(p, 4);
+    assert.deepEqual(again, p, `load ${i + 1}: identical`);
+    assert.equal(availablePoints(again), 2);
   }
-}
-
-/** What CharacterStatusService.loadInto does for passives: load + repair + grant owed rewards + save. */
-function reload(name: string, level: number): PassiveProgress {
-  const r = PassiveSaveStore.load(name);
-  const { progress } = sanitizePassiveProgress(r.kind === 'loaded' ? r.data : null, level);
-  PassiveSaveStore.save(name, progress);
-  return progress;
-}
-
-test('persistence: ranks, points, rewarded level and tutorial survive reloads; reloading never re-grants', () => {
-  withStorage((store) => {
-    let p = reload('Tester', 4);
-    assert.equal(availablePoints(p), 4);
-    const r = upgradeNode(p, 'drifters_resolve');
-    assert.ok(r.ok);
-    p = upgradeNode(r.progress, 'swiftness').ok ? (upgradeNode(r.progress, 'swiftness') as { progress: PassiveProgress }).progress : p;
-    PassiveSaveStore.save('Tester', p);
-    for (let i = 0; i < 3; i++) {
-      const again = reload('Tester', 4);
-      assert.deepEqual(again, p, `reload ${i + 1}: identical`);
-      assert.equal(availablePoints(again), 2);
-    }
-    const leveled = reload('tester', 6);
-    assert.equal(availablePoints(leveled), 4, 'case-insensitive name; levels 5-6 granted once');
-    assert.equal(reload('Tester', 6).rewardedLevel, 6);
-    assert.ok(store.has(passiveSaveKey('TESTER')));
-    assert.ok(![...store.keys()].some((k) => k.startsWith('xenoblight.status.')), 'the status save is untouched');
-  });
+  const leveled = reload(p, 6);
+  assert.equal(availablePoints(leveled), 4, 'levels 5-6 granted once');
+  assert.equal(reload(leveled, 6).rewardedLevel, 6);
+  assert.deepEqual(reload(leveled, 6), leveled);
 });
 
 test('older saves (no passive data) start fresh with the owed level rewards; broken data is repaired', () => {
-  withStorage((store) => {
-    assert.equal(PassiveSaveStore.load('Old').kind, 'missing');
-    const fresh = reload('Old', 7);
+  {
+    const fresh = reload(null, 7);
     assert.equal(availablePoints(fresh), 7);
     assert.equal(fresh.tutorial, 'pending');
-
-    store.set(passiveSaveKey('Bad'), '{not json');
-    assert.equal(PassiveSaveStore.load('Bad').kind, 'invalid');
-
     const { progress, repaired } = sanitizePassiveProgress(
       { activeTree: 'drifter', rewardedLevel: 3, trees: { drifter: { earned: 99, ranks: { drifters_resolve: 5, combat_training: 2, precision: 2, evasion: 1 } } }, tutorial: 'pending' },
       3,
@@ -267,7 +238,7 @@ test('older saves (no passive data) start fresh with the owed level rewards; bro
     assert.equal(progress.tutorial, 'done', 'center unlocked = tutorial done');
     // overspent: optional nodes are reset first
     assert.equal(rankOf(progress, 'combat_training') + rankOf(progress, 'precision') <= 2, true);
-  });
+  }
 });
 
 // ------------------------------------------------------------------------------------- class change

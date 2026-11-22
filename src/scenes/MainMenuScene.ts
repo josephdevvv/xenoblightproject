@@ -18,12 +18,12 @@ import { SettingsWindow } from '../ui/SettingsWindow';
 import { fitText } from '../ui/text/fitText';
 import { typo } from '../ui/UITheme';
 
-type MenuMessage = SaveFileError | 'storage' | 'unreadable';
+type MenuMessage = SaveFileError | 'unreadable';
 
 /**
  * First screen: logo, New Game (character creation), Load Game (a save file from the player's computer) and
- * Settings (language). Leaving the game leads back here; the game keeps saving progress in the browser as
- * before.
+ * Settings (language). Leaving the game leads back here. Nothing is saved by itself and no earlier session is
+ * looked up: a character comes from character creation or from a save file.
  */
 export class MainMenuScene extends Phaser.Scene {
   private atmosphere!: AtmosphereEffects;
@@ -96,7 +96,26 @@ export class MainMenuScene extends Phaser.Scene {
 
   private newGame(): void {
     if (this.busy) return;
-    this.leave(SCENES.CharacterCreation);
+    const active = CharacterStore.getActive();
+    if (!active) {
+      this.leave(SCENES.CharacterCreation);
+      return;
+    }
+    this.dialog.show({
+      title: t('menu.newGameTitle'),
+      lines: [t('menu.sessionLost', { name: active.name })],
+      choices: [
+        {
+          label: t('menu.newGame'),
+          tone: 'danger',
+          onChoose: () => {
+            CharacterStore.endSession();
+            this.leave(SCENES.CharacterCreation);
+          },
+        },
+        { label: t('common.cancel'), tone: 'quiet', onChoose: () => undefined },
+      ],
+    });
   }
 
   private async loadGame(): Promise<void> {
@@ -114,14 +133,11 @@ export class MainMenuScene extends Phaser.Scene {
     else this.showMessage(result.error);
   }
 
-  /** Anything that would be replaced is named first; nothing happens before the player agrees. */
+  /** A running session is only replaced after the player agrees. */
   private confirmRestore(save: GameSave): void {
     const { name } = save.profile;
     const active = CharacterStore.getActive();
-    const lines: string[] = [];
-    if (SaveService.hasCharacter(name)) lines.push(t('save.replaceCharacter', { name }));
-    if (active) lines.push(t('save.replaceSession', { name: active.name }));
-    if (lines.length === 0) {
+    if (!active) {
       this.restore(save);
       return;
     }
@@ -129,7 +145,7 @@ export class MainMenuScene extends Phaser.Scene {
     const when = save.savedAt === null ? '' : new Date(save.savedAt).toLocaleString(getLanguage() === 'th' ? 'th-TH' : 'en-GB');
     this.dialog.show({
       title: t('save.confirmTitle'),
-      lines: [when ? `${info}  ·  ${when}` : info, ...lines],
+      lines: [when ? `${info}  ·  ${when}` : info, t('menu.sessionLost', { name: active.name })],
       choices: [
         { label: t('save.confirmLoad'), tone: 'danger', onChoose: () => this.restore(save) },
         { label: t('common.cancel'), tone: 'quiet', onChoose: () => undefined },
@@ -139,13 +155,7 @@ export class MainMenuScene extends Phaser.Scene {
 
   private restore(save: GameSave): void {
     if (this.busy) return;
-    const character = SaveService.restore(save);
-    if (!character) {
-      this.showMessage('storage');
-      return;
-    }
-    CharacterStore.add(character);
-    CharacterStore.setActive(character.id);
+    CharacterStore.startSession(SaveService.restore(save));
     this.leave(SCENES.Game, { savedLocation: save.savedLocation });
   }
 

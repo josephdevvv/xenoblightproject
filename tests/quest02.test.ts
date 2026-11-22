@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { playerCombatStats } from '../src/combat/CombatRules';
-import { createCharacterData, type CharacterData } from '../src/data/CharacterData';
+import type { CharacterData } from '../src/data/CharacterData';
 import { DIALOGUES, DialogueSession } from '../src/dialogue/Dialogues';
 import { initLanguage, setLanguage } from '../src/i18n';
 import { labels } from '../src/i18n/labels';
 import { characterInventorySource } from '../src/inventory/CharacterInventorySource';
-import { InventorySaveStore, inventorySaveKey } from '../src/inventory/InventorySaveStore';
 import { InventoryService } from '../src/inventory/InventoryService';
 import { EQUIPMENT_SLOTS, INVENTORY_SLOT_COUNT } from '../src/inventory/InventorySlots';
 import { addItem, bagIndexOf, createInventory, equipFromBag, equipmentDerivedBonus, grantOnce, hasGrant, sanitizeInventory, type InventoryState } from '../src/inventory/InventoryState';
@@ -15,7 +14,6 @@ import type { ItemDefinition } from '../src/items/ItemDefinition';
 import { itemInfo } from '../src/items/ItemInfoText';
 import { PassiveTreeService } from '../src/passives/PassiveTreeService';
 import { TUTORIAL_QUEST_EXP_BUDGET } from '../src/progression/QuestExpBudget';
-import { questSaveKey } from '../src/quests/QuestSaveStore';
 import { QuestService } from '../src/quests/QuestService';
 import {
   applyQuest02,
@@ -31,46 +29,16 @@ import {
 } from '../src/quests/TutorialQuest02';
 import { CharacterStatusService } from '../src/status/CharacterStatusService';
 import { NOTIFICATION_TIMING, NotificationQueue } from '../src/ui/notifications/NotificationQueue';
+import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
 const DAGGER = 'weapon_rusty_dagger';
 const { reward } = TUTORIAL_QUEST_02;
 const EVENTS: Quest02Event[] = ['start', 'talk', 'cancelTalk', 'grantReward', 'finishDialogue', 'complete'];
 const at = (state: Quest02State): Quest02Progress => ({ state });
 
-interface FakeStorage {
-  store: Map<string, string>;
-  failing: (key: string) => boolean;
-}
-
-function withStorage(fn: (s: FakeStorage) => void): void {
-  const s: FakeStorage = { store: new Map(), failing: () => false };
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = {
-    getItem: (k: string) => s.store.get(k) ?? null,
-    setItem: (k: string, v: string) => {
-      if (s.failing(k)) throw new Error('quota');
-      s.store.set(k, String(v));
-    },
-    removeItem: (k: string) => void s.store.delete(k),
-  };
-  try {
-    fn(s);
-  } finally {
-    g.localStorage = previous;
-  }
-}
-
-/** A character as after creation or a reload. */
-function enter(name: string): CharacterData {
-  const c = createCharacterData(name, { gender: 'male', hairstyleId: 'mohawk' });
-  CharacterStatusService.loadInto(c);
-  return c;
-}
-
 /** Plays Tutorial Quest 01 and the passive tutorial up to the unlocked first node. */
 function afterPassiveTutorial(name: string): CharacterData {
-  const c = enter(name);
+  const c = newCharacter(name);
   for (const e of ['start', 'talk', 'finishDialogue', 'startPassiveTutorial'] as const) assert.ok(QuestService.advance(c, e), e);
   QuestService.sync02(c);
   assert.equal(QuestService.quest02(c).state, 'NOT_STARTED', 'not before the node is unlocked');
@@ -127,14 +95,14 @@ test('restore: a cut-off conversation starts over or goes on, completed stays co
 });
 
 test('start: after quest 01 AND the first passive node, by itself, once', () => {
-  withStorage(() => {
+  withoutStorage(() => {
     const c = afterPassiveTutorial('Alpha');
     assert.equal(QuestService.quest02(c).state, 'FIND_MATEUS');
     QuestService.sync02(c);
     assert.equal(QuestService.quest02(c).state, 'FIND_MATEUS');
-    assert.equal(QuestService.quest02(enter('Alpha')).state, 'FIND_MATEUS', 'saved');
+    assert.equal(QuestService.quest02(saveAndLoad(c)).state, 'FIND_MATEUS', 'in the save file');
     // node unlocked before the first conversation: starts when that conversation is over
-    const early = enter('Early');
+    const early = newCharacter('Early');
     PassiveTreeService.upgrade(early, 'drifters_resolve');
     QuestService.advance(early, 'start');
     QuestService.sync02(early);
@@ -143,8 +111,7 @@ test('start: after quest 01 AND the first passive node, by itself, once', () => 
     QuestService.sync02(early);
     assert.equal(QuestService.quest02(early).state, 'FIND_MATEUS');
     // characters from before quest 01 keep everything as it was
-    const old = enter('Veteran');
-    QuestService.loadInto(old, false);
+    const old = newCharacter('Veteran');
     old.quests = { ...old.quests!, tutorial_01_find_mateus: { state: 'NOT_STARTED', autoStart: false, rewardClaimed: false } };
     PassiveTreeService.upgrade(old, 'drifters_resolve');
     QuestService.sync02(old);
@@ -153,7 +120,7 @@ test('start: after quest 01 AND the first passive node, by itself, once', () => 
 });
 
 test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 untouched', () => {
-  withStorage(({ store }) => {
+  withoutStorage(() => {
     const done: string[] = [];
     const off = QuestService.onCompleted((c, id) => done.push(`${c.name}:${id}`));
     const gained: unknown[] = [];
@@ -174,7 +141,7 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     assert.equal(QuestService.quest02(c).state, 'EQUIPMENT_TUTORIAL', 'only completes when it is worn');
 
     // reload, then equip
-    const c2 = enter('alpha');
+    const c2 = saveAndLoad(c);
     assert.equal(QuestService.quest02(c2).state, 'EQUIPMENT_TUTORIAL');
     assert.deepEqual(items(c2.inventory!), [DAGGER]);
     assert.equal(InventoryService.grantOnce(c2, reward), 'alreadyGranted');
@@ -185,10 +152,10 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     QuestService.sync02(c2);
     QuestService.sync02(c2);
     assert.equal(QuestService.quest02(c2).state, 'COMPLETED');
-    assert.deepEqual(done, ['Alpha:tutorial_01_find_mateus', 'alpha:tutorial_02_rusty_dagger']);
+    assert.deepEqual(done, ['Alpha:tutorial_01_find_mateus', 'Alpha:tutorial_02_rusty_dagger']);
     assert.deepEqual(items(c2.inventory!), [DAGGER]);
 
-    const c3 = enter('Alpha');
+    const c3 = saveAndLoad(c2);
     assert.equal(QuestService.quest02(c3).state, 'COMPLETED');
     assert.equal(c3.inventory!.equipment.weapon?.itemId, DAGGER);
     assert.equal(bagIndexOf(c3.inventory, DAGGER), -1);
@@ -198,9 +165,8 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     assert.equal(JSON.stringify(c3.status), before.status, 'no EXP, level or stat points');
     assert.equal(JSON.stringify(QuestService.quest01(c3)), before.quest01);
     assert.deepEqual(TUTORIAL_QUEST_EXP_BUDGET.allocations, {});
-    // another character is independent
-    assert.deepEqual(items(enter('Beta').inventory!), []);
-    assert.ok(store.has(inventorySaveKey('Alpha')) && !store.has(inventorySaveKey('Beta')));
+    // another character - also of the same name - is independent
+    assert.deepEqual(items(newCharacter('Alpha').inventory!), []);
     off();
     offGained();
   });
@@ -208,74 +174,55 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
 
 // ----------------------------------------------------------------------------------- one-time reward safety
 
-test('reward: repeated, reloaded at any point, or from another tab - never a second dagger', () => {
-  withStorage(() => {
+test('reward: repeated, or saved and loaded at any point - never a second dagger', () => {
+  withoutStorage(() => {
     const c = afterPassiveTutorial('Alpha');
     QuestService.advance02(c, 'talk');
-    const otherTab = enter('Alpha');
     for (let i = 0; i < 5; i++) InventoryService.grantOnce(c, reward);
     assert.deepEqual(items(c.inventory!), [DAGGER]);
-    // the other tab still believes nothing was given: it reads the stored record first
-    assert.equal(hasGrant(otherTab.inventory, reward.grantId), false);
-    assert.equal(InventoryService.grantOnce(otherTab, reward), 'alreadyGranted');
-    assert.deepEqual(items(otherTab.inventory!), [DAGGER]);
-    // closed between giving the item and saving the quest step
-    const reloaded = enter('Alpha');
+    // saved between giving the item and the next quest step
+    const reloaded = saveAndLoad(c);
+    assert.equal(InventoryService.grantOnce(reloaded, reward), 'alreadyGranted');
     assert.equal(QuestService.quest02(reloaded).state, 'EQUIPMENT_TUTORIAL');
     assert.equal(QuestService.advance02(reloaded, 'talk'), false, 'no second conversation');
     assert.deepEqual(items(reloaded.inventory!), [DAGGER]);
   });
 });
 
-test('reward that cannot be saved or does not fit: nothing is given, announced or recorded; asking again works', () => {
-  withStorage((s) => {
+test('reward that does not fit: nothing is given, announced or recorded; asking again works', () => {
+  withoutStorage(() => {
     const gained: unknown[] = [];
     const off = InventoryService.onGained((...x) => gained.push(x));
     const c = afterPassiveTutorial('Alpha');
-    const warn = console.warn;
-    console.warn = () => undefined;
-    s.failing = (k) => k.startsWith('xenoblight.inventory.');
-    assert.equal(InventoryService.grantOnce(c, reward), 'notSaved');
-    console.warn = warn;
-    assert.deepEqual([items(c.inventory!), hasGrant(c.inventory, reward.grantId), gained.length], [[], false, 0]);
-    s.failing = () => false;
-
     const full: InventoryState = { ...createInventory(), bag: Array.from({ length: INVENTORY_SLOT_COUNT }, () => ({ itemId: 'x', quantity: 1 })) };
     c.inventory = full;
     assert.equal(InventoryService.grantOnce(c, reward), 'bagFull');
     assert.equal(c.inventory, full);
     assert.equal(InventoryService.grantOnce(c, { ...reward, itemId: 'nothing' }), 'unknownItem');
+    assert.deepEqual([hasGrant(c.inventory, reward.grantId), gained.length], [false, 0]);
     c.inventory = createInventory();
     assert.equal(InventoryService.grantOnce(c, reward), null);
     assert.equal(gained.length, 1);
     off();
   });
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = undefined;
-  assert.equal(InventoryService.grantOnce(createCharacterData('NoStore', { gender: 'male', hairstyleId: 'bald' }), reward), 'notSaved');
-  g.localStorage = previous;
 });
 
-test('broken saves: the inventory record is backed up; quest and item records repair each other', () => {
-  withStorage(({ store }) => {
-    const warn = console.warn;
-    console.warn = () => undefined;
+test('broken progress: quest and item records repair each other', () => {
+  withoutStorage(() => {
     const c = afterPassiveTutorial('Alpha');
     QuestService.advance02(c, 'talk');
     InventoryService.grantOnce(c, reward);
     QuestService.advance02(c, 'grantReward');
     QuestService.advance02(c, 'finishDialogue');
-    store.set(inventorySaveKey('Alpha'), '{oops');
-    const broken = enter('Alpha');
-    assert.equal(store.get(`${inventorySaveKey('Alpha')}.invalid-backup`), '{oops');
+    const broken = newCharacter('Alpha');
+    CharacterStatusService.restore(broken, { status: c.status, passives: c.passives!, quests: c.quests!, inventory: createInventory() });
     assert.equal(QuestService.quest02(broken).state, 'EQUIPMENT_TUTORIAL');
     assert.equal(InventoryService.grantOnce(broken, reward), null, 'GameScene replaces the lost dagger, once');
     assert.equal(InventoryService.grantOnce(broken, reward), 'alreadyGranted');
     assert.deepEqual(items(broken.inventory!), [DAGGER]);
-    store.delete(questSaveKey('Alpha'));
-    assert.equal(QuestService.quest02(enter('Alpha')).state, 'COMPLETED', 'lost quest log: no restart, no second dagger');
-    console.warn = warn;
+    const lost = newCharacter('Alpha');
+    CharacterStatusService.restore(lost, { status: c.status, passives: c.passives!, quests: {}, inventory: c.inventory! });
+    assert.equal(QuestService.quest02(lost).state, 'COMPLETED', 'lost quest log: no restart, no second dagger');
   });
 });
 
@@ -348,9 +295,9 @@ test('stored data of any shape becomes a valid state; unknown items are kept', (
 // --------------------------------------------------------------------------------- window texts and tutorial
 
 test('inventory window data: icon, name, type and effects of the registered item; equips through the same source', () => {
-  withStorage(() => {
+  withoutStorage(() => {
     initLanguage(null);
-    const c = enter('Alpha');
+    const c = newCharacter('Alpha');
     const source = characterInventorySource(c);
     let changes = 0;
     const off = source.onChange(() => changes++);
@@ -436,9 +383,3 @@ test('notifications: stack up to the capacity, the rest wait with their full tim
   assert.deepEqual([q.visible.length, q.waitingCount], [0, 0]);
 });
 
-test('saving: only the inventory record is written', () => {
-  withStorage(({ store }) => {
-    assert.equal(InventorySaveStore.save('Alpha', createInventory()), true);
-    assert.deepEqual([...store.keys()], [inventorySaveKey('alpha')]);
-  });
-});

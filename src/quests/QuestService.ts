@@ -1,7 +1,6 @@
 import type { CharacterData } from '../data/CharacterData';
 import { hasGrant } from '../inventory/InventoryState';
 import { isCenterUnlocked } from '../passives/PassiveProgress';
-import { QuestSaveStore } from './QuestSaveStore';
 import {
   applyQuest01,
   createQuest01,
@@ -27,26 +26,24 @@ const changeListeners = new Set<ChangeListener>();
 const completedListeners = new Set<CompletedListener>();
 
 /**
- * The single place that reads and changes quest progress: every step goes through the pure rules, is saved
- * at once and announced.
+ * The single place that reads and changes quest progress: every step goes through the pure rules and is
+ * announced. Progress lives in memory and in exported save files only.
  *
  * FUTURE EXP (not decided - nothing is paid now): listen to onCompleted (or check canClaimReward after a
- * load), and only when claimReward() returns true call CharacterStatusService.gainExp. The claim is saved
+ * load), and only when claimReward() returns true call CharacterStatusService.gainExp. The claim is recorded
  * before it returns, so a reward can never be paid twice.
  */
 export const QuestService = {
-  /** Attaches the saved quests (after the inventory). `isNewCharacter` = the name had no saved status before. */
-  loadInto(character: CharacterData, isNewCharacter: boolean): void {
-    const result = QuestSaveStore.load(character.name);
-    if (result.kind === 'invalid') {
-      console.warn(`[quests] unreadable save for "${character.name}" (${result.reason}); kept a backup`);
-      QuestSaveStore.backupInvalid(character.name);
-    }
-    const stored = result.kind === 'loaded' ? result.quests : {};
-    const quest = sanitizeQuest01(stored[TUTORIAL_QUEST_01.id]) ?? createQuest01(isNewCharacter);
+  /** A new character's quests. */
+  begin(character: CharacterData): void {
+    character.quests = { tutorial_01_find_mateus: createQuest01(true), tutorial_02_rusty_dagger: createQuest02() };
+  },
+
+  /** The quests of a save file (after the inventory). Each record is checked; quests this build does not know are kept. */
+  restore(character: CharacterData, stored: Readonly<Record<string, unknown>>): void {
+    const quest = sanitizeQuest01(stored[TUTORIAL_QUEST_01.id]) ?? createQuest01(false);
     const quest02 = restoreQuest02(stored[TUTORIAL_QUEST_02.id], hasGrant(character.inventory, TUTORIAL_QUEST_02.reward.grantId));
     character.quests = { ...stored, tutorial_01_find_mateus: quest, tutorial_02_rusty_dagger: quest02 };
-    QuestSaveStore.save(character.name, character.quests);
   },
 
   quest01(character: CharacterData): Quest01Progress {
@@ -109,7 +106,7 @@ export const QuestService = {
     return () => changeListeners.delete(listener);
   },
 
-  /** Fired once per character when a quest is completed (after it was saved). */
+  /** Fired once per character when a quest is completed. */
   onCompleted(listener: CompletedListener): () => void {
     completedListeners.add(listener);
     return () => completedListeners.delete(listener);
@@ -118,6 +115,5 @@ export const QuestService = {
 
 function commit(character: CharacterData, change: Partial<Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger'>>): void {
   character.quests = { ...character.quests!, ...change };
-  QuestSaveStore.save(character.name, character.quests);
   for (const l of changeListeners) l(character);
 }

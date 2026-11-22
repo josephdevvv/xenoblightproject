@@ -55,9 +55,6 @@ Click the **Status** icon (first slot of the HUD menu bar, top right; hover show
 a point; **RESET** clears the selection, **CONFIRM** applies and saves, **CLOSE** / **Esc** discard and close.
 The derived stats preview the result (`now > after`). (**T** opens and closes the window; S stays "move down".)
 
-Status is saved in `localStorage`, one entry per character name (case-insensitive), and loaded when a character
-with that name is created again.
-
 **Test points (development only):** in `npm run dev` - or a production build opened with `?debug` - the window
 shows a **DEV +10** button that grants free stat points (**Shift + click**: +100). Normal players never see it.
 
@@ -68,10 +65,11 @@ The window is drawn in the same style as the Passive Tree and Inventory windows;
 ## Main menu, saving and loading
 
 The game starts in the main menu: **New Game** (character creation), **Load Game** and **Settings** (language).
-Progress is saved in the browser while playing, as before. In game, **Settings > Save Game** downloads
-`xenoblight_save.json`; **Load Game** opens the browser's file picker, checks the file and continues with that
-character (the same name in this browser or a running game is only replaced after asking). Damaged, foreign or
-newer files are refused with a message. Code: `src/save/` (SaveFile = format and checks, SaveService = restore,
+**There is no autosave:** progress exists in memory while playing and is kept only by **Settings > Save Game**, which
+downloads `xenoblight_save.json`. Closing, reloading or leaving the game discards everything that was not exported
+(Esc asks first). **Load Game** opens the browser's file picker, checks the file and continues with that character.
+**New Game** always starts a fresh level-1 character; names may repeat. A running session is only replaced after
+asking. Damaged, foreign or newer files are refused with a message. Code: `src/save/` (SaveFile = format and checks, SaveService = restore,
 fileIO = download / picker), `src/scenes/MainMenuScene.ts`.
 
 ## Languages and font
@@ -214,10 +212,8 @@ replaced by a mockup. The procedural mockup generator remains only for appearanc
 **Character creation (starters).** The player picks name, gender and hairstyle only
 (`src/data/StarterCharacters.ts`): male Bald / Mohawk, female Bald / Straight Bangs. Hair colour is fixed
 (blonde, or `none` for bald), and every new character is a **Drifter** wearing the Drifter outfit - the outfit
-row is a preview. These rules are applied in `createCharacterData`, not just the UI. Characters are saved per
-name in `localStorage` (`xenoblight.character.v1.<name>`: appearance + class; stats stay in the status save);
-the last played one pre-fills character creation after a reload, and a saved name continues that character
-unchanged (or starts over - the screen asks).
+row is a preview. These rules are applied in `createCharacterData`, not just the UI. Every New Game is an
+independent character, whatever its name; nothing of it is stored in the browser.
 
 **App icons and logo.** `public/icons/` holds the app icon set: `XENOBLIGHT_App.ico` (multi-size 16-256 px,
 browser tab favicon) and PNGs from 16 to 512 px. `index.html` links the ICO as favicon, the 256 px PNG as

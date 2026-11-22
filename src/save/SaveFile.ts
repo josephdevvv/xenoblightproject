@@ -5,15 +5,15 @@ import { parseCharacterProfile, type CharacterProfile } from '../data/CharacterP
 import { STARTER_CLASS_ID } from '../data/StarterCharacters';
 import { createInventory, sanitizeInventory, type InventoryState } from '../inventory/InventoryState';
 import { createPassiveProgress, sanitizePassiveProgress, type PassiveProgress } from '../passives/PassiveProgress';
-import { parseSavedStatus } from '../status/StatusSaveStore';
+import { parseSavedStatus } from '../status/StatusRecord';
 import type { CharacterStatus } from '../status/StatTypes';
 import { parseSavedLocation, type SavedLocation } from './SavedLocation';
 
 /**
  * The exported save file - pure (no Phaser, no DOM, no storage), unit-tested.
  *
- * One JSON document with the same records the game keeps in the browser (profile, status, passives, quests,
- * inventory + equipment + received grants) plus where the player stands. Derived stats, equipment bonuses and
+ * The only place progress is kept. One JSON document with the character's records (profile, status, passives,
+ * quests, inventory + equipment + received grants) plus where the player stands. Derived stats, equipment bonuses and
  * anything that only exists while playing are never saved: they are rebuilt from these records.
  *
  * Reading never trusts the file: it is data only (JSON.parse, nothing is executed), limited in size, its

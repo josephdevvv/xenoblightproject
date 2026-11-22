@@ -1,10 +1,14 @@
 import { browserStorage, type SettingsStorage } from '../settings/SettingsStore';
-import { characterNameKey } from '../status/StatusSaveStore';
 import type { Gender } from './AppearanceCatalog';
 import type { CharacterAppearance } from './CharacterData';
 
 /**
- * TEMPORARY client-side character profiles (localStorage) - who a character is: appearance and
+ * NOT USED BY THE GAME ANY MORE for storing anything: progress exists only in the running session and in save
+ * files the player exports (src/save). What the game uses from here is the profile's shape and its check
+ * (parseCharacterProfile, for save files). Records of earlier versions stay in the browser untouched and are
+ * never read.
+ *
+ * Earlier: client-side character profiles (localStorage) - who a character is: appearance and
  * class. Level / stats are saved separately (StatusSaveStore). Same identity rule: one record per
  * character name (case-insensitive). Replaced by server data later.
  *
@@ -25,6 +29,11 @@ const KEY_PREFIX = 'xenoblight.character.v1.';
 export const LAST_CHARACTER_KEY = 'xenoblight.lastCharacter.v1';
 const VERSION = 1;
 const GENDERS: readonly Gender[] = ['male', 'female'];
+
+/** The earlier character identity: the name, trimmed, Unicode-normalised and case-insensitive. */
+function characterNameKey(name: string): string {
+  return encodeURIComponent(name.trim().normalize('NFC').toLocaleLowerCase());
+}
 
 export function profileKey(name: string): string {
   return KEY_PREFIX + characterNameKey(name);

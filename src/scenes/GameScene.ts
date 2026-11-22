@@ -123,10 +123,11 @@ export class GameScene extends Phaser.Scene {
       // dying / dead / respawning: only the respawn button leaves the death screen
       if (this.death && !this.death.life.isAlive()) return;
       if (this.isTalking()) return; // a conversation ends with its own NEXT button
-      // An open UI window (Status) closes first; otherwise ESC keeps its original meaning.
-      const ui = this.scene.get(SCENES.GameUI) as GameUIScene;
-      if (this.scene.isActive(SCENES.GameUI) && ui.closeWindows()) return;
-      this.returnToMenu();
+      // An open UI window closes first; otherwise ESC leaves the game (asked first: nothing is saved by itself).
+      const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
+      if (ui?.closeWindows()) return;
+      if (ui && this.ready) ui.confirmLeave(() => this.returnToMenu());
+      else this.returnToMenu();
     };
     this.input.keyboard?.on('keydown-ESC', onEscape);
     // 1: Drifter Lv.1 attack skill (dagger thrust, 200 % ATK) as the next swing on the current target
@@ -406,7 +407,7 @@ export class GameScene extends Phaser.Scene {
     QuestService.advance(character, 'start');
     QuestService.advance(character, 'startPassiveTutorial');
     QuestService.sync02(character);
-    // the dagger's record was lost (unreadable save): the equipment tutorial needs it - still only once
+    // a repaired save file without the dagger: the equipment tutorial needs it - still only once
     if (QuestService.quest02(character).state === 'EQUIPMENT_TUTORIAL') InventoryService.grantOnce(character, TUTORIAL_QUEST_02.reward);
   }
 
@@ -533,9 +534,8 @@ export class GameScene extends Phaser.Scene {
     const active = CharacterStore.getActive();
     if (active) return active;
     const fallback = createCharacterData('Wanderer', createDefaultAppearance());
-    CharacterStatusService.loadInto(fallback);
-    CharacterStore.add(fallback);
-    CharacterStore.setActive(fallback.id);
+    CharacterStatusService.startNew(fallback);
+    CharacterStore.startSession(fallback);
     return fallback;
   }
 

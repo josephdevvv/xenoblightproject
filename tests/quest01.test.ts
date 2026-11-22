@@ -7,7 +7,6 @@ import { NPC_INTERACT_RANGE, NpcInteraction } from '../src/npcs/NpcInteraction';
 import { PASSIVE_TREES } from '../src/passives/PassiveTree';
 import { createPassiveProgress, syncLevelRewards, tutorialStep } from '../src/passives/PassiveProgress';
 import { TUTORIAL_QUEST_EXP_BUDGET } from '../src/progression/QuestExpBudget';
-import { QuestSaveStore, questSaveKey } from '../src/quests/QuestSaveStore';
 import { QuestService } from '../src/quests/QuestService';
 import {
   applyQuest01,
@@ -27,20 +26,9 @@ import { wrapText } from '../src/ui/text/wrapText';
 import { MapLayout } from '../src/world/MapLayout';
 import { ASHEN_CROSSROADS } from '../src/world/maps/AshenCrossroads';
 import { Pathfinder } from '../src/world/navigation/Pathfinder';
+import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
 const EVENTS: Quest01Event[] = ['start', 'talk', 'cancelTalk', 'finishDialogue', 'startPassiveTutorial'];
-
-function withStorage(fn: (store: Map<string, string>) => void): void {
-  const store = new Map<string, string>();
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, String(v)), removeItem: (k: string) => void store.delete(k) };
-  try {
-    fn(store);
-  } finally {
-    g.localStorage = previous;
-  }
-}
 
 const character = (name: string) => createCharacterData(name, { gender: 'male', hairstyleId: 'bald' });
 
@@ -120,69 +108,56 @@ test('handoff: the passive tutorial waits for the conversation, and the passive 
   assert.ok(PASSIVE_TREES.drifter.nodes.length === 10);
 });
 
-test('persistence: per character, every step survives a reload, completion fires once, no reward defined', () => {
-  withStorage((store) => {
+test('save files: every step survives save and load, completion fires once, no reward defined', () => {
+  withoutStorage(() => {
     const done: string[] = [];
     const off = QuestService.onCompleted((c, id) => done.push(`${c.name}:${id}`));
-    const reload = (name: string) => {
-      const c = character(name);
-      QuestService.loadInto(c, false); // a returning character
-      return c;
-    };
-    const a = character('Alpha');
-    QuestService.loadInto(a, true);
+    const a = newCharacter('Alpha');
     assert.equal(QuestService.quest01(a).state, 'NOT_STARTED');
-    assert.equal(QuestService.quest01(reload('Alpha')).autoStart, true, 'left before entering the map: still starts next time');
+    assert.equal(QuestService.quest01(saveAndLoad(a)).autoStart, true, 'saved before entering the map: still starts next time');
     assert.ok(QuestService.advance(a, 'start'));
-    assert.equal(QuestService.quest01(reload('alpha')).state, 'FIND_MATEUS', 'name is case-insensitive');
+    assert.equal(QuestService.quest01(saveAndLoad(a)).state, 'FIND_MATEUS');
     assert.equal(QuestService.advance(a, 'start'), false);
     QuestService.advance(a, 'talk');
-    assert.equal(QuestService.quest01(reload('Alpha')).state, 'FIND_MATEUS', 'a conversation that was cut off starts over');
-    const a2 = reload('Alpha');
+    const a2 = saveAndLoad(a);
+    assert.equal(QuestService.quest01(a2).state, 'FIND_MATEUS', 'a conversation that was cut off starts over');
     QuestService.advance(a2, 'talk');
     assert.equal(QuestService.canClaimReward(a2), false);
     QuestService.advance(a2, 'finishDialogue');
     assert.deepEqual(done, ['Alpha:tutorial_01_find_mateus']);
-    const a3 = reload('Alpha');
+    const a3 = saveAndLoad(a2);
     assert.equal(QuestService.quest01(a3).state, 'DIALOGUE_COMPLETED', 'stays completed; the handoff resumes');
     assert.equal(QuestService.advance(a3, 'talk'), false, 'no second conversation');
     assert.equal(QuestService.advance(a3, 'finishDialogue'), false, 'no second completion');
     QuestService.advance(a3, 'startPassiveTutorial');
-    assert.equal(QuestService.quest01(reload('Alpha')).state, 'PASSIVE_TUTORIAL_STARTED');
+    assert.equal(QuestService.quest01(saveAndLoad(a3)).state, 'PASSIVE_TUTORIAL_STARTED');
     assert.equal(done.length, 1);
-    // prepared reward claim: once, across reloads
+    // prepared reward claim: once, also after loading
     assert.equal(QuestService.claimReward(a3), true);
     assert.equal(QuestService.claimReward(a3), false);
-    assert.equal(QuestService.claimReward(reload('Alpha')), false);
+    assert.equal(QuestService.claimReward(saveAndLoad(a3)), false);
     assert.deepEqual(TUTORIAL_QUEST_EXP_BUDGET.allocations, {}, 'no EXP allocated');
     assert.equal(a3.status.exp, 0, 'no EXP paid');
-    // another character is independent; an older one never gets the quest by itself
-    const b = character('Beta');
-    QuestService.loadInto(b, true);
-    assert.equal(QuestService.quest01(b).state, 'NOT_STARTED');
+    // another character - also of the same name - is independent
+    assert.equal(QuestService.quest01(newCharacter('Alpha')).state, 'NOT_STARTED');
+    // a save without the quest never gets it by itself
     const old = character('Veteran');
-    QuestService.loadInto(old, false);
+    QuestService.restore(old, {});
     assert.equal(QuestService.advance(old, 'start'), false);
     assert.equal(QuestService.isPassiveTutorialOpen(old), true);
-    assert.ok([...store.keys()].every((k) => k.startsWith('xenoblight.quests.')), 'other saves untouched');
     off();
   });
 });
 
-test('broken quest saves: backed up, never a second completion; unknown quests are kept', () => {
-  withStorage((store) => {
-    store.set(questSaveKey('Bad'), '{oops');
-    const c = character('Bad');
-    QuestService.loadInto(c, false);
-    assert.equal(QuestService.quest01(c).state, 'NOT_STARTED');
-    assert.equal(QuestService.canClaimReward(c), false);
-    assert.equal(store.get(`${questSaveKey('Bad')}.invalid-backup`), '{oops');
-    QuestSaveStore.save('Multi', { future_quest: { state: 'X' }, tutorial_01_find_mateus: { state: 'FIND_MATEUS', autoStart: true, rewardClaimed: false } });
-    const m = character('Multi');
-    QuestService.loadInto(m, false);
-    QuestService.advance(m, 'talk');
-    assert.deepEqual(m.quests!.future_quest, { state: 'X' });
-  });
+test('broken quest records: never a second completion; unknown quests are kept', () => {
+  const c = character('Bad');
+  QuestService.restore(c, { tutorial_01_find_mateus: 'oops' });
+  assert.equal(QuestService.quest01(c).state, 'NOT_STARTED');
+  assert.equal(QuestService.canClaimReward(c), false);
+  const m = character('Multi');
+  QuestService.restore(m, { future_quest: { state: 'X' }, tutorial_01_find_mateus: { state: 'FIND_MATEUS', autoStart: true, rewardClaimed: false } });
+  QuestService.advance(m, 'talk');
+  assert.deepEqual(m.quests!.future_quest, { state: 'X' });
   assert.equal(sanitizeQuest01({ state: 'HACKED' }), null);
   assert.equal(sanitizeQuest01(null), null);
   assert.ok(isQuest01Completed({ ...createQuest01(true), state: 'PASSIVE_TUTORIAL_STARTED' }));

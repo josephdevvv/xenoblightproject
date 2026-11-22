@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createCharacterData, type CharacterData } from '../src/data/CharacterData';
 import { initLanguage, setLanguage, t } from '../src/i18n';
 import { characterInventorySource } from '../src/inventory/CharacterInventorySource';
 import { EMPTY_INVENTORY, EQUIPMENT_SLOTS, slotAction, type EquipmentSlotId, type InventorySource, type SlotRef } from '../src/inventory/InventorySlots';
@@ -11,6 +10,7 @@ import type { ItemDefinition } from '../src/items/ItemDefinition';
 import { QuestService } from '../src/quests/QuestService';
 import { TUTORIAL_QUEST_02 } from '../src/quests/TutorialQuest02';
 import { CharacterStatusService } from '../src/status/CharacterStatusService';
+import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
 const DAGGER = 'weapon_rusty_dagger';
 const item = (id: string, change: Partial<ItemDefinition> = {}): ItemDefinition => ({ ...itemDefinition(DAGGER)!, id, ...change });
@@ -19,24 +19,6 @@ const PER_SLOT = Object.fromEntries(EQUIPMENT_SLOTS.map((slot) => [`my_${slot}`,
 const LOOKUP: Record<string, ItemDefinition> = { ...PER_SLOT, strong: item('strong', { requiredLevel: 5 }), potion: item('potion', { category: 'consumable' as never, stackable: true }) };
 const lookup = (id: string): ItemDefinition | undefined => LOOKUP[id];
 const bagOf = (...ids: string[]): InventoryState => ({ ...createInventory(), bag: createInventory().bag.map((_, i) => (ids[i] ? { itemId: ids[i], quantity: 1 } : null)) });
-
-function withStorage(fn: () => void): void {
-  const store = new Map<string, string>();
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, String(v)), removeItem: (k: string) => void store.delete(k) };
-  try {
-    fn();
-  } finally {
-    g.localStorage = previous;
-  }
-}
-
-function enter(name: string): CharacterData {
-  const c = createCharacterData(name, { gender: 'male', hairstyleId: 'mohawk' });
-  CharacterStatusService.loadInto(c);
-  return c;
-}
 
 test('equip option: offered for each of the five slots, and exactly what equipFromBag accepts', () => {
   const s = bagOf(...Object.keys(PER_SLOT), 'potion', 'strong', 'unknown');
@@ -90,8 +72,8 @@ function must(r: { ok: true; state: InventoryState } | { ok: false }): Inventory
 }
 
 test('Rusty Dagger through the window\'s source: equip / unequip cycles, +4 exactly once, saved, quest completes once', () => {
-  withStorage(() => {
-    const c = enter('Alpha');
+  withoutStorage(() => {
+    const c = newCharacter('Alpha');
     c.quests = { ...c.quests!, tutorial_02_rusty_dagger: { state: 'EQUIPMENT_TUTORIAL' } };
     const done: string[] = [];
     const off = QuestService.onCompleted((_c, id) => done.push(id));
@@ -110,7 +92,7 @@ test('Rusty Dagger through the window\'s source: equip / unequip cycles, +4 exac
       QuestService.sync02(c);
       assert.deepEqual(CharacterStatusService.derived(c), { ...base, meleeAtk: base.meleeAtk + 4 });
       assert.deepEqual([slotAction(source, bag0), slotAction(source, weapon)], [null, { kind: 'unequip' }]);
-      assert.deepEqual(enter('Alpha').inventory, c.inventory);
+      assert.deepEqual(saveAndLoad(c).inventory, c.inventory);
       assert.deepEqual(source.unequip('weapon'), { bagIndex: 0 });
       QuestService.sync02(c);
       assert.deepEqual(CharacterStatusService.derived(c), base);

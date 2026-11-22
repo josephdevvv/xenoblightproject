@@ -4,7 +4,7 @@ import type { TileBox } from '../world/structures/StructureGeometry';
 /**
  * Save point: where the player stood when they saved the game by hand. It exists only inside the exported save
  * file and is used only when that file is loaded. Death and respawn never read or change it (see
- * world/SpawnPoints), and the progress kept in the browser while playing contains no position at all.
+ * world/SpawnPoints).
  */
 export interface SavedLocation {
   mapId: string;

@@ -6,6 +6,7 @@ import { DungeonHud } from '../ui/hud/DungeonHud';
 import { InventoryWindow } from '../ui/inventory/InventoryWindow';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
 import { DeathOverlay } from '../ui/death/DeathOverlay';
+import { ChoiceDialog } from '../ui/ChoiceDialog';
 import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
 import { rectOfObject, SpotlightOverlay, type SpotlightTarget } from '../ui/tutorial/SpotlightOverlay';
 import { t } from '../i18n';
@@ -43,6 +44,8 @@ export class GameUIScene extends Phaser.Scene {
   private inventoryWindow: InventoryWindow | null = null;
   private deathOverlay: DeathOverlay | null = null;
   private dialogueWindow: DialogueWindow | null = null;
+  /** "Leave the game?" */
+  private leaveDialog: ChoiceDialog | null = null;
   private spotlightOverlay: SpotlightOverlay | null = null;
   private itemNotifications: ItemNotifications | null = null;
 
@@ -58,6 +61,7 @@ export class GameUIScene extends Phaser.Scene {
     this.inventoryWindow = null;
     this.deathOverlay = null;
     this.dialogueWindow = null;
+    this.leaveDialog = null;
     this.spotlightOverlay = null;
     this.itemNotifications = null;
     const character = this.resolveCharacter(data.characterId);
@@ -93,9 +97,9 @@ export class GameUIScene extends Phaser.Scene {
     // nothing is taken off while the equipment tutorial is still running
     const canUnequip = (): boolean => QuestService.quest02(character).state !== 'EQUIPMENT_TUTORIAL';
     this.inventoryWindow = new InventoryWindow(this, 12, characterInventorySource(character, canUnequip));
-    this.inventoryWindow.onProblem = (action, problem) => {
+    this.inventoryWindow.onProblem = (_action, problem) => {
       if (problem === 'bagFull') this.itemNotifications?.showText(t('notifications.bagFull'));
-      else if (problem === 'notSaved') this.itemNotifications?.showText(t(action === 'equip' ? 'notifications.equipFailed' : 'notifications.unequipFailed'));
+      else if (problem === 'failed') this.itemNotifications?.showText(t('notifications.equipFailed'));
     };
     // I toggles the Inventory (not while Settings is open on top).
     const onI = (): void => {
@@ -122,6 +126,9 @@ export class GameUIScene extends Phaser.Scene {
       this.refreshPassiveGuide(character);
     }
     this.settingsWindow = new SettingsWindow(this, { depth: 20, onSaveGame: () => downloadText(SAVE_FILE_NAME, serializeSave(character, this.gameScene()?.captureSavedLocation() ?? null)) });
+    const leave = new ChoiceDialog(this, 28);
+    this.leaveDialog = leave;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => leave.forget());
     // Quests: tracker, NPC dialogue (above the windows, below the death screen).
     this.dialogueWindow = new DialogueWindow(this, 30);
     const refreshQuest = (): void => {
@@ -160,6 +167,7 @@ export class GameUIScene extends Phaser.Scene {
       this.inventoryWindow = null;
       this.deathOverlay = null;
       this.dialogueWindow = null;
+      this.leaveDialog = null;
       this.spotlightOverlay = null;
       this.itemNotifications = null;
     });
@@ -225,6 +233,10 @@ export class GameUIScene extends Phaser.Scene {
 
   /** Closes any open window (discarding pending changes). Returns true if something was closed. */
   closeWindows(): boolean {
+    if (this.leaveDialog?.isOpen) {
+      this.leaveDialog.close();
+      return true;
+    }
     if (this.settingsWindow?.isOpen) {
       this.settingsWindow.close();
       return true;
@@ -244,9 +256,21 @@ export class GameUIScene extends Phaser.Scene {
     return false;
   }
 
-  /** Windows open only while the player may act: not in a conversation, not dying / dead. */
+  /** Windows open only while the player may act: not in a conversation, not dying / dead, not asked to leave. */
   private canOpenWindows(): boolean {
-    return this.gameScene()?.canPerform('openWindow') ?? true;
+    return !this.leaveDialog?.isOpen && (this.gameScene()?.canPerform('openWindow') ?? true);
+  }
+
+  /** Leaving ends the session and unsaved progress is lost: asked first. */
+  confirmLeave(onLeave: () => void): void {
+    this.leaveDialog?.show({
+      title: t('menu.leaveTitle'),
+      lines: [t('menu.unsavedLost')],
+      choices: [
+        { label: t('menu.leave'), tone: 'danger', onChoose: onLeave },
+        { label: t('menu.stay'), tone: 'quiet', onChoose: () => undefined },
+      ],
+    });
   }
 
   /** The tutorial spotlight. */
@@ -311,7 +335,7 @@ export class GameUIScene extends Phaser.Scene {
 
   /** Closes every window at once (death). */
   closeAllWindows(): void {
-    for (let i = 0; i < 4 && this.closeWindows(); i++);
+    for (let i = 0; i < 6 && this.closeWindows(); i++);
   }
 
   get isPassiveTreeOpen(): boolean {

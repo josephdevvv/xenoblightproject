@@ -1,8 +1,8 @@
 import type { CharacterData } from './CharacterData';
 
 /**
- * In-memory character storage for Milestone 01 (no account / database yet).
- * Later this becomes the client-side cache of server-owned character data.
+ * The characters of the running session, in memory. Names are only names: a character is identified by its id,
+ * any number may share a name, and closing or reloading the page discards everything that was not exported.
  */
 class CharacterStoreImpl {
   private readonly characters = new Map<string, CharacterData>();
@@ -17,6 +17,19 @@ class CharacterStoreImpl {
       throw new Error(`Unknown character id: ${id}`);
     }
     this.activeId = id;
+  }
+
+  /** Begins a session with this character; the previous one is gone. */
+  startSession(character: CharacterData): void {
+    this.characters.clear();
+    this.add(character);
+    this.setActive(character.id);
+  }
+
+  /** Ends the session: its unsaved progress is gone. */
+  endSession(): void {
+    this.characters.clear();
+    this.activeId = null;
   }
 
   getActive(): CharacterData | null {

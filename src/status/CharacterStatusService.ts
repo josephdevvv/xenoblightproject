@@ -3,14 +3,12 @@ import { DEBUG_AVAILABLE } from '../systems/performance/DebugAvailable';
 import { computeDerivedStats, type DerivedStats } from './DerivedStats';
 import { applyDerivedBonus, combineDerivedBonuses, type DerivedBonus } from './DerivedBonuses';
 import { passiveDerivedBonus, sanitizePassiveProgress, syncLevelRewards } from '../passives/PassiveProgress';
-import { PassiveSaveStore } from '../passives/PassiveSaveStore';
-import { InventorySaveStore } from '../inventory/InventorySaveStore';
-import { createInventory, equipmentDerivedBonus, sanitizeInventory } from '../inventory/InventoryState';
+import type { PassiveProgress } from '../passives/PassiveProgress';
+import { createInventory, equipmentDerivedBonus, type InventoryState } from '../inventory/InventoryState';
 import { QuestService } from '../quests/QuestService';
 import type { StatAllocationDraft } from './StatAllocation';
 import { addExp } from '../progression/LevelProgression';
 import { applyLevelUp, cloneStatus, createInitialStatus, STATUS_RULES, totalStats, type CharacterStatus, type StatBlock } from './StatTypes';
-import { StatusSaveStore } from './StatusSaveStore';
 
 /**
  * Development-only tools (test stat points). Available in `npm run dev`, or in a production build
@@ -18,38 +16,40 @@ import { StatusSaveStore } from './StatusSaveStore';
  */
 export const STATUS_DEV_TOOLS_ENABLED = DEBUG_AVAILABLE;
 
+/** A character's checked progress from a save file. */
+export interface SavedProgress {
+  status: CharacterStatus;
+  passives: PassiveProgress;
+  quests: Readonly<Record<string, unknown>>;
+  inventory: InventoryState;
+}
+
 type Listener = (character: CharacterData) => void;
 const listeners = new Set<Listener>();
 
 /**
- * The single place that reads and changes a character's status: loading, confirming allocations,
- * future level-ups and dev grants all go through here and are saved immediately.
+ * The single place that reads and changes a character's status: starting, restoring, confirming allocations,
+ * level-ups and dev grants all go through here.
+ *
+ * Progress lives in memory, on the CharacterData, for as long as the session runs. Nothing is written to the
+ * browser: the only way to keep it is an exported save file (src/save).
  */
 export const CharacterStatusService = {
-  /**
-   * Attaches the saved status to a character (or a fresh level-1 status for a new name) and saves
-   * it, so a new character persists right away. An unreadable save is backed up, never discarded.
-   */
-  loadInto(character: CharacterData): CharacterStatus {
-    const result = StatusSaveStore.load(character.name);
-    let status: CharacterStatus;
-    if (result.kind === 'loaded') {
-      status = result.status;
-      if (result.repaired.length > 0) console.warn(`[status] repaired save for "${character.name}":`, result.repaired);
-    } else {
-      if (result.kind === 'invalid') {
-        console.warn(`[status] unreadable save for "${character.name}" (${result.reason}); kept a backup and started fresh`);
-        StatusSaveStore.backupInvalid(character.name);
-      }
-      status = createInitialStatus();
-    }
-    normalizeExp(status);
-    character.status = status;
-    StatusSaveStore.save(character.name, status);
-    loadPassives(character);
-    loadInventory(character);
-    QuestService.loadInto(character, result.kind === 'missing');
-    return status;
+  /** A fresh character by the starting rules: level 1, nothing owned, the first quest waiting. */
+  startNew(character: CharacterData): void {
+    character.status = createInitialStatus();
+    character.passives = sanitizePassiveProgress(null, character.status.level).progress;
+    character.inventory = createInventory();
+    QuestService.begin(character);
+  },
+
+  /** The progress of a save file (already checked by SaveFile). Level rewards still owed are granted once. */
+  restore(character: CharacterData, saved: SavedProgress): void {
+    character.status = cloneStatus(saved.status);
+    normalizeExp(character.status);
+    character.passives = sanitizePassiveProgress(saved.passives, character.status.level).progress;
+    character.inventory = saved.inventory;
+    QuestService.restore(character, saved.quests);
   },
 
   /**
@@ -76,7 +76,6 @@ export const CharacterStatusService = {
     const result = draft.commit(character.status);
     if (!result.ok) return result.error;
     character.status = result.status;
-    StatusSaveStore.save(character.name, character.status);
     notify(character);
     return null;
   },
@@ -87,7 +86,6 @@ export const CharacterStatusService = {
     const awarded = applyLevelUp(next, level);
     if (awarded > 0) {
       character.status = next;
-      StatusSaveStore.save(character.name, next);
       syncPassiveRewards(character);
       notify(character);
     }
@@ -101,7 +99,6 @@ export const CharacterStatusService = {
     if (r.levelsGained > 0) applyLevelUp(next, r.level);
     next.exp = r.exp;
     character.status = next;
-    StatusSaveStore.save(character.name, next);
     if (r.levelsGained > 0) syncPassiveRewards(character);
     notify(character);
     return r.levelsGained;
@@ -113,7 +110,6 @@ export const CharacterStatusService = {
     const next = cloneStatus(character.status);
     next.statPoints += points;
     character.status = next;
-    StatusSaveStore.save(character.name, next);
     notify(character);
     return true;
   },
@@ -140,43 +136,9 @@ function derivedBonus(character: CharacterData): DerivedBonus {
   return combineDerivedBonuses(passiveDerivedBonus(character.passives), equipmentDerivedBonus(character.inventory));
 }
 
-/** Loads (and repairs) the passive progress, granting any level rewards still owed, and saves it. */
-function loadPassives(character: CharacterData): void {
-  const result = PassiveSaveStore.load(character.name);
-  if (result.kind === 'invalid') {
-    console.warn(`[passives] unreadable save for "${character.name}" (${result.reason}); kept a backup and started fresh`);
-    PassiveSaveStore.backupInvalid(character.name);
-  }
-  const { progress, repaired } = sanitizePassiveProgress(result.kind === 'loaded' ? result.data : null, character.status.level);
-  if (result.kind === 'loaded' && repaired.length > 0) console.warn(`[passives] repaired save for "${character.name}":`, repaired);
-  character.passives = progress;
-  PassiveSaveStore.save(character.name, progress);
-}
-
-/**
- * Loads (and repairs) the bag and worn equipment. A new character simply has no record yet; only equipment
- * saved before item instances existed is written back, so its new instance ids stay the same from now on.
- */
-function loadInventory(character: CharacterData): void {
-  const result = InventorySaveStore.load(character.name);
-  if (result.kind === 'invalid') {
-    console.warn(`[inventory] unreadable save for "${character.name}" (${result.reason}); kept a backup and started fresh`);
-    InventorySaveStore.backupInvalid(character.name);
-  }
-  if (result.kind !== 'loaded') {
-    character.inventory = createInventory();
-    return;
-  }
-  const { state, repaired, newIds } = sanitizeInventory(result.data);
-  if (newIds > 0) InventorySaveStore.save(character.name, state);
-  if (repaired.length > 0) console.warn(`[inventory] repaired save for "${character.name}":`, repaired);
-  character.inventory = state;
-}
-
 /** Level-ups grant Drifter passive points (1 per level up to 10), each level only once. */
 function syncPassiveRewards(character: CharacterData): void {
-  if (!character.passives) return;
-  if (syncLevelRewards(character.passives, character.status.level) > 0) PassiveSaveStore.save(character.name, character.passives);
+  if (character.passives) syncLevelRewards(character.passives, character.status.level);
 }
 
 function notify(character: CharacterData): void {

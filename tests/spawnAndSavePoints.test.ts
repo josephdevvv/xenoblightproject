@@ -2,8 +2,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { createCharacterData, type CharacterData } from '../src/data/CharacterData';
-import { CharacterProfileStore } from '../src/data/CharacterProfileStore';
 import { getDictionary } from '../src/i18n';
 import { InventoryService } from '../src/inventory/InventoryService';
 import { checksum, parseSave, SAVE_FILE_VERSION, SAVE_FORMAT, serializeSave } from '../src/save/SaveFile';
@@ -13,31 +11,13 @@ import { CharacterStatusService } from '../src/status/CharacterStatusService';
 import { MapLayout } from '../src/world/MapLayout';
 import { ASHEN_CROSSROADS } from '../src/world/maps/AshenCrossroads';
 import { DEFAULT_SPAWN_POINT_ID, respawnPoint, respawnTile, SPAWN_POINTS, spawnPoint } from '../src/world/SpawnPoints';
+import { newCharacter, withoutStorage } from './helpers/session';
 
 const MAP = ASHEN_CROSSROADS.id;
 const START = { x: ASHEN_CROSSROADS.spawn.col + 0.5, y: ASHEN_CROSSROADS.spawn.row + 0.5 };
 const layout = new MapLayout(ASHEN_CROSSROADS);
 /** PLAYER_MOVEMENT.radius (PlayerController needs Phaser). */
 const RADIUS = 0.22;
-
-function withStorage(fn: (store: Map<string, string>) => void): void {
-  const store = new Map<string, string>();
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, String(v)), removeItem: (k: string) => void store.delete(k) };
-  try {
-    fn(store);
-  } finally {
-    g.localStorage = previous;
-  }
-}
-
-function create(name: string): CharacterData {
-  const c = createCharacterData(name, { gender: 'male', hairstyleId: 'mohawk' });
-  CharacterProfileStore.save({ name: c.name, appearance: c.appearance, classId: c.classId, createdAt: c.createdAt });
-  CharacterStatusService.loadInto(c);
-  return c;
-}
 
 // ------------------------------------------------------------------------------------------ spawn point
 
@@ -85,8 +65,8 @@ test('saved location: placed exactly where it was, only where one can stand on t
 // ----------------------------------------------------------------------------------------- independence
 
 test('scenarios A, B, C: dying goes to the spawn point, loading goes to the save point, whatever happened before', () => {
-  withStorage(() => {
-    const c = create('Alpha');
+  withoutStorage(() => {
+    const c = newCharacter('Alpha');
     const A = { mapId: MAP, x: 18.5, y: 106.5 };
     const file = serializeSave(c, A);
     // A: save, move on, die
@@ -96,7 +76,7 @@ test('scenarios A, B, C: dying goes to the spawn point, loading goes to the save
     const load = () => {
       const r = parseSave(file);
       assert.ok(r.ok);
-      assert.ok(SaveService.restore(r.save));
+      SaveService.restore(r.save);
       return placeSavedLocation(r.save.savedLocation, MAP, layout, RADIUS);
     };
     assert.deepEqual(load(), { x: A.x, y: A.y });
@@ -107,15 +87,15 @@ test('scenarios A, B, C: dying goes to the spawn point, loading goes to the save
   });
 });
 
-test('the browser\'s own progress never contains a position: playing, saving and loading change no save point', () => {
-  withStorage((store) => {
-    const c = create('Alpha');
+test('playing, saving and loading write nothing to the browser and change no save point', () => {
+  withoutStorage(() => {
+    const c = newCharacter('Alpha');
     const file = serializeSave(c, { mapId: MAP, x: 18.5, y: 106.5 });
     CharacterStatusService.gainExp(c, 100);
     InventoryService.grantOnce(c, { grantId: 'g', itemId: 'weapon_rusty_dagger', quantity: 1 });
     const r = parseSave(file);
-    assert.ok(r.ok && SaveService.restore(r.save));
-    for (const [key, value] of store) assert.ok(!/18\.5|106\.5|"(location|savedLocation|respawnLocation|mapId)"/.test(value), key);
+    assert.ok(r.ok);
+    SaveService.restore(r.save);
     const again = parseSave(file);
     assert.ok(again.ok);
     assert.deepEqual(again.save.savedLocation, { mapId: MAP, x: 18.5, y: 106.5 });
@@ -131,8 +111,8 @@ test('death and respawn code knows nothing about save files, and saving knows no
 });
 
 test('save files written before this change still load with their position', () => {
-  withStorage(() => {
-    const c = create('Alpha');
+  withoutStorage(() => {
+    const c = newCharacter('Alpha');
     const { level, base, statPoints, exp } = c.status;
     // the version-1 document exactly as the game wrote it
     const d = { format: SAVE_FORMAT, version: 1, savedAt: 5, character: { name: c.name, appearance: c.appearance, classId: c.classId, createdAt: c.createdAt }, status: { level, base, statPoints, exp }, passives: c.passives, quests: c.quests, inventory: c.inventory, location: { mapId: MAP, x: 20.25, y: 107.5 } };

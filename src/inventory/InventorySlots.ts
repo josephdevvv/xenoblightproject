@@ -40,7 +40,7 @@ export interface EquipOption {
 }
 
 /** Why an item could not be taken off. */
-export type UnequipProblem = 'emptySlot' | 'bagFull' | 'notSaved' | 'notAllowed';
+export type UnequipProblem = 'emptySlot' | 'bagFull' | 'notAllowed';
 
 export interface InventorySource {
   itemAt(slot: SlotRef): ItemInfo | null;

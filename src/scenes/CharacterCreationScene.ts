@@ -14,13 +14,10 @@ import {
   createCharacterData,
   NAME_MAX_LENGTH,
   NAME_MIN_LENGTH,
-  restoreCharacterData,
   validateCharacterName,
   type CharacterAppearance,
-  type CharacterData,
   type LocalizedMessage,
 } from '../data/CharacterData';
-import { CharacterProfileStore } from '../data/CharacterProfileStore';
 import {
   allStarterAppearances,
   DEFAULT_STARTER_CHOICE,
@@ -35,8 +32,6 @@ import { localize } from '../i18n/phaser';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import { Button } from '../ui/Button';
-import { ChoiceDialog } from '../ui/ChoiceDialog';
-import { SaveService } from '../save/SaveService';
 import { createPanel, setPanelTitle } from '../ui/Panel';
 import { SettingsWindow } from '../ui/SettingsWindow';
 import { TextInputField } from '../ui/TextInputField';
@@ -65,8 +60,6 @@ export class CharacterCreationScene extends Phaser.Scene {
   /** One button per starter hairstyle slot (Bald + the gender's hairstyle). */
   private hairstyleButtons: Button[] = [];
   private settings!: SettingsWindow;
-  /** Asked when the name already has progress in this browser. */
-  private dialog!: ChoiceDialog;
   /** The message under the name field, kept as a key so it can be re-translated. */
   private message: { text: LocalizedMessage; isError: boolean } = { text: HINT, isError: false };
   private nameInput!: TextInputField;
@@ -82,10 +75,8 @@ export class CharacterCreationScene extends Phaser.Scene {
   }
 
   create(): void {
-    // Pre-fill with the character from this session, else the last one played (saved), else defaults.
-    // Only gender + hairstyle carry over: the preview always shows a selectable starter look.
-    const previous: { name: string; appearance: CharacterAppearance } | null = CharacterStore.getActive() ?? CharacterProfileStore.loadLastPlayed();
-    this.appearance = starterAppearance(previous ? previous.appearance : DEFAULT_STARTER_CHOICE);
+    // Always a fresh character: nothing is taken over from an earlier one.
+    this.appearance = starterAppearance(DEFAULT_STARTER_CHOICE);
     this.previewDirection = DIRECTIONS.indexOf('S');
     this.submitting = false;
     // Drop references from the previous run (its objects were destroyed on shutdown).
@@ -103,7 +94,7 @@ export class CharacterCreationScene extends Phaser.Scene {
       .then(() => {
         if (!this.sys.isActive()) return;
         this.createHeader();
-        this.createOptionsPanel(previous?.name ?? '');
+        this.createOptionsPanel();
         this.createPreviewPanel();
         this.refreshAll();
         loading.hide();
@@ -150,21 +141,13 @@ export class CharacterCreationScene extends Phaser.Scene {
       role: 'small',
       onClick: () => this.settings.toggle(),
     });
-    this.dialog = new ChoiceDialog(this, 1100, {
-      onOpen: () => this.nameInput?.setVisible(false),
-      onClose: () => this.nameInput?.setVisible(true),
-    });
     const backButton = new Button(this, GAME_WIDTH - 28 - 48 - 104, 18, { width: 96, height: 22, label: '', role: 'small', onClick: () => this.backToMenu() });
     const onEscape = (): void => {
       if (this.settings.isOpen) this.settings.close();
-      else if (this.dialog.isOpen) this.dialog.close();
       else this.backToMenu();
     };
     this.input.keyboard?.on('keydown-ESC', onEscape);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.input.keyboard?.off('keydown-ESC', onEscape);
-      this.dialog.forget();
-    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-ESC', onEscape));
 
     localize(this, () => {
       title.setText(t('creation.title'));
@@ -174,7 +157,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     });
   }
 
-  private createOptionsPanel(initialName: string): void {
+  private createOptionsPanel(): void {
     createPanel(this, 24, PANEL_TOP, 456, PANEL_HEIGHT);
     const labelX = 48;
     const controlX = 330;
@@ -219,7 +202,6 @@ export class CharacterCreationScene extends Phaser.Scene {
       width: 260,
       placeholder: t('creation.namePlaceholder'),
       maxLength: NAME_MAX_LENGTH,
-      value: initialName,
     });
     this.nameInput.onSubmit(() => this.submit());
     this.nameInput.onInput(() => this.showMessage(HINT, false));
@@ -332,7 +314,7 @@ export class CharacterCreationScene extends Phaser.Scene {
   }
 
   private submit(): void {
-    if (this.submitting || this.settings.isOpen || this.dialog.isOpen) return;
+    if (this.submitting || this.settings.isOpen) return;
     const result = validateCharacterName(this.nameInput.value);
     if (!result.valid) {
       this.showMessage(result.error, true);
@@ -341,31 +323,11 @@ export class CharacterCreationScene extends Phaser.Scene {
     }
 
     this.nameInput.blur();
-    if (!SaveService.hasCharacter(result.name)) {
-      this.enterGame(result.name);
-      return;
-    }
-    // Progress is never replaced without asking.
-    this.dialog.show({
-      title: t('creation.existsTitle'),
-      lines: [t('creation.existsText', { name: result.name })],
-      choices: [
-        { label: t('creation.existsContinue'), onChoose: () => this.enterGame(result.name) },
-        {
-          label: t('creation.existsStartOver'),
-          tone: 'danger',
-          onChoose: () => {
-            SaveService.erase(result.name);
-            this.enterGame(result.name);
-          },
-        },
-        { label: t('common.cancel'), tone: 'quiet', onChoose: () => undefined },
-      ],
-    });
+    this.enterGame(result.name);
   }
 
   private backToMenu(): void {
-    if (this.submitting || this.dialog.isOpen || this.settings.isOpen) return;
+    if (this.submitting || this.settings.isOpen) return;
     this.submitting = true;
     this.nameInput.blur();
     this.cameras.main.fadeOut(300, 0, 0, 0);
@@ -375,36 +337,14 @@ export class CharacterCreationScene extends Phaser.Scene {
   private enterGame(name: string): void {
     this.submitting = true;
     this.createButton.setEnabled(false);
-    const character = this.resolveCharacter(name);
-    // Prototype identity = name: an existing name continues its saved status, a new name starts at level 1.
-    CharacterStatusService.loadInto(character);
-    CharacterStore.add(character);
-    CharacterStore.setActive(character.id);
+    // Every New Game is its own, fresh character - whatever it is called.
+    const character = createCharacterData(name, { gender: this.appearance.gender, hairstyleId: this.appearance.hairstyleId });
+    CharacterStatusService.startNew(character);
+    CharacterStore.startSession(character);
 
     this.cameras.main.fadeOut(450, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start(SCENES.Game, {});
     });
-  }
-
-  /**
-   * A name with a saved profile continues that character unchanged (appearance, class, outfit are
-   * never overwritten here). A new name becomes a new Drifter with the chosen gender + hairstyle.
-   */
-  private resolveCharacter(name: string): CharacterData {
-    const saved = CharacterProfileStore.load(name);
-    let character: CharacterData;
-    if (saved.kind === 'loaded') {
-      character = restoreCharacterData(saved.profile);
-    } else {
-      if (saved.kind === 'invalid') {
-        console.warn(`[character] unreadable profile for "${name}" (${saved.reason}); kept a backup and created a new one`);
-        CharacterProfileStore.backupInvalid(name);
-      }
-      character = createCharacterData(name, { gender: this.appearance.gender, hairstyleId: this.appearance.hairstyleId });
-      CharacterProfileStore.save({ name: character.name, appearance: character.appearance, classId: character.classId, createdAt: character.createdAt });
-    }
-    CharacterProfileStore.setLastPlayed(character.name);
-    return character;
   }
 }

@@ -1,13 +1,12 @@
 import type { CharacterData } from '../data/CharacterData';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { resetOptionalNodes, upgradeNode, type PassiveProgress, type PassiveUpgradeError } from './PassiveProgress';
-import { PassiveSaveStore } from './PassiveSaveStore';
 
 /**
  * The single place that changes a character's passive tree: every upgrade is re-validated by the pure
- * rules (points, prerequisite, rank cap), saved immediately, and announced through
+ * rules (points, prerequisite, rank cap) and announced through
  * CharacterStatusService.onChange so the Status window, HUD and combat pick up the new derived stats.
- * (Loading and level rewards happen with the status, in CharacterStatusService.)
+ * (Starting, restoring and level rewards happen with the status, in CharacterStatusService.)
  */
 export const PassiveTreeService = {
   progress(character: CharacterData): PassiveProgress | null {
@@ -34,6 +33,5 @@ export const PassiveTreeService = {
 
 function commit(character: CharacterData, progress: PassiveProgress): void {
   character.passives = progress;
-  PassiveSaveStore.save(character.name, progress);
   CharacterStatusService.refresh(character);
 }

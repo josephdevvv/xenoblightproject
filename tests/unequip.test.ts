@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createCharacterData, type CharacterData } from '../src/data/CharacterData';
+import type { CharacterData } from '../src/data/CharacterData';
 import { initLanguage, setLanguage, t } from '../src/i18n';
 import { characterInventorySource } from '../src/inventory/CharacterInventorySource';
 import { InventoryService } from '../src/inventory/InventoryService';
@@ -11,44 +11,17 @@ import { QuestService } from '../src/quests/QuestService';
 import { TUTORIAL_QUEST_02 } from '../src/quests/TutorialQuest02';
 import { CharacterStatusService } from '../src/status/CharacterStatusService';
 import { inventoryLayout } from '../src/ui/inventory/InventoryLayout';
+import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
 const DAGGER = 'weapon_rusty_dagger';
 const { reward } = TUTORIAL_QUEST_02;
-
-function withStorage(fn: (s: { store: Map<string, string>; failing: boolean }) => void): void {
-  const s = { store: new Map<string, string>(), failing: false };
-  const g = globalThis as { localStorage?: unknown };
-  const previous = g.localStorage;
-  g.localStorage = {
-    getItem: (k: string) => s.store.get(k) ?? null,
-    setItem: (k: string, v: string) => {
-      if (s.failing && k.startsWith('xenoblight.inventory.')) throw new Error('quota');
-      s.store.set(k, String(v));
-    },
-    removeItem: (k: string) => void s.store.delete(k),
-  };
-  const warn = console.warn;
-  console.warn = () => undefined;
-  try {
-    fn(s);
-  } finally {
-    console.warn = warn;
-    g.localStorage = previous;
-  }
-}
-
-function enter(name: string): CharacterData {
-  const c = createCharacterData(name, { gender: 'male', hairstyleId: 'mohawk' });
-  CharacterStatusService.loadInto(c);
-  return c;
-}
 
 const melee = (c: CharacterData): number => CharacterStatusService.derived(c).meleeAtk;
 const count = (s: InventoryState): number => s.bag.reduce((n, x) => n + (x?.quantity ?? 0), 0) + Object.values(s.equipment).filter((x) => x !== null).length;
 
 /** Tutorial Quest 02 done, dagger worn, first passive node unlocked. */
 function withDagger(name: string): CharacterData {
-  const c = enter(name);
+  const c = newCharacter(name);
   for (const e of ['start', 'talk', 'finishDialogue', 'startPassiveTutorial'] as const) QuestService.advance(c, e);
   PassiveTreeService.upgrade(c, 'drifters_resolve');
   QuestService.sync02(c);
@@ -92,25 +65,25 @@ test('full bag: refused, nothing lost; works again with one free slot', () => {
 });
 
 test('equip -> unequip -> re-equip: bonus removed and restored through the normal stat calculation, saved every time', () => {
-  withStorage(() => {
+  withoutStorage(() => {
     const c = withDagger('Alpha');
     assert.equal(melee(c), 14);
     assert.deepEqual(InventoryService.unequip(c, 'weapon'), { bagIndex: 0 });
     assert.equal(melee(c), 10);
     assert.deepEqual(equipmentDerivedBonus(c.inventory), { flat: {}, maxHpPercent: 0 });
     assert.deepEqual([c.inventory!.equipment.weapon, c.inventory!.bag[0]?.itemId, c.inventory!.bag[0]?.quantity], [null, DAGGER, 1]);
-    const reloaded = enter('Alpha');
+    const reloaded = saveAndLoad(c);
     assert.deepEqual(reloaded.inventory, c.inventory);
     assert.equal(melee(reloaded), 10);
     assert.equal(InventoryService.equip(reloaded, 0, 'weapon'), null);
     assert.equal(melee(reloaded), 14);
-    const again = enter('Alpha');
+    const again = saveAndLoad(reloaded);
     assert.deepEqual([again.inventory!.equipment.weapon?.itemId, count(again.inventory!), melee(again)], [DAGGER, 1, 14]);
   });
 });
 
 test('rapid repeats never double or lose the item', () => {
-  withStorage(() => {
+  withoutStorage(() => {
     const c = withDagger('Alpha');
     for (let i = 0; i < 5; i++) InventoryService.unequip(c, 'weapon');
     assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [1, null]);
@@ -123,14 +96,11 @@ test('rapid repeats never double or lose the item', () => {
   });
 });
 
-test('not saved or bag full: the item stays worn with its bonus, nothing is announced', () => {
-  withStorage((s) => {
+test('bag full: the item stays worn with its bonus, nothing is announced', () => {
+  withoutStorage(() => {
     const c = withDagger('Alpha');
     let changes = 0;
     const off = InventoryService.onChange(() => changes++);
-    s.failing = true;
-    assert.deepEqual(InventoryService.unequip(c, 'weapon'), { error: 'notSaved' });
-    s.failing = false;
     const worn = c.inventory!;
     c.inventory = { ...worn, bag: worn.bag.map(() => ({ itemId: 'x', quantity: 1 })) };
     assert.deepEqual(InventoryService.unequip(c, 'weapon'), { error: 'bagFull' });
@@ -141,7 +111,7 @@ test('not saved or bag full: the item stays worn with its bonus, nothing is anno
 });
 
 test('Tutorial Quest 02 stays completed: no restart, no second dagger, no EXP', () => {
-  withStorage(() => {
+  withoutStorage(() => {
     const c = withDagger('Alpha');
     const done: string[] = [];
     const off = QuestService.onCompleted((_c, id) => done.push(id));
@@ -150,7 +120,7 @@ test('Tutorial Quest 02 stays completed: no restart, no second dagger, no EXP', 
       InventoryService.unequip(c, 'weapon');
       QuestService.sync02(c);
       assert.equal(QuestService.quest02(c).state, 'COMPLETED');
-      assert.equal(QuestService.quest02(enter('Alpha')).state, 'COMPLETED', 'also after a reload');
+      assert.equal(QuestService.quest02(saveAndLoad(c)).state, 'COMPLETED', 'also after save and load');
       assert.equal(InventoryService.grantOnce(c, reward), 'alreadyGranted');
       InventoryService.equip(c, bagIndexOf(c.inventory, DAGGER), 'weapon');
       QuestService.sync02(c);
@@ -162,7 +132,7 @@ test('Tutorial Quest 02 stays completed: no restart, no second dagger, no EXP', 
 });
 
 test('while the equipment tutorial runs nothing can be taken off; afterwards it can', () => {
-  withStorage(() => {
+  withoutStorage(() => {
     const c = withDagger('Alpha');
     const source = characterInventorySource(c, () => QuestService.quest02(c).state !== 'EQUIPMENT_TUTORIAL');
     c.quests = { ...c.quests!, tutorial_02_rusty_dagger: { state: 'EQUIPMENT_TUTORIAL' } };

@@ -75,11 +75,10 @@ export class DungeonHud {
   private questId: string | null = null;
   private lastTile = '';
   private lastHp: number | null = null;
-  /** Passive Tree menu slot: unspent-points pip and the pulsing tutorial guide + hint. */
+  /** Passive Tree menu slot: unspent-points pip. */
   private readonly passivePip: Phaser.GameObjects.Rectangle;
-  private readonly passiveGuide: Phaser.GameObjects.Graphics;
-  private readonly passiveHint: Phaser.GameObjects.Text;
-  private readonly passiveGuideTween: Phaser.Tweens.Tween;
+  /** The Passive Tree menu button (tutorial spotlight target). */
+  readonly passiveButton: Phaser.GameObjects.Zone;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -146,7 +145,7 @@ export class DungeonHud {
     });
     // Passive Tree (second slot): a center node with left / right / down branches.
     const passiveSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[1]);
-    this.buildMenuButton(passiveSlot, 'hud.menuPassive', () => this.options.onPassive(), (g, slot, color) => {
+    this.passiveButton = this.buildMenuButton(passiveSlot, 'hud.menuPassive', () => this.options.onPassive(), (g, slot, color) => {
       const cx = slot.x + Math.floor(slot.width / 2);
       const cy = slot.y + Math.floor(slot.height / 2) - 2;
       g.fillStyle(toColorInt(color), 1);
@@ -159,19 +158,6 @@ export class DungeonHud {
       g.fillRect(cx - 1, cy + 6, 3, 2);
     });
     this.passivePip = scene.add.rectangle(passiveSlot.x + passiveSlot.width - 3, passiveSlot.y + 1, 2, 2, toColorInt('#d3424b')).setOrigin(0, 0).setDepth(depth + 3).setVisible(false);
-    this.passiveGuide = scene.add.graphics().setDepth(depth + 3).setVisible(false);
-    this.passiveGuide.fillStyle(toColorInt('#d3424b'), 1);
-    const gx = passiveSlot.x - 3, gy = passiveSlot.y - 3, gw = passiveSlot.width + 6, gh = passiveSlot.height + 6;
-    this.passiveGuide.fillRect(gx, gy, gw, 1).fillRect(gx, gy + gh - 1, gw, 1).fillRect(gx, gy, 1, gh).fillRect(gx + gw - 1, gy, 1, gh);
-    // left of the whole menu bar (slot 0 = Status stays visible)
-    const menuLeft = this.space.inner(M, REF_ELEMENTS.menuSlots[0]).x;
-    this.passiveHint = this.text(menuLeft - 12, passiveSlot.y + Math.floor(passiveSlot.height / 2), '', 'small', '#e7e7ee', false)
-      .setOrigin(1, 0.5)
-      .setBackgroundColor('#0e0e12')
-      .setPadding(4, 2, 4, 2)
-      .setDepth(depth + 3)
-      .setVisible(false);
-    this.passiveGuideTween = scene.tweens.add({ targets: this.passiveGuide, alpha: { from: 1, to: 0.2 }, duration: 520, yoyo: true, repeat: -1, paused: true });
     // The pack's menu button (three bars, baked into the art) opens Settings.
     this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuMore), 'hud.menuSettings', () => this.options.onSettings(), null);
 
@@ -188,16 +174,9 @@ export class DungeonHud {
     });
   }
 
-  /**
-   * Passive Tree guidance on the menu slot: 'open' (tutorial: pulsing red frame + hint text) and a small
-   * red pip while passive points are unspent.
-   */
-  setPassiveGuide(openHint: boolean, hasPoints: boolean): void {
-    this.passiveGuide.setVisible(openHint);
-    this.passiveHint.setVisible(openHint).setText(openHint ? t('passive.tutorial.open') : '');
-    if (openHint) this.passiveGuideTween.resume();
-    else this.passiveGuideTween.pause();
-    this.passivePip.setVisible(hasPoints && !openHint);
+  /** Small red pip on the Passive Tree menu slot while passive points are unspent (the tutorial has its own spotlight). */
+  setPassivePoints(unspent: boolean): void {
+    this.passivePip.setVisible(unspent);
   }
 
   /** Quest tracker: the active quest's name and objective, or the placeholder text. */
@@ -254,7 +233,7 @@ export class DungeonHud {
     tooltipKey: TranslationKey,
     onClick: () => void,
     drawIcon: ((g: Phaser.GameObjects.Graphics, slot: ScreenRect, color: string) => void) | null,
-  ): void {
+  ): Phaser.GameObjects.Zone {
     const icon = drawIcon ? this.scene.add.graphics().setDepth(this.depth + 1) : null;
     const paintIcon = (color: string): void => {
       if (!icon || !drawIcon) return;
@@ -291,6 +270,7 @@ export class DungeonHud {
       setHover(false);
       onClick();
     });
+    return zone;
   }
 
   /**

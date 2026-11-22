@@ -7,15 +7,17 @@ import { wrapText } from '../text/wrapText';
 const C = { line: 0xe7e7ee, dim: 0x3a3a45, fill: 0x0e0e12, red: 0xd3424b, name: '#e8dcb8', text: '#e7e7ee' } as const;
 const PANEL = { width: 560, height: 88, bottom: 72 } as const;
 const PAD_X = 20;
-/** NEXT button: click area at the bottom right inside the panel, the arrow in its middle. */
+/** The NEXT arrow's box at the bottom right inside the panel (it lights up under the pointer). */
 const NEXT = { width: 30, height: 24, inset: 5 } as const;
-/** Gentle blink: never below this alpha (an invisible object would also stop receiving clicks). */
+/** Gentle blink of the arrow. */
 const BLINK = { from: 1, to: 0.35, ms: 650 } as const;
 
 /**
- * NPC dialogue: speaker name, one line of dialogue at a time, and a blinking arrow at the bottom right that
- * goes to the next step (and closes after the last one). Nothing else advances or closes it. A dim
- * full-screen layer takes every other click while it is open, so neither the HUD nor the world reacts.
+ * NPC dialogue: speaker name, one line of dialogue at a time, a blinking arrow at the bottom right. A left
+ * click anywhere inside the window (text, empty space or arrow) goes to the next step and closes it after
+ * the last one; press and release inside = exactly one step. Clicks outside do nothing: a dim full-screen
+ * layer takes them, so neither the HUD nor the world reacts. The click that opened the conversation never
+ * counts, its press was not on the window.
  */
 export class DialogueWindow {
   private readonly blocker: Phaser.GameObjects.Rectangle;
@@ -27,6 +29,7 @@ export class DialogueWindow {
   private readonly textWidth: number;
   private session: DialogueSession | null = null;
   private onFinished: (() => void) | null = null;
+  /** A left press that began on the window and has not been released, moved off or used yet. */
   private pressed = false;
 
   constructor(scene: Phaser.Scene, depth: number) {
@@ -43,19 +46,21 @@ export class DialogueWindow {
       .graphics({ x: x + PANEL.width - NEXT.inset - NEXT.width, y: y + PANEL.height - NEXT.inset - NEXT.height })
       .setDepth(depth + 3);
 
-    this.next.on('pointerover', () => this.drawNext(true, false));
-    this.next.on('pointerout', () => {
+    // The whole panel is one click area; text and arrow lie on it and take no input of their own.
+    const overArrow = (x: number, y: number): boolean => x >= this.next.x - this.panel.x && y >= this.next.y - this.panel.y;
+    this.panel.on('pointermove', (_p: Phaser.Input.Pointer, x: number, y: number) => this.drawNext(overArrow(x, y), this.pressed));
+    this.panel.on('pointerout', () => {
       this.pressed = false;
       this.drawNext(false, false);
     });
-    this.next.on('pointerdown', () => {
-      this.pressed = true;
-      this.drawNext(true, true);
+    this.panel.on('pointerdown', (pointer: Phaser.Input.Pointer, x: number, y: number) => {
+      this.pressed = pointer.leftButtonDown() && pointer.button === 0;
+      this.drawNext(overArrow(x, y), this.pressed);
     });
-    this.next.on('pointerup', () => {
-      const fire = this.pressed;
+    this.panel.on('pointerup', (pointer: Phaser.Input.Pointer, x: number, y: number) => {
+      const fire = this.pressed && pointer.button === 0;
       this.pressed = false;
-      this.drawNext(true, false);
+      this.drawNext(overArrow(x, y), false);
       if (fire) this.advance();
     });
     this.blink = scene.tweens.add({ targets: this.next, alpha: { from: BLINK.from, to: BLINK.to }, duration: BLINK.ms, ease: 'Sine.easeInOut', yoyo: true, repeat: -1, paused: true });
@@ -132,11 +137,11 @@ export class DialogueWindow {
     this.drawNext(false, false);
     if (visible) {
       this.blocker.setInteractive();
-      this.next.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, 0, NEXT.width, NEXT.height), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
+      this.panel.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, 0, PANEL.width, PANEL.height), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
       this.blink.resume();
     } else {
       if (this.blocker.input) this.blocker.disableInteractive();
-      if (this.next.input) this.next.disableInteractive();
+      if (this.panel.input) this.panel.disableInteractive();
       this.blink.pause();
     }
   }

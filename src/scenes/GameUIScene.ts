@@ -6,6 +6,8 @@ import { DungeonHud } from '../ui/hud/DungeonHud';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
 import { DeathOverlay } from '../ui/death/DeathOverlay';
 import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
+import { rectOfObject, SpotlightOverlay, type SpotlightTarget } from '../ui/tutorial/SpotlightOverlay';
+import { t } from '../i18n';
 import { QuestService } from '../quests/QuestService';
 import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
 import { availablePoints } from '../passives/PassiveProgress';
@@ -30,6 +32,7 @@ export class GameUIScene extends Phaser.Scene {
   private passiveWindow: PassiveTreeWindow | null = null;
   private deathOverlay: DeathOverlay | null = null;
   private dialogueWindow: DialogueWindow | null = null;
+  private spotlightOverlay: SpotlightOverlay | null = null;
 
   constructor() {
     super(SCENES.GameUI);
@@ -42,6 +45,7 @@ export class GameUIScene extends Phaser.Scene {
     this.passiveWindow = null;
     this.deathOverlay = null;
     this.dialogueWindow = null;
+    this.spotlightOverlay = null;
     const character = this.resolveCharacter(data.characterId);
     const game = this.gameScene();
     if (!character || !game?.map) {
@@ -85,12 +89,16 @@ export class GameUIScene extends Phaser.Scene {
     const refreshQuest = (): void => {
       this.hud?.setQuest(isQuest01Active(QuestService.quest01(character)) ? TUTORIAL_QUEST_01.id : null);
       this.refreshPassiveGuide(character);
+      // at once, not next frame: fast clicking through the dialogue must not reach the world behind it
+      this.spotlightOverlay?.update(0, this.spotlightTarget());
     };
     const offQuest = QuestService.onChange((c) => {
       if (c === character) refreshQuest();
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, offQuest);
     refreshQuest();
+    // Tutorial spotlight: above the HUD and the windows, below dialogue and the death screen.
+    this.spotlightOverlay = new SpotlightOverlay(this, 25);
     // Death screen above everything (HUD, windows): blocks all input while the player is not alive.
     const death = new DeathOverlay(this, 40);
     this.deathOverlay = death;
@@ -102,11 +110,13 @@ export class GameUIScene extends Phaser.Scene {
       this.passiveWindow = null;
       this.deathOverlay = null;
       this.dialogueWindow = null;
+      this.spotlightOverlay = null;
     });
   }
 
   update(_time: number, delta: number): void {
     this.deathOverlay?.update(delta);
+    this.spotlightOverlay?.update(delta, this.spotlightTarget());
     const game = this.gameScene();
     if (!this.hud || !game?.player) return;
     this.hud.update(
@@ -124,7 +134,8 @@ export class GameUIScene extends Phaser.Scene {
    * ignored there, so the UI never moves or attacks.
    */
   isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
-    if (this.input.hitTestPointer(pointer).length > 0) return true;
+    // a tutorial spotlight shuts the world out completely
+    if (this.spotlightOverlay?.isActive || this.input.hitTestPointer(pointer).length > 0) return true;
     const x = pointer.x;
     const y = pointer.y;
     for (const o of this.children.list) {
@@ -181,6 +192,24 @@ export class GameUIScene extends Phaser.Scene {
     return this.gameScene()?.canPerform('openWindow') ?? true;
   }
 
+  /** The tutorial spotlight. */
+  get spotlight(): SpotlightOverlay | null {
+    return this.spotlightOverlay;
+  }
+
+  /**
+   * The control the Passive Tree tutorial asks for now: its menu button, then the center node, then UNLOCK
+   * (the tutorial's own steps - they advance only when the thing was really done). None while the player may
+   * not act (conversation, dying, dead) or another window is open; it comes back by itself afterwards.
+   */
+  private spotlightTarget(): SpotlightTarget | null {
+    const w = this.passiveWindow;
+    const step = w?.tutorial;
+    if (!w || !step || !this.canOpenWindows() || this.statusWindow?.isOpen || this.settingsWindow?.isOpen) return null;
+    const control = step === 'open' ? this.hud?.passiveButton : w.tutorialControl;
+    return { id: step, rect: () => rectOfObject(this, control), label: t(`passive.tutorial.${step}`) };
+  }
+
   /** The NPC dialogue window. */
   get dialogue(): DialogueWindow | null {
     return this.dialogueWindow;
@@ -212,11 +241,9 @@ export class GameUIScene extends Phaser.Scene {
     w.toggle();
   }
 
-  /** HUD guidance: the tutorial 'open' step and the unspent-points pip. */
+  /** The unspent-points pip on the Passive Tree menu button. */
   private refreshPassiveGuide(character: CharacterData): void {
-    const w = this.passiveWindow;
-    if (!w || !character.passives) return;
-    this.hud?.setPassiveGuide(w.tutorial === 'open', availablePoints(character.passives) > 0);
+    if (character.passives) this.hud?.setPassivePoints(availablePoints(character.passives) > 0);
   }
 
   get isSettingsOpen(): boolean {

@@ -152,8 +152,6 @@ export class PassiveTreeWindow {
   private readonly blocker: Phaser.GameObjects.Rectangle;
   private readonly lines: Phaser.GameObjects.Graphics;
   private readonly selectRing: Phaser.GameObjects.Graphics;
-  private readonly guide: Phaser.GameObjects.Graphics;
-  private readonly guideTween: Phaser.Tweens.Tween;
   private readonly nodes: NodeView[] = [];
   private readonly classText: Phaser.GameObjects.Text;
   private readonly titleText: Phaser.GameObjects.Text;
@@ -207,11 +205,10 @@ export class PassiveTreeWindow {
     this.pointsText = this.text(px + pw / 2, py + ph / 2, '', 'label', C.lineText).setOrigin(0.5);
     this.root.add([this.classText, this.titleText, this.pointsText]);
 
-    // 3. Tree: lines under the nodes, selection ring, tutorial guide ring.
+    // 3. Tree: lines under the nodes, selection ring.
     this.lines = scene.add.graphics();
     this.selectRing = scene.add.graphics();
-    this.guide = scene.add.graphics();
-    this.root.add([this.lines, this.selectRing, this.guide]);
+    this.root.add([this.lines, this.selectRing]);
     const tree = activeTreeDefinition(this.progress());
     for (const def of tree.nodes) this.buildNode(def);
     this.hintText = this.text(TREE_UI.hint.cx, TREE_UI.hint.y, '', 'small', PALETTE.silver).setOrigin(0.5, 0);
@@ -234,8 +231,6 @@ export class PassiveTreeWindow {
     this.resetButton = new FrameButton(scene, this.root, TREE_UI.footer.reset, C.lineText, () => this.reset());
     this.closeButton = new FrameButton(scene, this.root, TREE_UI.footer.close, C.redText, () => this.close());
     this.root.add(this.tooltip);
-
-    this.guideTween = scene.tweens.add({ targets: this.guide, alpha: { from: 1, to: 0.25 }, duration: 520, yoyo: true, repeat: -1, paused: true });
 
     // Keyboard (only while open): arrows select, Enter / Space upgrade. P toggles (GameUIScene), Esc closes (GameScene).
     const onKey = (e: KeyboardEvent): void => {
@@ -271,6 +266,15 @@ export class PassiveTreeWindow {
   get tutorial(): PassiveTutorialStep {
     if (!this.tutorialEnabled()) return null;
     return tutorialStep(this.progress(), this.open, this.selectedId);
+  }
+
+  /** The control the tutorial asks for now (spotlight target), or null. */
+  get tutorialControl(): Phaser.GameObjects.Zone | null {
+    const step = this.tutorial;
+    if (step === 'unlock') return this.unlockButton.zone;
+    if (step !== 'select') return null;
+    const { centerId } = activeTreeDefinition(this.progress());
+    return this.nodes.find((n) => n.def.id === centerId)?.zone ?? null;
   }
 
   show(): void {
@@ -385,7 +389,6 @@ export class PassiveTreeWindow {
     const p = this.progress();
     const tree = activeTreeDefinition(p);
     const points = availablePoints(p);
-    const step = this.tutorial;
 
     this.classText.setText(`${t('passive.classLabel')}  ${labels.passiveClass(tree.id)}`);
     this.titleText.setText(t('passive.title'));
@@ -422,25 +425,13 @@ export class PassiveTreeWindow {
       n.rank.setText(`${rank}/${n.def.maxRank}`).setColor(maxed ? C.redText : rank > 0 ? PALETTE.pale : PALETTE.slate);
     }
 
-    // Selection ring (red, like the pack's selected state) and the pulsing tutorial guide.
+    // Selection ring (red, like the pack's selected state).
     this.selectRing.clear();
     const sel = this.nodes.find((n) => n.def.id === this.selectedId);
     if (sel) drawOctagon(this.selectRing, sel.x - (sel.size + 5) / 2, sel.y - (sel.size + 5) / 2, sel.size + 6, sel.cut + 2, C.red, null);
-    this.guide.clear();
-    if (step === 'select') {
-      const c = this.nodes.find((n) => n.def.id === tree.centerId)!;
-      drawOctagon(this.guide, c.x - (c.size + 9) / 2, c.y - (c.size + 9) / 2, c.size + 10, c.cut + 3, C.red, null);
-    } else if (step === 'unlock') {
-      const [x, y, w, h] = this.unlockButton.bounds;
-      strokeRect(this.guide, x - 3, y - 3, w + 6, h + 6, C.red);
-    }
-    if (step === 'select' || step === 'unlock') this.guideTween.resume();
-    else this.guideTween.pause();
-    this.guide.setAlpha(step ? this.guide.alpha : 1);
 
-    // Hint line: tutorial guidance first, then the last action's message.
-    if (step === 'select' || step === 'unlock') this.hintText.setText(t(`passive.tutorial.${step}`)).setColor(C.redText);
-    else if (this.message) this.hintText.setText(t(this.message.key, this.message.params)).setColor(this.message.color);
+    // Hint line: the last action's message (the tutorial has its own spotlight and label).
+    if (this.message) this.hintText.setText(t(this.message.key, this.message.params)).setColor(this.message.color);
     else this.hintText.setText('');
 
     this.refreshDetail(p, points);
@@ -499,7 +490,6 @@ export class PassiveTreeWindow {
     this.root.each((child: Phaser.GameObjects.GameObject) => {
       if (child.input) child.input.enabled = visible;
     });
-    if (!visible) this.guideTween.pause();
   }
 }
 

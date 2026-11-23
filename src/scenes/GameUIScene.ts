@@ -11,8 +11,8 @@ import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
 import { rectOfObject, SpotlightOverlay, type SpotlightTarget } from '../ui/tutorial/SpotlightOverlay';
 import { t } from '../i18n';
 import { QuestService } from '../quests/QuestService';
-import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
-import { equipmentTutorialStep, isQuest02AtMateus, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
+import { equipmentTutorialStep, statusTutorialStep, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
+import { trackedQuest } from '../quests/QuestTracker';
 import { characterInventorySource } from '../inventory/CharacterInventorySource';
 import { InventoryService } from '../inventory/InventoryService';
 import { bagIndexOf } from '../inventory/InventoryState';
@@ -25,6 +25,9 @@ import { SAVE_FILE_NAME, serializeSave } from '../save/SaveFile';
 import { SettingsWindow } from '../ui/SettingsWindow';
 import { StatusWindow } from '../ui/StatusWindow';
 import type { GameScene } from './GameScene';
+
+/** Spotlight ids of the Status tutorial start with this. */
+const STATUS_SPOTLIGHT = 'status.';
 
 export interface GameUISceneData {
   characterId?: string;
@@ -87,10 +90,12 @@ export class GameUIScene extends Phaser.Scene {
     );
     this.statusWindow = new StatusWindow(this, character, 10, currentHp);
     // T toggles the Status window, as its HUD button does: not while typing, with Settings open on top, or
-    // while a tutorial spotlight shuts other controls out.
+    // while a tutorial spotlight shuts other controls out - except the Status tutorial's own spotlight.
     const onT = (e: KeyboardEvent): void => {
       if (!isHotkeyPress(e, document.activeElement as HTMLElement | null)) return;
-      if (this.canOpenWindows() && !this.settingsWindow?.isOpen && !this.spotlightOverlay?.isActive) this.toggleStatus();
+      const spotlight = this.spotlightOverlay;
+      const allowed = !spotlight?.isActive || (spotlight.current?.id.startsWith(STATUS_SPOTLIGHT) ?? false);
+      if (this.canOpenWindows() && !this.settingsWindow?.isOpen && allowed) this.toggleStatus();
     };
     this.input.keyboard?.on('keydown-T', onT);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-T', onT));
@@ -132,11 +137,8 @@ export class GameUIScene extends Phaser.Scene {
     // Quests: tracker, NPC dialogue (above the windows, below the death screen).
     this.dialogueWindow = new DialogueWindow(this, 30);
     const refreshQuest = (): void => {
-      const quest02 = QuestService.quest02(character);
-      if (isQuest01Active(QuestService.quest01(character))) this.hud?.setQuest(TUTORIAL_QUEST_01.id);
-      else if (isQuest02AtMateus(quest02)) this.hud?.setQuest(TUTORIAL_QUEST_02.id);
-      else if (quest02.state === 'EQUIPMENT_TUTORIAL') this.hud?.setQuest(TUTORIAL_QUEST_02.id, 'objectiveEquip');
-      else this.hud?.setQuest(null);
+      const tracked = trackedQuest(character);
+      this.hud?.setQuest(tracked?.questId ?? null, tracked?.objectiveKey, tracked?.params);
       this.refreshPassiveGuide(character);
       // at once, not next frame: fast clicking through the dialogue must not reach the world behind it
       this.spotlightOverlay?.update(0, this.spotlightTarget());
@@ -288,8 +290,23 @@ export class GameUIScene extends Phaser.Scene {
    * another window is open; it comes back by itself afterwards.
    */
   private spotlightTarget(): SpotlightTarget | null {
-    if (!this.canOpenWindows() || this.statusWindow?.isOpen || this.settingsWindow?.isOpen) return null;
+    if (!this.canOpenWindows() || this.settingsWindow?.isOpen) return null;
+    const status = this.statusSpotlight();
+    if (status || this.statusWindow?.isOpen) return status;
     return this.passiveSpotlight() ?? this.equipmentSpotlight();
+  }
+
+  /**
+   * Status tutorial (Tutorial Quest 02, after the turn-in): the Status button, the six main stats (any one),
+   * CONFIRM. It ends when a point was really spent (QuestService), not on a click.
+   */
+  private statusSpotlight(): SpotlightTarget | null {
+    const { character, statusWindow: w } = this;
+    if (!character || !w || this.inventoryWindow?.isOpen || this.passiveWindow?.isOpen) return null;
+    const step = statusTutorialStep(QuestService.quest02(character), w.isOpen, w.hasPending);
+    if (!step) return null;
+    const rect = step === 'openStatus' ? () => rectOfObject(this, this.hud?.statusButton) : () => w.tutorialArea(step === 'chooseStat' ? 'stats' : 'confirm');
+    return { id: `${STATUS_SPOTLIGHT}${step}`, rect, label: t(`statusTutorial.${step}`) };
   }
 
   /**

@@ -1,20 +1,26 @@
 /**
- * Tutorial Quest EXP budget for Levels 1-10 - RESERVED, NOT AWARDED.
- *
- * Tutorial Quests are not designed yet: there are no quests, objectives, triggers or NPCs, and nothing
- * here grants EXP. When the quests are designed, list each one in `allocations` (stable quest id -> EXP)
- * and pay it through CharacterStatusService.gainExp when that quest completes. The check below keeps the
- * allocations inside the planned budget.
+ * Tutorial Quest EXP budget for Levels 1-10. Each quest that pays EXP is listed in `allocations` (stable quest
+ * id -> EXP); QuestRewards pays exactly that through CharacterStatusService.gainExp, once. Monster EXP is
+ * separate and not part of this budget. The check below keeps the allocations inside the planned budget; the
+ * rest stays unassigned (never paid by itself).
  */
 export const TUTORIAL_QUEST_EXP_BUDGET = {
   /** Planned EXP from Tutorial Quests across Levels 1-10 (about 900). */
   total: 900,
-  /** Per-quest rewards: empty until the quests exist. */
-  allocations: {} as Readonly<Record<string, number>>,
+  /** Per-quest rewards. */
+  allocations: {
+    tutorial_02_rusty_dagger: 100,
+    tutorial_03_void_mite_hunt: 200,
+  } as Readonly<Record<string, number>>,
 } as const;
 
 export function allocatedQuestExp(allocations: Readonly<Record<string, number>> = TUTORIAL_QUEST_EXP_BUDGET.allocations): number {
   return Object.values(allocations).reduce((sum, v) => sum + v, 0);
+}
+
+/** EXP of one quest's reward (0 when it pays none). */
+export function questExpReward(questId: string): number {
+  return TUTORIAL_QUEST_EXP_BUDGET.allocations[questId] ?? 0;
 }
 
 /** EXP still unassigned in the budget. */

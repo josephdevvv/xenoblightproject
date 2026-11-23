@@ -1,23 +1,21 @@
 /**
- * NPC dialogue, exactly as written by the author (Thai only so far: shown as it is in every UI language -
- * no translation has been supplied). One string per dialogue step.
+ * NPC dialogue. Each conversation is a list of translation keys, one per dialogue step; the texts live in
+ * the i18n dictionaries under `dialogues.<id>.l<step>` (Thai exactly as the author wrote it, English
+ * translations), so a conversation is always shown in the current UI language.
  */
+const lines = <Id extends string>(id: Id, count: number): readonly string[] => Array.from({ length: count }, (_, i) => `dialogues.${id}.l${i + 1}`);
+
 export const DIALOGUES = {
-  mateus_first_meeting: [
-    'เจ้าคนเร่ร่อนนี่! เดินหลงทางมาจากไหนน่ะที่นี่มันอันตรายนะ',
-    'แถวนี้มันเถื่อน ไม่แน่จริงอยู่ไม่ได้ เจ้าควรจะรู้วิธีเอาตัวรอดเบื้องต้นก่อน',
-    'ข้าจะบอกวิธีการเพิ่มพลังพื้นฐานให้แก่เจ้า เอาล่ะทำตามนะ',
-  ],
-  mateus_rusty_dagger: [
-    'เอาล่ะ เจ้าได้สัมผัสความแข็งแกร่งของตัวเจ้าเองแล้ว',
-    'ข้าจะมอบมีดให้ 1 เล่ม เพื่อให้เจ้าเอาไปใช้ปราบสัตว์ประหลาด',
-    'เอาล่ะลองใช้สิ่งนี้ดู',
-  ],
+  mateus_first_meeting: lines('mateus_first_meeting', 3),
+  mateus_rusty_dagger: lines('mateus_rusty_dagger', 3),
+  mateus_rusty_dagger_turn_in: lines('mateus_rusty_dagger_turn_in', 3),
+  mateus_void_mite_hunt: lines('mateus_void_mite_hunt', 4),
+  mateus_void_mite_hunt_done: lines('mateus_void_mite_hunt_done', 2),
 } as const satisfies Record<string, readonly string[]>;
 
 export type DialogueId = keyof typeof DIALOGUES;
 
-/** One conversation: a step at a time, finished once. Pure. */
+/** One conversation: a step at a time, finished once. Pure. `lines` are translation keys. */
 export class DialogueSession {
   private index = 0;
   private done = false;
@@ -26,6 +24,7 @@ export class DialogueSession {
     if (lines.length === 0) throw new Error('a dialogue needs at least one line');
   }
 
+  /** Translation key of the step shown now. */
   get line(): string {
     return this.lines[this.index];
   }

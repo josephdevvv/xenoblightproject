@@ -261,7 +261,7 @@ test('missing or impossible fields inside a record are repaired by the game\'s o
     const c = SaveService.restore(save);
     const ids = [...c.inventory!.bag.flatMap((x) => (x ? [x.instanceId] : [])), c.inventory!.equipment.weapon!.instanceId];
     assert.equal(new Set(ids).size, ids.length, 'every instance once');
-    assert.equal(QuestService.quest02(c).state, 'COMPLETED', 'the dagger was given: no restart');
+    assert.equal(QuestService.quest02(c).state, 'TURNED_IN', 'the dagger was given: no restart, nothing paid again');
   });
 });
 

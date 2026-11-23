@@ -2,6 +2,7 @@ import type { CharacterData } from '../data/CharacterData';
 import type { NpcId } from '../npcs/NpcDefinition';
 import { QuestService } from './QuestService';
 import { TUTORIAL_QUEST_02 } from './TutorialQuest02';
+import { TUTORIAL_QUEST_03 } from './TutorialQuest03';
 import { TUTORIAL_QUEST_01 } from './TutorialQuest01';
 
 /**
@@ -48,7 +49,10 @@ function quest01Marker(character: CharacterData): QuestMarkerState | null {
   }
 }
 
-/** Yellow ! until the dagger was received, the gray arrow until it is worn, then the check mark stays. */
+/**
+ * Yellow ! until the dagger was received, the gray arrow until it is worn, the check mark until it was turned
+ * in, the gray arrow during the Status tutorial; nothing once that is done.
+ */
 function quest02Marker(character: CharacterData): QuestMarkerState | null {
   switch (QuestService.quest02(character).state) {
     case 'NOT_STARTED':
@@ -60,13 +64,38 @@ function quest02Marker(character: CharacterData): QuestMarkerState | null {
     case 'EQUIPMENT_TUTORIAL':
       return 'inProgress';
     case 'COMPLETED':
-      return 'completedKept';
+    case 'TURN_IN_DIALOGUE':
+      return 'completed';
+    case 'REWARDED':
+    case 'STATUS_TUTORIAL':
+      return 'inProgress';
+    case 'TURNED_IN':
+      return null;
+  }
+}
+
+/** Yellow ! until accepted, the gray arrow while hunting, the check mark at 5/5 until turned in; then nothing. */
+function quest03Marker(character: CharacterData): QuestMarkerState | null {
+  switch (QuestService.quest03(character).state) {
+    case 'NOT_STARTED':
+      return QuestService.canStart03(character) ? 'available' : null;
+    case 'OFFERED':
+    case 'ACCEPT_DIALOGUE':
+      return 'available';
+    case 'HUNTING':
+      return 'inProgress';
+    case 'READY_TO_TURN_IN':
+    case 'TURN_IN_DIALOGUE':
+      return 'completed';
+    case 'COMPLETED':
+      return null;
   }
 }
 
 export const QUEST_MARKER_SOURCES: readonly QuestMarkerSource[] = [
   { npcId: TUTORIAL_QUEST_01.npcId, marker: quest01Marker },
   { npcId: TUTORIAL_QUEST_02.npcId, marker: quest02Marker },
+  { npcId: TUTORIAL_QUEST_03.npcId, marker: quest03Marker },
 ];
 
 /** The one marker an NPC shows for this character now. */

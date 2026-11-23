@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { playerCombatStats } from '../src/combat/CombatRules';
 import type { CharacterData } from '../src/data/CharacterData';
 import { DIALOGUES, DialogueSession } from '../src/dialogue/Dialogues';
-import { initLanguage, setLanguage } from '../src/i18n';
+import { initLanguage, setLanguage, translate } from '../src/i18n';
 import { labels } from '../src/i18n/labels';
 import { characterInventorySource } from '../src/inventory/CharacterInventorySource';
 import { InventoryService } from '../src/inventory/InventoryService';
@@ -33,7 +33,7 @@ import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
 const DAGGER = 'weapon_rusty_dagger';
 const { reward } = TUTORIAL_QUEST_02;
-const EVENTS: Quest02Event[] = ['start', 'talk', 'cancelTalk', 'grantReward', 'finishDialogue', 'complete'];
+const EVENTS: Quest02Event[] = ['start', 'talk', 'cancelTalk', 'grantReward', 'finishDialogue', 'complete', 'turnIn', 'cancelTurnIn', 'grantExp', 'finishTurnIn', 'statAllocated'];
 const at = (state: Quest02State): Quest02Progress => ({ state });
 
 /** Plays Tutorial Quest 01 and the passive tutorial up to the unlocked first node. */
@@ -54,7 +54,9 @@ const items = (s: InventoryState): string[] => [...s.bag.flatMap((x) => (x ? Arr
 test('dialogue: exactly three steps, the author\'s text character for character; the reward comes before the third', () => {
   assert.equal(TUTORIAL_QUEST_02.id, 'tutorial_02_rusty_dagger');
   const lines = DIALOGUES[TUTORIAL_QUEST_02.dialogueId];
-  assert.deepEqual([...lines], ['เอาล่ะ เจ้าได้สัมผัสความแข็งแกร่งของตัวเจ้าเองแล้ว', 'ข้าจะมอบมีดให้ 1 เล่ม เพื่อให้เจ้าเอาไปใช้ปราบสัตว์ประหลาด', 'เอาล่ะลองใช้สิ่งนี้ดู']);
+  initLanguage(null);
+  setLanguage('th');
+  assert.deepEqual(lines.map((k) => translate(k)), ['เอาล่ะ เจ้าได้สัมผัสความแข็งแกร่งของตัวเจ้าเองแล้ว', 'ข้าจะมอบมีดให้ 1 เล่ม เพื่อให้เจ้าเอาไปใช้ปราบสัตว์ประหลาด', 'เอาล่ะลองใช้สิ่งนี้ดู']);
   assert.equal(TUTORIAL_QUEST_02.rewardBeforeStep, 2);
   assert.deepEqual({ ...reward }, { grantId: 'quest:tutorial_02_rusty_dagger', itemId: DAGGER, quantity: 1 });
   const s = new DialogueSession(lines);
@@ -65,15 +67,26 @@ test('dialogue: exactly three steps, the author\'s text character for character;
 
 test('states: only the next step is accepted from each state, in order, once', () => {
   let p = createQuest02();
-  const path: [Quest02Event, Quest02State][] = [['start', 'FIND_MATEUS'], ['talk', 'MATEUS_DIALOGUE'], ['grantReward', 'DAGGER_GRANTED'], ['finishDialogue', 'EQUIPMENT_TUTORIAL'], ['complete', 'COMPLETED']];
+  const path: [Quest02Event, Quest02State][] = [
+    ['start', 'FIND_MATEUS'],
+    ['talk', 'MATEUS_DIALOGUE'],
+    ['grantReward', 'DAGGER_GRANTED'],
+    ['finishDialogue', 'EQUIPMENT_TUTORIAL'],
+    ['complete', 'COMPLETED'],
+    ['turnIn', 'TURN_IN_DIALOGUE'],
+    ['grantExp', 'REWARDED'],
+    ['finishTurnIn', 'STATUS_TUTORIAL'],
+    ['statAllocated', 'TURNED_IN'],
+  ];
   for (const [event, state] of path) {
     const allowed = EVENTS.filter((e) => applyQuest02(p, e) !== null);
-    assert.deepEqual(allowed.sort(), (p.state === 'MATEUS_DIALOGUE' ? ['cancelTalk', event] : [event]).sort(), p.state);
+    const cancel = p.state === 'MATEUS_DIALOGUE' ? ['cancelTalk'] : p.state === 'TURN_IN_DIALOGUE' ? ['cancelTurnIn'] : [];
+    assert.deepEqual(allowed.sort(), [...cancel, event].sort(), p.state);
     p = applyQuest02(p, event)!;
     assert.equal(p.state, state);
   }
   assert.deepEqual(EVENTS.filter((e) => applyQuest02(p, e) !== null), []);
-  for (const s of QUEST02_STATES) assert.equal(isQuest02AtMateus(at(s)), ['FIND_MATEUS', 'MATEUS_DIALOGUE', 'DAGGER_GRANTED'].includes(s), `${s}: dotted path until the last line`);
+  for (const s of QUEST02_STATES) assert.equal(isQuest02AtMateus(at(s)), ['FIND_MATEUS', 'MATEUS_DIALOGUE', 'DAGGER_GRANTED', 'COMPLETED', 'TURN_IN_DIALOGUE', 'REWARDED'].includes(s), `${s}: dotted path until the last line`);
 });
 
 test('restore: a cut-off conversation starts over or goes on, completed stays completed, nothing restarts', () => {
@@ -85,11 +98,17 @@ test('restore: a cut-off conversation starts over or goes on, completed stays co
   assert.equal(r('FIND_MATEUS', true), 'EQUIPMENT_TUTORIAL');
   assert.equal(r('DAGGER_GRANTED', true), 'EQUIPMENT_TUTORIAL', 'the last line is not repeated');
   assert.equal(r('EQUIPMENT_TUTORIAL', true), 'EQUIPMENT_TUTORIAL');
-  assert.equal(r('COMPLETED', true), 'COMPLETED');
+  assert.equal(r('COMPLETED', true), 'COMPLETED', 'worn, not turned in yet (also saves from before the turn-in existed)');
   assert.equal(r('COMPLETED', false), 'COMPLETED');
+  assert.equal(r('TURN_IN_DIALOGUE', true), 'COMPLETED', 'cut off before the EXP: asked again');
+  assert.equal(r('REWARDED', true), 'STATUS_TUTORIAL', 'cut off after the EXP: never paid again');
+  assert.equal(r('STATUS_TUTORIAL', true), 'STATUS_TUTORIAL');
+  assert.equal(r('TURNED_IN', true), 'TURNED_IN');
+  assert.deepEqual(restoreQuest02({ state: 'STATUS_TUTORIAL', statPointsSpentAtStart: 2 }, true, 3), { state: 'STATUS_TUTORIAL', statPointsSpentAtStart: 2 });
+  for (const bad of [-1, 4, 1.5, 'x', undefined]) assert.deepEqual(restoreQuest02({ state: 'STATUS_TUTORIAL', statPointsSpentAtStart: bad }, true, 3), { state: 'STATUS_TUTORIAL', statPointsSpentAtStart: 3 }, String(bad));
   for (const broken of ['HACKED', 5, null, undefined, {}]) {
     assert.equal(r(broken, false), 'NOT_STARTED');
-    assert.equal(r(broken, true), 'COMPLETED', 'lost progress never gives a second dagger');
+    assert.equal(r(broken, true), 'TURNED_IN', 'lost progress never gives a second dagger or EXP');
   }
   assert.equal(restoreQuest02(null, false).state, 'NOT_STARTED');
 });
@@ -164,7 +183,7 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     assert.equal(playerCombatStats(CharacterStatusService.derived(c3)).atk, atk + 4);
     assert.equal(JSON.stringify(c3.status), before.status, 'no EXP, level or stat points');
     assert.equal(JSON.stringify(QuestService.quest01(c3)), before.quest01);
-    assert.deepEqual(TUTORIAL_QUEST_EXP_BUDGET.allocations, {});
+    assert.equal(TUTORIAL_QUEST_EXP_BUDGET.allocations[TUTORIAL_QUEST_02.id], 100, 'paid only when turned in (questFlow tests)');
     // another character - also of the same name - is independent
     assert.deepEqual(items(newCharacter('Alpha').inventory!), []);
     off();
@@ -222,7 +241,7 @@ test('broken progress: quest and item records repair each other', () => {
     assert.deepEqual(items(broken.inventory!), [DAGGER]);
     const lost = newCharacter('Alpha');
     CharacterStatusService.restore(lost, { status: c.status, passives: c.passives!, quests: {}, inventory: c.inventory! });
-    assert.equal(QuestService.quest02(lost).state, 'COMPLETED', 'lost quest log: no restart, no second dagger');
+    assert.equal(QuestService.quest02(lost).state, 'TURNED_IN', 'lost quest log: no restart, no second dagger or EXP');
   });
 });
 

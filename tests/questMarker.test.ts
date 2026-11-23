@@ -37,7 +37,7 @@ test('Mateus: yellow -> gray -> yellow -> gray -> green check mark, exactly with
     const offItem = InventoryService.onGained((_c, id) => gained.push(id));
     const c = newCharacter('Alpha');
     // what GameScene does: Tutorial Quest 02 follows the character
-    const offSync = CharacterStatusService.onChange((x) => x === c && QuestService.sync02(x));
+    const offSync = CharacterStatusService.onChange((x) => x === c && QuestService.sync(x));
     const status = JSON.stringify({ level: c.status!.level, exp: (c.status as unknown as { exp?: unknown }).exp });
 
     // 1: new character
@@ -87,15 +87,15 @@ test('Mateus: yellow -> gray -> yellow -> gray -> green check mark, exactly with
     expectMarker(c, 'completed', 'Equipment Tutorial completed');
     InventoryService.unequip(c, 'weapon');
     expectMarker(c, 'completed', 'taken off again');
-    // a real new quest of Mateus, some day, comes before the kept check mark - in every one of its states
-    for (const next of ['available', 'inProgress', 'completed'] as const) {
-      assert.equal(npcQuestMarker(c, MATEUS, [...QUEST_MARKER_SOURCES, { npcId: MATEUS, marker: () => next }]), next);
+    // the check mark waits for the turn-in: it comes before anything another quest of Mateus could ask for
+    for (const other of ['available', 'inProgress', 'completed', null] as const) {
+      assert.equal(npcQuestMarker(c, MATEUS, [...QUEST_MARKER_SOURCES, { npcId: MATEUS, marker: () => other }]), 'completed');
     }
-    assert.equal(npcQuestMarker(c, MATEUS, [...QUEST_MARKER_SOURCES, { npcId: MATEUS, marker: () => null }]), 'completed');
-    assert.deepEqual([isQuest01Active(QuestService.quest01(c)), isQuest02AtMateus(QuestService.quest02(c))], [false, false], 'no dotted path, no conversation');
-    assert.deepEqual([QuestService.advance(c, 'talk'), QuestService.advance02(c, 'talk')], [false, false]);
+    assert.deepEqual([isQuest01Active(QuestService.quest01(c)), isQuest02AtMateus(QuestService.quest02(c))], [false, true], 'dotted path back to Mateus');
+    assert.deepEqual([QuestService.advance(c, 'talk'), QuestService.advance02(c, 'talk')], [false, false], 'no earlier conversation again');
 
-    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger'], 'no Tutorial Quest 03');
+    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt'], 'no other quest');
+    assert.equal(QuestService.quest03(c).state, 'NOT_STARTED', 'not before the turn-in and the Status tutorial');
     assert.deepEqual(completed, ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger']);
     assert.deepEqual(gained, [reward.itemId]);
     assert.equal(InventoryService.grantOnce(c, reward), 'alreadyGranted');

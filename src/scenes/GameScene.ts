@@ -33,6 +33,9 @@ import { npcQuestMarker } from '../quests/QuestMarkers';
 import { QuestService } from '../quests/QuestService';
 import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
 import { isQuest02AtMateus, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
+import { isQuest03AtMateus, TUTORIAL_QUEST_03 } from '../quests/TutorialQuest03';
+import { QuestRewards, type QuestExpPaid } from '../quests/QuestRewards';
+import { monsterSheetKey } from '../monsters/art/MonsterArt';
 import { InventoryService } from '../inventory/InventoryService';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
 import { PLAYER_MOVEMENT } from '../player/PlayerController';
@@ -289,9 +292,9 @@ export class GameScene extends Phaser.Scene {
       onManualMove?.();
       this.npcInteraction.cancel();
     };
-    // Tutorial Quest 02 follows what the player does (first passive node, dagger worn)
+    // The tutorial quests follow what the player does (first passive node, dagger worn, a stat point spent)
     const syncQuest = (c: CharacterData): void => {
-      if (c === character) QuestService.sync02(c);
+      if (c === character) QuestService.sync(c);
     };
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, CharacterStatusService.onChange(syncQuest));
     this.questTrail = new PathTrail(new Pathfinder(this.map.layout, { radius: PLAYER_MOVEMENT.radius }));
@@ -393,7 +396,9 @@ export class GameScene extends Phaser.Scene {
 
   // -------------------------------------------------------------------------------------------
   // Tutorial Quest 01: find Mateus -> talk -> the existing Passive Tree tutorial
-  // Tutorial Quest 02: back to Mateus -> talk (Rusty Dagger) -> equipment tutorial
+  // Tutorial Quest 02: back to Mateus -> talk (Rusty Dagger) -> equipment tutorial -> back to Mateus
+  //   (100 EXP) -> Status tutorial
+  // Tutorial Quest 03: back to Mateus -> talk -> 5 Void Mites -> back to Mateus (200 EXP)
   // -------------------------------------------------------------------------------------------
 
   /** The NPC the active quest sends the player to (dotted path), or null. */
@@ -403,15 +408,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   private questNpcId(): NpcId | null {
-    if (isQuest01Active(QuestService.quest01(this.character))) return TUTORIAL_QUEST_01.npcId;
-    return isQuest02AtMateus(QuestService.quest02(this.character)) ? TUTORIAL_QUEST_02.npcId : null;
+    const c = this.character;
+    if (isQuest01Active(QuestService.quest01(c))) return TUTORIAL_QUEST_01.npcId;
+    if (isQuest02AtMateus(QuestService.quest02(c))) return TUTORIAL_QUEST_02.npcId;
+    return isQuest03AtMateus(QuestService.quest03(c)) ? TUTORIAL_QUEST_03.npcId : null;
   }
 
   /** Entering the map: new characters get the quest; a handoff that was cut off is finished. */
   private beginTutorialQuest(character: CharacterData): void {
     QuestService.advance(character, 'start');
     QuestService.advance(character, 'startPassiveTutorial');
-    QuestService.sync02(character);
+    QuestService.sync(character);
     // a repaired save file without the dagger: the equipment tutorial needs it - still only once
     if (QuestService.quest02(character).state === 'EQUIPMENT_TUTORIAL') InventoryService.grantOnce(character, TUTORIAL_QUEST_02.reward);
   }
@@ -434,7 +441,7 @@ export class GameScene extends Phaser.Scene {
         this.combat.setSuspended(false);
         QuestService.advance(character, 'finishDialogue');
         QuestService.advance(character, 'startPassiveTutorial');
-        QuestService.sync02(character);
+        QuestService.sync(character);
       });
     } else if (QuestService.advance02(character, 'talk')) {
       this.beginConversation(ui);
@@ -444,7 +451,7 @@ export class GameScene extends Phaser.Scene {
         () => {
           this.combat.setSuspended(false);
           QuestService.advance02(character, 'finishDialogue');
-          QuestService.sync02(character);
+          QuestService.sync(character);
         },
         {
           beforeStep: (step) => step !== TUTORIAL_QUEST_02.rewardBeforeStep || this.giveQuest02Reward(ui),
@@ -454,7 +461,70 @@ export class GameScene extends Phaser.Scene {
           },
         },
       );
+    } else if (QuestService.advance02(character, 'turnIn')) {
+      // the dagger is worn: 100 EXP before the second line, then the Status tutorial
+      this.beginConversation(ui);
+      dialogue.open(
+        name,
+        DIALOGUES[TUTORIAL_QUEST_02.turnInDialogueId],
+        () => {
+          this.combat.setSuspended(false);
+          QuestService.advance02(character, 'finishTurnIn');
+          QuestService.sync(character);
+        },
+        {
+          beforeStep: (step) => {
+            if (step === TUTORIAL_QUEST_02.expBeforeStep) this.showQuestExp(QuestRewards.quest02(character));
+            return true;
+          },
+          onInterrupted: () => {
+            this.combat.setSuspended(false);
+            QuestService.advance02(character, 'cancelTurnIn');
+          },
+        },
+      );
+    } else if (QuestService.advance03(character, 'talk')) {
+      // the Void Mite hunt: a picture of the creature with the first line; hunting starts after the last one
+      this.beginConversation(ui);
+      const picture = { texture: monsterSheetKey('void_mite', 'idle'), frame: 0, scale: 3 };
+      dialogue.open(
+        name,
+        DIALOGUES[TUTORIAL_QUEST_03.acceptDialogueId],
+        () => {
+          this.combat.setSuspended(false);
+          QuestService.advance03(character, 'accept');
+        },
+        {
+          picture: (step) => (step === TUTORIAL_QUEST_03.previewStep ? picture : null),
+          onInterrupted: () => {
+            this.combat.setSuspended(false);
+            QuestService.advance03(character, 'cancelTalk');
+          },
+        },
+      );
+    } else if (QuestService.advance03(character, 'turnIn')) {
+      // 5/5: 200 EXP when the last line is confirmed
+      this.beginConversation(ui);
+      dialogue.open(
+        name,
+        DIALOGUES[TUTORIAL_QUEST_03.completeDialogueId],
+        () => {
+          this.combat.setSuspended(false);
+          this.showQuestExp(QuestRewards.quest03(character));
+        },
+        {
+          onInterrupted: () => {
+            this.combat.setSuspended(false);
+            QuestService.advance03(character, 'cancelTurnIn');
+          },
+        },
+      );
     }
+  }
+
+  /** The usual EXP / LEVEL UP feedback for quest EXP that was just paid (nothing when it was not). */
+  private showQuestExp(paid: QuestExpPaid | null): void {
+    if (paid && paid.exp > 0) this.combat.showExpGain(paid.exp, paid.levels);
   }
 
   private beginConversation(ui: GameUIScene): void {

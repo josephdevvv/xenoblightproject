@@ -18,7 +18,7 @@ export const labels = {
   itemName: (id: string) => translate(`items.${id}.name`),
   itemDescription: (id: string) => translate(`items.${id}.description`),
   questName: (id: string) => translate(`quests.${id}.name`),
-  questObjective: (id: string, key = 'objective') => translate(`quests.${id}.${key}`),
+  questObjective: (id: string, key = 'objective', params?: Record<string, number>) => translate(`quests.${id}.${key}`, params),
   passiveNode: (id: string) => translate(`passive.nodes.${id}`),
   passiveClass: (treeId: string) => translate(`passive.classNames.${treeId}`),
 };

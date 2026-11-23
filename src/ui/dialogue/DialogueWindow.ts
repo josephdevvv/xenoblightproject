@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { DialogueSession } from '../../dialogue/Dialogues';
+import { translate } from '../../i18n';
+import { localize } from '../../i18n/phaser';
 import { typo } from '../UITheme';
 import { wrapText } from '../text/wrapText';
 
@@ -17,7 +19,19 @@ export interface DialogueHooks {
   beforeStep?: (step: number) => boolean;
   /** The conversation was broken off (window already closed); onFinished does not run. */
   onInterrupted?: () => void;
+  /** A picture shown above the window during a step (0-based), e.g. the creature a quest is about. */
+  picture?: (step: number) => DialoguePicture | null;
 }
+
+/** A frame of a loaded texture, drawn at a whole-number scale (nearest neighbour). */
+export interface DialoguePicture {
+  texture: string;
+  frame: string | number;
+  scale: number;
+}
+
+/** Space between the picture's frame and the dialogue window, and inside the frame. */
+const PICTURE = { gap: 8, padding: 8 } as const;
 
 /**
  * NPC dialogue: speaker name, one line of dialogue at a time, a blinking arrow at the bottom right. A left
@@ -39,6 +53,9 @@ export class DialogueWindow {
   private hooks: DialogueHooks = {};
   /** A left press that began on the window and has not been released, moved off or used yet. */
   private pressed = false;
+  private readonly pictureFrame: Phaser.GameObjects.Graphics;
+  private readonly pictureImage: Phaser.GameObjects.Image;
+  private readonly panelTop: number;
 
   constructor(scene: Phaser.Scene, depth: number) {
     const { width: sw, height: sh } = scene.scale;
@@ -72,11 +89,22 @@ export class DialogueWindow {
       if (fire) this.advance();
     });
     this.blink = scene.tweens.add({ targets: this.next, alpha: { from: BLINK.from, to: BLINK.to }, duration: BLINK.ms, ease: 'Sine.easeInOut', yoyo: true, repeat: -1, paused: true });
+    // the picture of a step: centred above the window, in a frame like the window's own
+    this.panelTop = y;
+    this.pictureFrame = scene.add.graphics().setDepth(depth + 1);
+    this.pictureImage = scene.add.image(Math.round(sw / 2), 0, '__DEFAULT').setOrigin(0.5, 1).setDepth(depth + 2);
     this.setVisible(false);
+    // the current line follows a language change
+    localize(scene, () => this.showLine());
   }
 
   get isOpen(): boolean {
     return this.session !== null;
+  }
+
+  /** A picture is shown above the window now (for checks). */
+  get pictureShown(): boolean {
+    return this.pictureImage.visible;
   }
 
   /** The step shown now (0-based), or null when closed. */
@@ -124,7 +152,27 @@ export class DialogueWindow {
     const { canvas, context, style } = this.lineText;
     style.syncFont(canvas, context);
     const measure = (s: string): number => context.measureText(s).width;
-    this.lineText.setText(wrapText(this.session.line, this.textWidth, measure));
+    this.lineText.setText(wrapText(translate(this.session.line), this.textWidth, measure));
+    this.showPicture(this.hooks.picture?.(this.session.step) ?? null);
+  }
+
+  /** The picture of the current step; hidden when it has none (or its texture is not loaded). */
+  private showPicture(picture: DialoguePicture | null): void {
+    const g = this.pictureFrame;
+    g.clear();
+    const shown = picture !== null && this.pictureImage.scene.textures.exists(picture.texture);
+    this.pictureImage.setVisible(shown);
+    g.setVisible(shown);
+    if (!shown) return;
+    const image = this.pictureImage.setTexture(picture.texture, picture.frame).setScale(Math.max(1, Math.round(picture.scale)));
+    const w = Math.round(image.displayWidth) + PICTURE.padding * 2;
+    const h = Math.round(image.displayHeight) + PICTURE.padding * 2;
+    const x = Math.round(image.x - w / 2);
+    const y = this.panelTop - PICTURE.gap - h;
+    image.setY(y + h - PICTURE.padding);
+    g.fillStyle(C.fill, 0.96).fillRect(x, y, w, h);
+    g.fillStyle(C.line, 1).fillRect(x, y, w, 1).fillRect(x, y + h - 1, w, 1).fillRect(x, y, 1, h).fillRect(x + w - 1, y, 1, h);
+    g.fillStyle(C.dim, 1).fillRect(x + 2, y + 2, w - 4, 1);
   }
 
   /** Dark panel, 1-px light border, dim inner line, a rule and red marks around the speaker name. */
@@ -152,6 +200,7 @@ export class DialogueWindow {
 
   private setVisible(visible: boolean): void {
     for (const o of [this.blocker, this.panel, this.nameText, this.lineText, this.next]) o.setVisible(visible);
+    if (!visible) this.showPicture(null);
     this.pressed = false;
     this.drawNext(false, false);
     if (visible) {

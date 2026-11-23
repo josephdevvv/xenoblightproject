@@ -20,7 +20,7 @@ import {
   type Quest01Event,
   type Quest01Progress,
 } from '../src/quests/TutorialQuest01';
-import { initLanguage, setLanguage } from '../src/i18n';
+import { initLanguage, setLanguage, translate } from '../src/i18n';
 import { labels } from '../src/i18n/labels';
 import { wrapText } from '../src/ui/text/wrapText';
 import { MapLayout } from '../src/world/MapLayout';
@@ -34,8 +34,17 @@ const character = (name: string) => createCharacterData(name, { gender: 'male', 
 
 // -------------------------------------------------------------------------------------------- dialogue
 
+/** The lines of a dialogue in one language. */
+const linesIn = (language: 'th' | 'en', keys: readonly string[]): string[] => {
+  initLanguage(null);
+  setLanguage(language);
+  const out = keys.map((k) => translate(k));
+  setLanguage('th');
+  return out;
+};
+
 test('dialogue: exactly three steps, the author\'s text character for character', () => {
-  assert.deepEqual([...DIALOGUES[TUTORIAL_QUEST_01.dialogueId]], [
+  assert.deepEqual(linesIn('th', DIALOGUES[TUTORIAL_QUEST_01.dialogueId]), [
     'เจ้าคนเร่ร่อนนี่! เดินหลงทางมาจากไหนน่ะที่นี่มันอันตรายนะ',
     'แถวนี้มันเถื่อน ไม่แน่จริงอยู่ไม่ได้ เจ้าควรจะรู้วิธีเอาตัวรอดเบื้องต้นก่อน',
     'ข้าจะบอกวิธีการเพิ่มพลังพื้นฐานให้แก่เจ้า เอาล่ะทำตามนะ',
@@ -57,7 +66,7 @@ test('dialogue session: one step per NEXT, finishes once after the third', () =>
 
 test('line wrapping: Thai breaks between words, fits the width and never changes the text', () => {
   const measure = (t: string) => [...t].length * 7;
-  for (const line of DIALOGUES[TUTORIAL_QUEST_01.dialogueId]) {
+  for (const line of linesIn('th', DIALOGUES[TUTORIAL_QUEST_01.dialogueId])) {
     for (const width of [140, 220, 490, 5000]) {
       const wrapped = wrapText(line, width, measure);
       assert.equal(wrapped.join(''), line);
@@ -136,7 +145,7 @@ test('save files: every step survives save and load, completion fires once, no r
     assert.equal(QuestService.claimReward(a3), true);
     assert.equal(QuestService.claimReward(a3), false);
     assert.equal(QuestService.claimReward(saveAndLoad(a3)), false);
-    assert.deepEqual(TUTORIAL_QUEST_EXP_BUDGET.allocations, {}, 'no EXP allocated');
+    assert.equal(TUTORIAL_QUEST_EXP_BUDGET.allocations[TUTORIAL_QUEST_01.id], undefined, 'no EXP for this quest');
     assert.equal(a3.status.exp, 0, 'no EXP paid');
     // another character - also of the same name - is independent
     assert.equal(QuestService.quest01(newCharacter('Alpha')).state, 'NOT_STARTED');

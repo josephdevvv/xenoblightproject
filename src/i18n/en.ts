@@ -283,15 +283,53 @@ export const en: Messages = {
     selectItem: 'Select the Rusty Dagger',
     equipItem: 'Press the Equip button',
   },
+  statusTutorial: {
+    openStatus: 'Open Status (T)',
+    chooseStat: 'Choose a stat to raise (+)',
+    confirmStat: 'Press Confirm',
+  },
   quests: {
     tutorial_02_rusty_dagger: {
       name: 'First Weapon',
       objective: 'Return to Mateus and talk to him',
       objectiveEquip: 'Equip the Rusty Dagger',
+      objectiveStatus: 'Spend 1 stat point',
+    },
+    tutorial_03_void_mite_hunt: {
+      name: 'Void Mite Hunt',
+      objective: 'Return to Mateus and talk to him',
+      objectiveHunt: 'Defeat Void Mites ({count}/{total})',
     },
     tutorial_01_find_mateus: {
       name: 'Find Mateus',
       objective: 'Travel to Mateus and talk to him',
+    },
+  },
+  dialogues: {
+    mateus_first_meeting: {
+      l1: "Hey, wanderer! Where did you stray in from? It's dangerous out here.",
+      l2: "These lands are lawless - the weak don't last here. You should learn the basics of survival first.",
+      l3: "I'll show you how to raise your basic strength. Now, do as I say.",
+    },
+    mateus_rusty_dagger: {
+      l1: "Good. Now you've felt your own strength.",
+      l2: "I'll give you a dagger, so you can use it to fight the monsters.",
+      l3: 'Here, try using this.',
+    },
+    mateus_rusty_dagger_turn_in: {
+      l1: "Now that you've equipped your dagger and prepared for battle, I'll grant you a little more power.",
+      l2: 'Can you feel yourself growing stronger?',
+      l3: "Next, I'll teach you how to become even stronger.",
+    },
+    mateus_void_mite_hunt: {
+      l1: 'This time, I want you to eliminate the mutated beetles known as Void Mites around here.',
+      l2: 'These creatures mutated after we were attacked by a mysterious monster.',
+      l3: "We'll find out later why these creatures ended up this way.",
+      l4: "Defeat five of them. I want to see what you're capable of first.",
+    },
+    mateus_void_mite_hunt_done: {
+      l1: "Well done! You're more capable than I thought.",
+      l2: 'Get some rest, then come talk to me again.',
     },
   },
   death: {

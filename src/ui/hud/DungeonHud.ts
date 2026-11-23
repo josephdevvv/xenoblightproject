@@ -76,10 +76,13 @@ export class DungeonHud {
   private readonly questObjective: Phaser.GameObjects.Text;
   private questId: string | null = null;
   private questObjectiveKey = 'objective';
+  private questParams: Record<string, number> | undefined;
   private lastTile = '';
   private lastHp: number | null = null;
   /** Passive Tree menu slot: unspent-points pip. */
   private readonly passivePip: Phaser.GameObjects.Rectangle;
+  /** The Status menu button (tutorial spotlight target). */
+  readonly statusButton: Phaser.GameObjects.Zone;
   /** The Passive Tree menu button (tutorial spotlight target). */
   readonly passiveButton: Phaser.GameObjects.Zone;
   /** The Inventory menu button (tutorial spotlight target). */
@@ -144,7 +147,7 @@ export class DungeonHud {
     const mapFrame = this.space.frame(M, REF_ELEMENTS.minimap);
     this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: Math.ceil(mapName.y + mapName.height) + 2 };
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
-    this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]), 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
+    this.statusButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]), 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
       // Tiny character-sheet glyph: head + shoulders.
       const cx = slot.x + Math.floor(slot.width / 2);
       g.fillStyle(toColorInt(color), 1);
@@ -201,16 +204,17 @@ export class DungeonHud {
   }
 
   /** Quest tracker: the active quest's name and objective, or the placeholder text. */
-  setQuest(questId: string | null, objectiveKey = 'objective'): void {
+  setQuest(questId: string | null, objectiveKey = 'objective', params?: Record<string, number>): void {
     this.questId = questId;
     this.questObjectiveKey = objectiveKey;
+    this.questParams = params;
     this.refreshQuest();
   }
 
   private refreshQuest(): void {
     const id = this.questId;
     this.questName.setText(id ? labels.questName(id) : t('hud.noActiveQuest')).setColor(id ? '#ffd27a' : PALETTE.gray);
-    this.questObjective.setText(id ? labels.questObjective(id, this.questObjectiveKey) : '');
+    this.questObjective.setText(id ? labels.questObjective(id, this.questObjectiveKey, this.questParams) : '');
   }
 
   /** Per-frame: coordinates, minimap and HP (only redrawn when it changes). */

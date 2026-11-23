@@ -6,6 +6,7 @@ import type { MonsterCombatContext, MonsterEntity } from '../monsters/MonsterEnt
 import type { MonsterSpawner } from '../monsters/MonsterSpawner';
 import type { PlayerController } from '../player/PlayerController';
 import { CharacterStatusService } from '../status/CharacterStatusService';
+import { QuestService } from '../quests/QuestService';
 import { COMBAT_RULES, playerCombatStats, rollAttack, type CombatStats } from './CombatRules';
 import { DamageNumbers } from './DamageNumbers';
 import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
@@ -288,12 +289,18 @@ export class CombatSystem {
     if (!target.isAlive()) this.onKill(target);
   }
 
-  /** A monster this player defeated: EXP from the reward table, paid once for this death. */
+  /** A monster this player defeated: EXP from the reward table, paid once for this death; quests count it once too. */
   private onKill(monster: MonsterEntity): void {
     this.clearTarget();
     if (monster.isAlive() || !this.killRewards.claim(monster.id, monster.life)) return;
     const exp = monsterExpReward(monster.definition.id);
     const levels = CharacterStatusService.gainExp(this.character, exp);
+    QuestService.recordKill(this.character, monster.definition.id);
+    this.showExpGain(exp, levels);
+  }
+
+  /** EXP the player just gained (kills, quest rewards): +EXP over the head; a level-up shows LEVEL n! and heals fully. */
+  showExpGain(exp: number, levels: number): void {
     const w = this.player.getWorldPosition();
     this.numbers.show(w.x, w.y - 64, `+${exp} EXP`, 'exp');
     if (levels > 0) {

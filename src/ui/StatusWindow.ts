@@ -15,6 +15,7 @@ import { statusLayout, type SecondaryKey, type StatRowLayout } from './status/St
 import { fitText } from './text/fitText';
 import type { TypographyRole } from './text/Typography';
 import { typo } from './UITheme';
+import { throughCamera, type Rect as ScreenRect } from './tutorial/SpotlightGeometry';
 
 /** A value that the selected (not yet confirmed) points would change. */
 const PREVIEW_COLOR = '#ffd27a';
@@ -65,6 +66,8 @@ export class StatusWindow {
   private message: { text: LocalizedMessage; color: string } | null = null;
   private shownHp = -1;
   private open = false;
+  /** Screen rectangles the Status tutorial points at: the six stat rows with their + buttons, and CONFIRM. */
+  private readonly tutorialAreas: { stats: Rect; confirm: Rect };
 
   /** `currentHp`: HP now (combat); max HP when absent. SP has no consumer yet and stays at max (as in the HUD). */
   constructor(
@@ -79,6 +82,12 @@ export class StatusWindow {
     this.draft = new StatAllocationDraft(character.status);
     this.blocker = scene.add.rectangle(0, 0, sw, sh, 0x000000, 0.55).setOrigin(0, 0).setDepth(depth).setInteractive();
     this.root = scene.add.container(wx, wy).setDepth(depth + 1);
+    const rows = L.stats.map((s) => s.rect);
+    const left = Math.min(...rows.map((r) => r[0]));
+    const top = Math.min(...rows.map((r) => r[1]));
+    const stats: Rect = [wx + left, wy + top, Math.max(...rows.map((r) => r[0] + r[2])) - left, Math.max(...rows.map((r) => r[1] + r[3])) - top];
+    const c = L.buttons.confirm;
+    this.tutorialAreas = { stats, confirm: [wx + c[0], wy + c[1], c[2], c[3]] };
 
     // 1. Chrome; a window-sized zone keeps clicks on empty areas inside.
     this.root.add(scene.add.zone(0, 0, ww, wh).setOrigin(0, 0).setInteractive());
@@ -184,6 +193,18 @@ export class StatusWindow {
 
   get isOpen(): boolean {
     return this.open;
+  }
+
+  /** Points are selected and not confirmed yet. */
+  get hasPending(): boolean {
+    return this.draft.hasPending();
+  }
+
+  /** Where the Status tutorial points (screen), only while the window is open. */
+  tutorialArea(part: 'stats' | 'confirm'): ScreenRect | null {
+    if (!this.open) return null;
+    const [x, y, width, height] = this.tutorialAreas[part];
+    return throughCamera({ x, y, width, height }, this.scene.cameras.main);
   }
 
   show(): void {

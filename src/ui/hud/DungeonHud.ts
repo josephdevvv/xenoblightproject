@@ -91,7 +91,8 @@ export class DungeonHud {
   private questParams: Record<string, number> | undefined;
   private lastTile = '';
   private lastHp: number | null = null;
-  /** Passive Tree menu slot: unspent-points pip. */
+  /** Unspent-points pips on the Status and Passive Tree menu slots (one shared look: unspentPip). */
+  private readonly statusPip: Phaser.GameObjects.Rectangle;
   private readonly passivePip: Phaser.GameObjects.Rectangle;
   /** The Status menu button (tutorial spotlight target). */
   readonly statusButton: Phaser.GameObjects.Zone;
@@ -194,7 +195,8 @@ export class DungeonHud {
     const mapFrame = this.space.frame(M, REF_ELEMENTS.minimap);
     this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: Math.ceil(mapName.y + mapName.height) + 2 };
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
-    this.statusButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[0]), 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
+    const statusSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[0]);
+    this.statusButton = this.buildMenuButton(statusSlot, 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
       // Tiny character-sheet glyph: head + shoulders.
       const cx = slot.x + Math.floor(slot.width / 2);
       g.fillStyle(toColorInt(color), 1);
@@ -216,7 +218,8 @@ export class DungeonHud {
       g.fillRect(cx + 7, cy - 1, 2, 3);
       g.fillRect(cx - 1, cy + 6, 3, 2);
     });
-    this.passivePip = scene.add.rectangle(passiveSlot.x + passiveSlot.width - 3, passiveSlot.y + 1, 2, 2, toColorInt('#d3424b')).setOrigin(0, 0).setDepth(depth + 3).setVisible(false);
+    this.statusPip = this.unspentPip(statusSlot);
+    this.passivePip = this.unspentPip(passiveSlot);
     // Inventory (third slot): a bag.
     this.inventoryButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[2]), 'hud.menuInventory', () => this.options.onInventory(), (g, slot, color) => {
       const cx = slot.x + Math.floor(slot.width / 2);
@@ -248,6 +251,16 @@ export class DungeonHud {
   /** Small red pip on the Passive Tree menu slot while passive points are unspent (the tutorial has its own spotlight). */
   setPassivePoints(unspent: boolean): void {
     this.passivePip.setVisible(unspent);
+  }
+
+  /** The same pip on the Status menu slot while stat points are unspent. */
+  setStatusPoints(unspent: boolean): void {
+    this.statusPip.setVisible(unspent);
+  }
+
+  /** The unspent-points pip of a menu slot: 2x2 red at its top-right corner, hidden until there are points. */
+  private unspentPip(slot: ScreenRect): Phaser.GameObjects.Rectangle {
+    return this.scene.add.rectangle(slot.x + slot.width - 3, slot.y + 1, 2, 2, toColorInt('#d3424b')).setOrigin(0, 0).setDepth(this.depth + 3).setVisible(false);
   }
 
   /** Hotbar icons and quantities from the character's hotbar and bag (an item with none left is shown dimmed). */

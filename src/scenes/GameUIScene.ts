@@ -18,7 +18,7 @@ import { InventoryService } from '../inventory/InventoryService';
 import { bagIndexOf } from '../inventory/InventoryState';
 import { isHotkeyPress } from '../ui/input/typing';
 import { ItemNotifications } from '../ui/notifications/ItemNotifications';
-import { availablePoints } from '../passives/PassiveProgress';
+import { unspentPoints } from '../ui/hud/UnspentPoints';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import { downloadText } from '../save/fileIO';
 import { SAVE_FILE_NAME, serializeSave } from '../save/SaveFile';
@@ -156,21 +156,23 @@ export class GameUIScene extends Phaser.Scene {
     if (character.passives) {
       const passive = new PassiveTreeWindow(this, character, 14);
       this.passiveWindow = passive;
-      passive.onStateChange = () => this.refreshPassiveGuide(character);
+      passive.onStateChange = () => this.refreshPointGuides(character);
       // the passive tutorial begins after the conversation with Mateus (Tutorial Quest 01)
       passive.tutorialEnabled = () => QuestService.isPassiveTutorialOpen(character);
-      const unsubscribe = CharacterStatusService.onChange((c) => {
-        if (c === character) this.refreshPassiveGuide(character);
-      });
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
       // P toggles the tree (not while Settings is open on top).
       const onP = (): void => {
         if (this.canOpenWindows() && !this.settingsWindow?.isOpen) this.togglePassiveTree();
       };
       this.input.keyboard?.on('keydown-P', onP);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-P', onP));
-      this.refreshPassiveGuide(character);
     }
+    // Unspent-points pips (Status, Passive Tree): every status change - level-ups, allocations, passive
+    // upgrades and resets - goes through CharacterStatusService, and a loaded save is shown from the start.
+    const offPoints = CharacterStatusService.onChange((c) => {
+      if (c === character) this.refreshPointGuides(character);
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offPoints);
+    this.refreshPointGuides(character);
     this.settingsWindow = new SettingsWindow(this, { depth: 20, onSaveGame: () => downloadText(SAVE_FILE_NAME, serializeSave(character, this.gameScene()?.captureSavedLocation() ?? null)) });
     const leave = new ChoiceDialog(this, 28);
     this.leaveDialog = leave;
@@ -180,7 +182,7 @@ export class GameUIScene extends Phaser.Scene {
     const refreshQuest = (): void => {
       const tracked = trackedQuest(character);
       this.hud?.setQuest(tracked?.questId ?? null, tracked?.objectiveKey, tracked?.params);
-      this.refreshPassiveGuide(character);
+      this.refreshPointGuides(character);
       // at once, not next frame: fast clicking through the dialogue must not reach the world behind it
       this.spotlightOverlay?.update(0, this.spotlightTarget());
     };
@@ -534,9 +536,11 @@ export class GameUIScene extends Phaser.Scene {
     w.toggle();
   }
 
-  /** The unspent-points pip on the Passive Tree menu button. */
-  private refreshPassiveGuide(character: CharacterData): void {
-    if (character.passives) this.hud?.setPassivePoints(availablePoints(character.passives) > 0);
+  /** The unspent-points pips on the Status and Passive Tree menu buttons. */
+  private refreshPointGuides(character: CharacterData): void {
+    const points = unspentPoints(character);
+    this.hud?.setStatusPoints(points.status);
+    this.hud?.setPassivePoints(points.passive);
   }
 
   get isSettingsOpen(): boolean {

@@ -13,19 +13,19 @@ import { readPng } from './helpers/png';
 
 const ID = 'weapon_rusty_dagger';
 const TEXTS = {
-  th: { name: 'มีดสนิม', description: 'มีดเก่าที่เต็มไปด้วยสนิม แม้จะไม่คมเหมือนเดิม แต่ยังพอใช้ป้องกันตัวได้' },
-  en: { name: 'Rusty Dagger', description: 'An old dagger covered in rust. Its edge has dulled, but it can still serve as a weapon for self-defense.' },
+  th: { name: 'มีดสนิม', description: 'มีดสั้นที่ถูกสนิมกัดกิน คมทื่อไปมาก แต่ยังพอใช้ฟันศัตรูได้' },
+  en: { name: 'Rusty Dagger', description: 'A short dagger eaten by rust. Its edge is dull, yet it still bites.' },
 } as const;
 /** Earlier ids of this item: must be gone everywhere. */
 const OLD_IDS = ['weapon_mit_sanit'];
-/** SHA-256 of the uploaded straight_sword_icon_16x16.png. */
-const ICON_SHA256 = '0277a61651942fb1c68aaee61df4fba2b0bd39db1ce5916368febd7d25668231';
+/** SHA-256 of rusty_dagger_icon_32x32.png (PixelLab, approved for the 32 px icon update). */
+const ICON_SHA256 = '26dd4db6948641da57cdec6345d85c8ce3a0c54e01c9733327a2d59f042df51c';
 
 const root = process.cwd();
 const dagger = (): ItemDefinition => itemDefinition(ID)!;
 
 test('the first item is exactly as specified; only it and the starter armor exist', () => {
-  assert.deepEqual([...ITEM_CATALOG.keys()], [ID, 'armor_worn_cloth', 'consumable_red_healing_potion']);
+  assert.deepEqual([...ITEM_CATALOG.keys()], [ID, 'armor_worn_cloth', 'consumable_red_healing_potion', 'consumable_sp_recovery_potion', 'scroll_power_thrust', 'scroll_heal']);
   const { icon, ...rest } = dagger();
   assert.deepEqual(rest, {
     id: ID,
@@ -38,7 +38,7 @@ test('the first item is exactly as specified; only it and the starter armor exis
     specialEffects: [],
     stackable: false,
   });
-  assert.deepEqual([icon.width, icon.height], [16, 16]);
+  assert.deepEqual(icon, { url: 'assets/items/weapons/rusty_dagger_icon_32x32.png', width: 32, height: 32 });
   for (const id of ['unknown', ...OLD_IDS]) assert.equal(itemDefinition(id), undefined);
   assert.equal(itemIconKey(ID), 'item.icon.weapon_rusty_dagger');
 });
@@ -60,13 +60,30 @@ test('every item has a name and a description in every language', () => {
   setLanguage('th');
 });
 
-test('icon: the uploaded file byte for byte, 16x16, transparent background', () => {
+test('icon: the approved file byte for byte, 32x32, transparent background, hard pixels only', () => {
   const file = path.join(root, 'public', dagger().icon.url);
   assert.equal(createHash('sha256').update(fs.readFileSync(file)).digest('hex'), ICON_SHA256);
   const png = readPng(file);
-  assert.deepEqual([png.width, png.height], [16, 16]);
-  const transparent = Array.from({ length: 256 }, (_, i) => png.data[i * 4 + 3]).filter((a) => a === 0).length;
-  assert.equal(transparent, 229);
+  assert.deepEqual([png.width, png.height], [32, 32]);
+  const alphas = Array.from({ length: 32 * 32 }, (_, i) => png.data[i * 4 + 3]);
+  assert.ok(alphas.every((a) => a === 0 || a === 255), 'no anti-aliasing');
+  assert.equal(alphas.filter((a) => a === 0).length, 744);
+});
+
+test('32 px icons: the dagger, the starter armor and both scrolls; every one transparent with hard pixels; scrolls differ', () => {
+  const ids = ['weapon_rusty_dagger', 'armor_worn_cloth', 'scroll_power_thrust', 'scroll_heal'];
+  const files = ids.map((id) => {
+    const { icon } = itemDefinition(id)!;
+    assert.deepEqual([icon.width, icon.height], [32, 32], id);
+    const file = path.join(root, 'public', icon.url);
+    const png = readPng(file);
+    assert.deepEqual([png.width, png.height], [32, 32], id);
+    for (let i = 3; i < png.data.length; i += 4) assert.ok(png.data[i] === 0 || png.data[i] === 255, `${id}: hard pixels`);
+    for (const [x, y] of [[0, 0], [31, 31]]) assert.equal(png.data[(y * 32 + x) * 4 + 3], 0, `${id}: transparent corner`);
+    return fs.readFileSync(file);
+  });
+  assert.equal(new Set(files.map((b) => b.toString('base64'))).size, 4, 'four different pictures');
+  assert.equal(itemDefinition('consumable_red_healing_potion')!.icon.width, 16, 'the potion keeps its 16 px icon');
 });
 
 test('every icon file exists and has the declared size', () => {

@@ -1,11 +1,12 @@
 import type Phaser from 'phaser';
-import { sameSlot, type InventorySource, type SlotRef, type SlotSelection } from '../../inventory/InventorySlots';
+import { isValidSlot, sameSlot, type InventorySource, type SlotRef, type SlotSelection } from '../../inventory/InventorySlots';
 import type { Rect } from '../passiveTree/PassiveTreeLayout';
 import { iconScale } from './InventoryLayout';
 import { drawOutline, drawSlotFrame, INV_COLORS } from './inventoryTheme';
 
 export interface SlotSpec {
-  ref: SlotRef;
+  /** May change (the bag grid scrolls: a cell shows another bag slot); a ref past the bag shows nothing. */
+  readonly ref: SlotRef;
   rect: Rect;
 }
 
@@ -42,6 +43,11 @@ export class SlotGroup {
   refresh(): void {
     this.frames.clear();
     for (const slot of this.slots) {
+      if (!isValidSlot(slot.ref)) {
+        // past the last bag slot (the bag's last row is not full): an empty cell
+        this.icons.get(slot)?.setVisible(false);
+        continue;
+      }
       drawSlotFrame(this.frames, slot.rect);
       const icon = this.source.itemAt(slot.ref)?.icon ?? null;
       if (icon && this.scene.textures.exists(icon.texture)) {
@@ -93,7 +99,7 @@ export class SlotGroup {
     });
     zone.on('pointerdown', (pointer: Phaser.Input.Pointer) => (this.pressed = pointer.button === 0 ? slot : null));
     zone.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-      const fire = this.pressed === slot && pointer.button === 0;
+      const fire = this.pressed === slot && pointer.button === 0 && isValidSlot(slot.ref);
       this.pressed = null;
       if (fire) this.onClick(slot.ref);
     });
@@ -104,7 +110,7 @@ export class SlotGroup {
   private drawHighlight(): void {
     const g = this.highlight.clear();
     const selected = this.slots.find((s) => this.selection.isSelected(s.ref));
-    if (this.hovered && this.hovered !== selected) drawOutline(g, this.hovered.rect, 0, INV_COLORS.line);
+    if (this.hovered && this.hovered !== selected && isValidSlot(this.hovered.ref)) drawOutline(g, this.hovered.rect, 0, INV_COLORS.line);
     if (selected) {
       drawOutline(g, selected.rect, 0, INV_COLORS.red);
       drawOutline(g, selected.rect, 2, INV_COLORS.red);

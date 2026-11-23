@@ -5,9 +5,9 @@ import { itemInfo } from '../../items/ItemInfoText';
 import { typo } from '../UITheme';
 import { NotificationQueue, type QueuedNotification } from './NotificationQueue';
 
-const PANEL = { height: 24, gap: 3, padX: 7, iconGap: 5, icon: 16, fill: 0x0e0e12, alpha: 0.86, border: 0x3a3a45, accent: 0xe7e7ee } as const;
+const PANEL = { height: 24, itemHeight: 38, gap: 3, padX: 7, iconGap: 5, icon: 32, fill: 0x0e0e12, alpha: 0.86, border: 0x3a3a45, accent: 0xe7e7ee } as const;
 /** Panels below this line would reach the middle of the screen: the others wait. */
-const MAX_VISIBLE = 5;
+const MAX_VISIBLE = 4;
 /** How fast a panel moves up when one above it is gone (px per ms). */
 const SLIDE = 0.18;
 
@@ -16,6 +16,7 @@ type Content = { kind: 'item'; itemId: string; quantity: number } | { kind: 'tex
 interface View {
   objects: (Phaser.GameObjects.Graphics | Phaser.GameObjects.Text | Phaser.GameObjects.Image)[];
   width: number;
+  height: number;
   y: number;
   /** Positions everything with the panel's top-left at (x, y). */
   place: (x: number, y: number) => void;
@@ -69,14 +70,16 @@ export class ItemNotifications {
       for (const o of view.objects) o.destroy();
       this.views.delete(n);
     }
-    visible.forEach((n, i) => {
-      const target = this.anchor.top + i * (PANEL.height + PANEL.gap);
+    let target = this.anchor.top;
+    visible.forEach((n) => {
       let view = this.views.get(n);
       if (!view) {
         view = { ...this.build(n.content), y: target };
         this.views.set(n, view);
       }
-      view.y = Math.max(target, view.y - deltaMs * SLIDE);
+      const top = target;
+      target += view.height + PANEL.gap;
+      view.y = Math.max(top, view.y - deltaMs * SLIDE);
       view.place(Math.round(this.anchor.right - view.width), Math.round(view.y));
       const alpha = this.queue.alphaOf(n);
       for (const o of view.objects) o.setAlpha(alpha);
@@ -96,6 +99,7 @@ export class ItemNotifications {
       if (info?.icon && scene.textures.exists(info.icon.texture)) {
         // own pixels, nearest-neighbour like every game texture (pixelArt)
         const icon = scene.add.image(0, 0, info.icon.texture, info.icon.frame).setOrigin(0, 0).setDepth(this.depth + 1);
+        // whole steps only: 16 px icons x2, 32 px icons 1:1
         icon.setScale(Math.max(1, Math.floor(PANEL.icon / Math.max(icon.width, icon.height))));
         add(icon, icon.displayWidth);
       }
@@ -106,19 +110,21 @@ export class ItemNotifications {
       add(line, line.width);
     }
     const width = Math.ceil(parts.reduce((sum, p) => sum + Math.ceil(p.width), 0) + PANEL.iconGap * (parts.length - 1) + PANEL.padX * 2);
+    const height = content.kind === 'item' ? PANEL.itemHeight : PANEL.height;
 
-    panel.fillStyle(PANEL.fill, PANEL.alpha).fillRect(0, 0, width, PANEL.height);
-    panel.fillStyle(PANEL.border, 1).fillRect(0, 0, width, 1).fillRect(0, PANEL.height - 1, width, 1).fillRect(0, 0, 1, PANEL.height).fillRect(width - 1, 0, 1, PANEL.height);
-    panel.fillStyle(PANEL.accent, 1).fillRect(0, 0, 1, PANEL.height);
+    panel.fillStyle(PANEL.fill, PANEL.alpha).fillRect(0, 0, width, height);
+    panel.fillStyle(PANEL.border, 1).fillRect(0, 0, width, 1).fillRect(0, height - 1, width, 1).fillRect(0, 0, 1, height).fillRect(width - 1, 0, 1, height);
+    panel.fillStyle(PANEL.accent, 1).fillRect(0, 0, 1, height);
 
     return {
       objects: [panel, ...parts.map((p) => p.object)],
       width,
+      height,
       place: (x, y) => {
         panel.setPosition(x, y);
         let left = x + PANEL.padX;
         for (const { object, width: w } of parts) {
-          const middle = y + PANEL.height / 2;
+          const middle = Math.round(y + height / 2);
           object.setPosition(left, object instanceof Phaser.GameObjects.Image ? Math.round(middle - object.displayHeight / 2) : middle);
           left += Math.ceil(w) + PANEL.iconGap;
         }

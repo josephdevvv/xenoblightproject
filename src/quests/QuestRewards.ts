@@ -7,6 +7,7 @@ import { QuestService } from './QuestService';
 import { TUTORIAL_QUEST_02 } from './TutorialQuest02';
 import { TUTORIAL_QUEST_03 } from './TutorialQuest03';
 import { TUTORIAL_QUEST_05 } from './TutorialQuest05';
+import { TUTORIAL_QUEST_06 } from './TutorialQuest06';
 
 /** EXP a quest paid: the amount and the levels it gained (for the EXP / LEVEL UP feedback). */
 export interface QuestExpPaid {
@@ -35,6 +36,12 @@ export const QuestRewards = {
     const given = InventoryService.grantOnce(character, TUTORIAL_QUEST_03.reward);
     if (given !== null && given !== 'alreadyGranted') return { ok: false, error: given };
     const paid = pay(character, TUTORIAL_QUEST_03.id, () => QuestService.advance03(character, 'complete'));
+    return paid ? { ok: true, ...paid } : { ok: false, error: 'notReady' };
+  },
+
+  /** Tutorial Quest 06, talking to Roland at 10/10 (no conversation): 150 EXP; completed. */
+  quest06(character: CharacterData): QuestTurnIn {
+    const paid = pay(character, TUTORIAL_QUEST_06.id, () => QuestService.advance06(character, 'complete'));
     return paid ? { ok: true, ...paid } : { ok: false, error: 'notReady' };
   },
 

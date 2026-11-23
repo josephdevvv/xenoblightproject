@@ -1,4 +1,7 @@
 import type { HotbarState } from '../hotbar/Hotbar';
+import type { SkillsState } from '../skills/LearnedSkills';
+import type { AutoPlaySettings } from '../autoplay/AutoPlaySettings';
+import type { PotionSlots } from '../hotbar/PotionSlots';
 import type { InventoryState } from '../inventory/InventoryState';
 import type { PassiveProgress } from '../passives/PassiveProgress';
 import type { QuestLog } from '../quests/QuestService';
@@ -34,6 +37,12 @@ export interface CharacterData {
   inventory?: InventoryState;
   /** Hotbar slots 1-8 (references to consumables / skills). Changed only by HotbarService. */
   hotbar?: HotbarState;
+  /** Skills learned from skill scrolls. Changed only by SkillService. */
+  skills?: SkillsState;
+  /** The Q (HP potion) / W (SP potion) slots beside the hotbar. Changed only by HotbarService. */
+  potionSlots?: PotionSlots;
+  /** Auto Play settings (changed only by AutoPlayService); whether it runs is never stored. */
+  autoPlay?: AutoPlaySettings;
 }
 
 export const NAME_MIN_LENGTH = 3;

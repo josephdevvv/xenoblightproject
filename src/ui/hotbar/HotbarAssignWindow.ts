@@ -1,10 +1,9 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../../config/palette';
-import type { HotbarState } from '../../hotbar/Hotbar';
+import { sameEntry, type HotbarEntry, type HotbarState } from '../../hotbar/Hotbar';
 import { t } from '../../i18n';
-import { labels } from '../../i18n/labels';
 import { localize } from '../../i18n/phaser';
-import { itemIconKey } from '../../items/ItemCatalog';
+import { entryIcon } from './hotbarIcons';
 import { drawOutline, drawPanelFrame, drawSlotFrame, INV_COLORS } from '../inventory/inventoryTheme';
 import { FrameButton } from '../passiveTree/PassiveTreeWindow';
 import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
@@ -26,11 +25,12 @@ export class HotbarAssignWindow {
   private readonly icons: Phaser.GameObjects.Image[];
   private readonly cancel: FrameButton;
   private readonly layout: ReturnType<typeof hotbarAssignLayout>;
-  private itemId: string | null = null;
+  private entry: HotbarEntry | null = null;
+  private entryName = '';
   private hotbar: () => HotbarState = () => [];
 
-  /** A slot was chosen (0-based) for the item the window was opened with. */
-  onChoose: ((slot: number, itemId: string) => void) | null = null;
+  /** A slot was chosen (0-based) for the item / skill the window was opened with. */
+  onChoose: ((slot: number, entry: HotbarEntry) => void) | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -57,7 +57,7 @@ export class HotbarAssignWindow {
     L.slots.forEach(([x, y, w, h], i) => {
       const zone = scene.add.zone(x, y, w, h).setOrigin(0, 0).setInteractive({ useHandCursor: true });
       zone.on('pointerup', (p: Phaser.Input.Pointer) => {
-        if (p.button === 0 && this.itemId) this.onChoose?.(i, this.itemId);
+        if (p.button === 0 && this.entry) this.onChoose?.(i, this.entry);
       });
       this.root.add(zone);
     });
@@ -68,7 +68,7 @@ export class HotbarAssignWindow {
   }
 
   get isOpen(): boolean {
-    return this.itemId !== null;
+    return this.entry !== null;
   }
 
   /** The slot grid on the screen (tutorial spotlight target), while open. */
@@ -79,8 +79,10 @@ export class HotbarAssignWindow {
     return throughCamera({ x: wx + x, y: wy + y, width, height }, this.scene.cameras.main);
   }
 
-  open(itemId: string, hotbar: () => HotbarState): void {
-    this.itemId = itemId;
+  /** `name`: the item's / skill's name in the current language (the hint line). */
+  open(entry: HotbarEntry, name: string, hotbar: () => HotbarState): void {
+    this.entry = entry;
+    this.entryName = name;
     this.hotbar = hotbar;
     this.setVisible(true);
     this.refresh();
@@ -88,7 +90,7 @@ export class HotbarAssignWindow {
 
   close(): void {
     if (!this.isOpen) return;
-    this.itemId = null;
+    this.entry = null;
     this.cancel.resetHover();
     this.setVisible(false);
   }
@@ -97,16 +99,17 @@ export class HotbarAssignWindow {
   refresh(): void {
     this.title.setText(t('hotbar.assignTitle'));
     this.cancel.label.setText(t('hotbar.cancel'));
-    const { itemId } = this;
-    fitText(this.hint, itemId ? t('hotbar.assignHint', { name: labels.itemName(itemId) }) : '', this.layout.window[2] - PAD * 2);
+    const { entry } = this;
+    fitText(this.hint, entry ? t('hotbar.assignHint', { name: this.entryName }) : '', this.layout.window[2] - PAD * 2);
     this.marks.clear();
     const state = this.hotbar();
     this.layout.slots.forEach((r, i) => {
       const e = state[i] ?? null;
-      const icon = e?.type === 'item' && this.scene.textures.exists(itemIconKey(e.itemId)) ? itemIconKey(e.itemId) : null;
-      this.icons[i].setVisible(icon !== null);
-      if (icon) this.icons[i].setTexture(icon).setScale(2);
-      if (e?.type === 'item' && e.itemId === itemId) drawOutline(this.marks, r, 1, INV_COLORS.red);
+      const icon = e ? entryIcon(e) : null;
+      const shown = icon !== null && this.scene.textures.exists(icon.texture);
+      this.icons[i].setVisible(shown);
+      if (shown) this.icons[i].setTexture(icon.texture, icon.frame).setScale(icon.largeScale);
+      if (entry && sameEntry(e, entry)) drawOutline(this.marks, r, 1, INV_COLORS.red);
     });
   }
 

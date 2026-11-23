@@ -328,7 +328,7 @@ test('inventory window data: icon, name, type and effects of the registered item
     assert.deepEqual(source.itemAt({ kind: 'bag', index: 0 }), {
       name: 'มีดสนิม',
       type: 'อาวุธ · มีดสั้น · Lv 1',
-      description: 'มีดเก่าที่เต็มไปด้วยสนิม แม้จะไม่คมเหมือนเดิม แต่ยังพอใช้ป้องกันตัวได้',
+      description: 'มีดสั้นที่ถูกสนิมกัดกิน คมทื่อไปมาก แต่ยังพอใช้ฟันศัตรูได้',
       effects: ['ATK กายภาพ +4'],
       icon: { texture: 'item.icon.weapon_rusty_dagger' },
     });
@@ -343,7 +343,7 @@ test('inventory window data: icon, name, type and effects of the registered item
     assert.equal(changes, 2);
     off();
   });
-  assert.deepEqual([...ITEM_CATALOG.keys()], [DAGGER, ARMOR, 'consumable_red_healing_potion'], 'no additional items');
+  assert.deepEqual([...ITEM_CATALOG.keys()], [DAGGER, ARMOR, 'consumable_red_healing_potion', 'consumable_sp_recovery_potion', 'scroll_power_thrust', 'scroll_heal'], 'no additional items');
 });
 
 test('equipment tutorial: the step always follows what is open, selected and worn', () => {

@@ -12,7 +12,8 @@ import { drawOutline, drawSlotFrame, INV_COLORS } from './inventoryTheme';
 
 /**
  * Right panel: icon, name, type, description and stats / effects of one item, or the empty placeholder. At the
- * bottom: EQUIP for a bag item to wear, UNEQUIP for a worn one, USE + ASSIGN HOTKEY for a consumable.
+ * bottom: EQUIP for a bag item to wear, UNEQUIP for a worn one, USE + ASSIGN HOTKEY for a consumable, USE alone for a
+ * skill scroll.
  */
 export class ItemDetailPanel {
   private readonly icon: Phaser.GameObjects.Image;
@@ -67,7 +68,7 @@ export class ItemDetailPanel {
   }
 
   /** The click zone of a button while it is offered (tutorial spotlight target). */
-  actionZone(kind: 'equip' | 'unequip' | 'use' | 'assign'): Phaser.GameObjects.Zone | null {
+  actionZone(kind: 'equip' | 'unequip' | 'use' | 'assign' | 'scroll'): Phaser.GameObjects.Zone | null {
     if (kind === 'use' || kind === 'assign') return this.action?.kind === 'consumable' ? (kind === 'use' ? this.useButton : this.assignButton).zone : null;
     return this.action?.kind === kind ? this.actionButton.zone : null;
   }
@@ -100,7 +101,7 @@ export class ItemDetailPanel {
     const single = action !== null && action.kind !== 'consumable';
     if (action && action.kind !== 'consumable') {
       this.actionButton.label.setText(actionLabel(action));
-      this.actionButton.setEnabled(action.kind === 'unequip' || action.problem === null);
+      this.actionButton.setEnabled(action.kind !== 'equip' || action.problem === null);
     }
     this.actionButton.setVisible(single);
     this.buttonFrame.setVisible(single);
@@ -137,6 +138,7 @@ export class ItemDetailPanel {
 /** The button says what it does, or why it cannot. */
 function actionLabel(action: Exclude<SlotAction, { kind: 'consumable' }>): string {
   if (action.kind === 'unequip') return t('inventory.unequip');
+  if (action.kind === 'scroll') return t('inventory.use');
   if (action.problem === 'levelTooLow') return t('inventory.equipNeedsLevel', { level: action.requiredLevel });
   return t('inventory.equip');
 }

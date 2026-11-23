@@ -28,6 +28,8 @@ import {
 import { applyQuest03, createQuest03, restoreQuest03, TUTORIAL_QUEST_03, type Quest03Event, type Quest03Progress } from './TutorialQuest03';
 import { applyQuest04, createQuest04, isItemUseBlocked, restoreQuest04, TUTORIAL_QUEST_04, type Quest04Event, type Quest04Progress } from './TutorialQuest04';
 import { applyQuest05, createQuest05, restoreQuest05, TUTORIAL_QUEST_05, type Quest05Event, type Quest05Progress } from './TutorialQuest05';
+import { SkillService } from '../skills/SkillService';
+import { applyQuest06, createQuest06, restoreQuest06, TUTORIAL_QUEST_06, type Quest06Event, type Quest06Progress } from './TutorialQuest06';
 
 /** A character's quests by quest id. Entries of quests this build does not know are kept as stored. */
 export interface QuestLog {
@@ -36,6 +38,7 @@ export interface QuestLog {
   tutorial_03_void_mite_hunt: Quest03Progress;
   tutorial_04_potion_training: Quest04Progress;
   tutorial_05_mutant_wolf_hunt: Quest05Progress;
+  tutorial_06_dark_avian_hunt: Quest06Progress;
   [otherQuestId: string]: unknown;
 }
 
@@ -59,6 +62,7 @@ export const QuestService = {
       tutorial_03_void_mite_hunt: createQuest03(),
       tutorial_04_potion_training: createQuest04(),
       tutorial_05_mutant_wolf_hunt: createQuest05(),
+      tutorial_06_dark_avian_hunt: createQuest06(),
     };
   },
 
@@ -75,6 +79,7 @@ export const QuestService = {
       tutorial_03_void_mite_hunt: quest03,
       tutorial_04_potion_training: restoreQuest04(stored[TUTORIAL_QUEST_04.id]),
       tutorial_05_mutant_wolf_hunt: restoreQuest05(stored[TUTORIAL_QUEST_05.id]),
+      tutorial_06_dark_avian_hunt: restoreQuest06(stored[TUTORIAL_QUEST_06.id], hasGrant(character.inventory, TUTORIAL_QUEST_06.reward.grantId)),
     };
   },
 
@@ -175,8 +180,31 @@ export const QuestService = {
     const next = applyQuest05(this.quest05(character), event);
     if (!next) return false;
     commit(character, { tutorial_05_mutant_wolf_hunt: next });
-    if (next.state === 'COMPLETED') for (const l of completedListeners) l(character, TUTORIAL_QUEST_05.id);
+    if (next.state === 'COMPLETED') {
+      for (const l of completedListeners) l(character, TUTORIAL_QUEST_05.id);
+      // Roland has the next test at once: the Dark Avian hunt
+      this.advance06(character, 'offer');
+    }
     return true;
+  },
+
+  quest06(character: CharacterData): Quest06Progress {
+    return character.quests?.tutorial_06_dark_avian_hunt ?? createQuest06();
+  },
+
+  /** Applies a step of Tutorial Quest 06 (Dark Avian hunt). False when it is not valid now. */
+  advance06(character: CharacterData, event: Quest06Event): boolean {
+    if (!character.quests) return false;
+    const next = applyQuest06(this.quest06(character), event);
+    if (!next) return false;
+    commit(character, { tutorial_06_dark_avian_hunt: next });
+    if (next.state === 'COMPLETED') for (const l of completedListeners) l(character, TUTORIAL_QUEST_06.id);
+    return true;
+  },
+
+  /** A skill was put on the hotbar: Power Thrust ends the scroll tutorial (only once it was learned). */
+  skillAssigned(character: CharacterData, skillId: string): boolean {
+    return skillId === TUTORIAL_QUEST_06.skillId && SkillService.isLearned(character, skillId) && this.advance06(character, 'skillAssigned');
   },
 
   /** Tutorial Quest 03 can be offered: Tutorial Quest 02 is turned in, Status tutorial included. */
@@ -187,7 +215,8 @@ export const QuestService = {
   /** A monster the player got the kill credit for (CombatSystem: once per kill). True when it counted for a quest. */
   recordKill(character: CharacterData, monsterId: MonsterId): boolean {
     if (monsterId === TUTORIAL_QUEST_03.target.monsterId && this.advance03(character, 'kill')) return true;
-    return monsterId === TUTORIAL_QUEST_05.target.monsterId && this.advance05(character, 'kill');
+    if (monsterId === TUTORIAL_QUEST_05.target.monsterId && this.advance05(character, 'kill')) return true;
+    return monsterId === TUTORIAL_QUEST_06.target.monsterId && this.advance06(character, 'kill');
   },
 
   /** Every quest step that follows from what the character has done. Safe to call at any time. */
@@ -196,6 +225,7 @@ export const QuestService = {
     if (this.canStart03(character)) this.advance03(character, 'offer');
     if (this.quest03(character).state === 'COMPLETED') this.advance04(character, 'offer');
     if (this.quest04(character).state === 'COMPLETED') this.advance05(character, 'start');
+    if (this.quest05(character).state === 'COMPLETED') this.advance06(character, 'offer');
   },
 
   /** The Passive Tree tutorial's node is unlocked. */
@@ -233,7 +263,9 @@ export const QuestService = {
 
 function commit(
   character: CharacterData,
-  change: Partial<Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger' | 'tutorial_03_void_mite_hunt' | 'tutorial_04_potion_training' | 'tutorial_05_mutant_wolf_hunt'>>,
+  change: Partial<
+    Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger' | 'tutorial_03_void_mite_hunt' | 'tutorial_04_potion_training' | 'tutorial_05_mutant_wolf_hunt' | 'tutorial_06_dark_avian_hunt'>
+  >,
 ): void {
   character.quests = { ...character.quests!, ...change };
   for (const l of changeListeners) l(character);

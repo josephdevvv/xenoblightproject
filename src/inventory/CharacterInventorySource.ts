@@ -21,6 +21,10 @@ export function characterInventorySource(character: CharacterData, canUnequip: (
       const stack = InventoryService.state(character).bag[bagIndex];
       return stack && itemDefinition(stack.itemId)?.category === 'consumable' ? stack.itemId : null;
     },
+    scrollAt: (bagIndex) => {
+      const stack = InventoryService.state(character).bag[bagIndex];
+      return stack && itemDefinition(stack.itemId)?.category === 'skill_scroll' ? stack.itemId : null;
+    },
     onChange: (listener) =>
       InventoryService.onChange((c) => {
         if (c === character) listener();

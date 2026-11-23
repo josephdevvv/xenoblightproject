@@ -28,10 +28,22 @@ import type { GameScene } from './GameScene';
 import { HotbarAssignWindow } from '../ui/hotbar/HotbarAssignWindow';
 import { HotbarService } from '../hotbar/HotbarService';
 import { hotbarSlotOfKey } from '../hotbar/Hotbar';
+import { POTION_KEY_LABEL, potionKind, potionSlotOfKey, type PotionSlotKey } from '../hotbar/PotionSlots';
 import { potionTutorialStep, TUTORIAL_QUEST_04, type PotionTutorialStep } from '../quests/TutorialQuest04';
 import { DIALOGUES } from '../dialogue/Dialogues';
 import { NPC_DEFINITIONS } from '../npcs/NpcDefinition';
-import type { UseProblem } from '../items/ConsumableUse';
+import type { ScrollProblem, UseProblem } from '../items/ConsumableUse';
+import { SkillWindow } from '../ui/skills/SkillWindow';
+import { AutoPlayWindow } from '../ui/autoplay/AutoPlayWindow';
+import { AutoPlayService } from '../autoplay/AutoPlayService';
+import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
+import { SkillService } from '../skills/SkillService';
+import { scrollGuideOf, scrollTutorialStep, TUTORIAL_QUEST_06, type ScrollTutorialStep } from '../quests/TutorialQuest06';
+import { labels } from '../i18n/labels';
+import { itemDefinition } from '../items/ItemCatalog';
+
+/** How long the potion training points at the Q slot after the potion was put there, before Roland goes on. */
+const POTION_FLASH_MS = 1100;
 
 /** Spotlight ids of the Status tutorial start with this. */
 const STATUS_SPOTLIGHT = 'status.';
@@ -64,6 +76,14 @@ export class GameUIScene extends Phaser.Scene {
   private potionStep: PotionTutorialStep | null = null;
   /** A guide line of the potion training suspended combat (and has to let it go again). */
   private guideSuspended = false;
+  /** The Skill window (K). */
+  private skillWindow: SkillWindow | null = null;
+  /** The potion training just put the potion on Q: that slot is pointed at for a moment. */
+  private potionFlash: PotionSlotKey | null = null;
+  /** Auto Play settings (the button right of the hotbar; X toggles Auto Play itself). */
+  private autoWindow: AutoPlayWindow | null = null;
+  /** Roland's scroll tutorial guide line shown last (lines 11-13 of the Dark Avian quest). */
+  private scrollGuide: keyof typeof TUTORIAL_QUEST_06.guideDialogueIds | null = null;
 
   constructor() {
     super(SCENES.GameUI);
@@ -83,6 +103,10 @@ export class GameUIScene extends Phaser.Scene {
     this.assignWindow = null;
     this.potionStep = null;
     this.guideSuspended = false;
+    this.skillWindow = null;
+    this.autoWindow = null;
+    this.potionFlash = null;
+    this.scrollGuide = null;
     const character = this.resolveCharacter(data.characterId);
     this.character = character;
     const game = this.gameScene();
@@ -91,6 +115,7 @@ export class GameUIScene extends Phaser.Scene {
       return;
     }
     const currentHp = (): number => this.gameScene()?.combat?.getPlayerHp() ?? Number.POSITIVE_INFINITY;
+    const currentSp = (): number => this.gameScene()?.combat?.getPlayerSp() ?? Number.POSITIVE_INFINITY;
     this.hud = new DungeonHud(
       this,
       {
@@ -100,12 +125,16 @@ export class GameUIScene extends Phaser.Scene {
         onSettings: () => this.canOpenWindows() && this.settingsWindow?.toggle(),
         onPassive: () => this.canOpenWindows() && this.togglePassiveTree(),
         onInventory: () => this.canOpenWindows() && this.toggleInventory(),
+        onSkills: () => this.canOpenWindows() && this.toggleSkills(),
+        onAutoPlay: () => this.canOpenWindows() && this.toggleAutoPlayWindow(),
         currentHp,
+        currentSp,
         onHotbarSlot: (slot) => this.canUseHotbar() && this.useHotbarSlot(slot),
+        onPotionSlot: (key) => this.canUseHotbar() && this.usePotionSlot(key),
       },
       0,
     );
-    this.statusWindow = new StatusWindow(this, character, 10, currentHp);
+    this.statusWindow = new StatusWindow(this, character, 10, currentHp, currentSp);
     // T toggles the Status window, as its HUD button does: not while typing, with Settings open on top, or
     // while a tutorial spotlight shuts other controls out - except the Status tutorial's own spotlight.
     const onT = (e: KeyboardEvent): void => {
@@ -122,21 +151,70 @@ export class GameUIScene extends Phaser.Scene {
     // Consumables: USE (the game checks every rule) and ASSIGN HOTKEY (a compact window above the Inventory).
     const assign = new HotbarAssignWindow(this, 16);
     this.assignWindow = assign;
-    this.inventoryWindow.onUse = (itemId, bagIndex) => this.reportUse(this.gameScene()?.useItem(itemId, bagIndex) ?? 'notUsable');
-    this.inventoryWindow.onAssign = (itemId) => assign.open(itemId, () => HotbarService.state(character));
-    assign.onChoose = (slot, itemId) => {
-      if (!HotbarService.assignItem(character, slot, itemId)) return;
-      assign.close();
-      // the potion training goes on once the potion has its hotkey (Roland's last part opens by itself)
-      if (QuestService.hotkeyAssigned(character, itemId)) this.gameScene()?.continuePotionTraining();
+    this.inventoryWindow.onUse = (itemId, bagIndex) => {
+      // null = used (so no `??` fallback here: it would turn a success into a problem)
+      const game = this.gameScene();
+      const problem = game ? game.useItem(itemId, bagIndex) : 'notUsable';
+      this.reportUse(problem);
+      // the scroll tutorial goes on at the HUD's Skill button: the Inventory steps aside once the skill is learned
+      if (problem === null && itemDefinition(itemId)?.category === 'skill_scroll' && QuestService.quest06(character).state === 'SCROLL_TUTORIAL') this.inventoryWindow?.close();
     };
+    // ASSIGN HOTKEY: an HP potion goes straight to Q, an SP potion to W (no slot choice, nothing used up); any
+    // other consumable still chooses one of the slots 1-8
+    this.inventoryWindow.onAssign = (itemId) => {
+      if (!potionKind(itemId)) {
+        assign.open({ type: 'item', itemId }, labels.itemName(itemId), () => HotbarService.state(character));
+        return;
+      }
+      const key = HotbarService.assignPotion(character, itemId);
+      if (!key) return;
+      this.itemNotifications?.showText(t('notifications.potionAssigned', { name: labels.itemName(itemId), key: POTION_KEY_LABEL[key] }));
+      // the potion training: point at Q for a moment, then Roland's last part opens by itself
+      if (QuestService.hotkeyAssigned(character, itemId)) {
+        this.inventoryWindow?.close();
+        this.potionFlash = key;
+        this.time.delayedCall(POTION_FLASH_MS, () => {
+          this.potionFlash = null;
+          this.gameScene()?.continuePotionTraining();
+        });
+      }
+    };
+    // Skills: the list, details, and ASSIGN HOTKEY for a learned skill (the same assignment window as items).
+    const skills = new SkillWindow(this, 13, character);
+    this.skillWindow = skills;
+    skills.onAssign = (skillId) => assign.open({ type: 'skill', skillId }, labels.skillName(skillId), () => HotbarService.state(character));
+    assign.onChoose = (slot, entry) => {
+      if (!HotbarService.assign(character, slot, entry)) return;
+      assign.close();
+      if (entry.type === 'item') {
+        // the potion training goes on once the potion has its hotkey (Roland's last part opens by itself)
+        if (QuestService.hotkeyAssigned(character, entry.itemId)) this.gameScene()?.continuePotionTraining();
+        return;
+      }
+      // the scroll tutorial ends once Power Thrust has its hotkey: the Skill window closes and line 14 opens
+      if (QuestService.skillAssigned(character, entry.skillId)) {
+        skills.close();
+        this.updateScrollTraining();
+        this.gameScene()?.continueAvianBriefing();
+      }
+    };
+    const offLearned = SkillService.onLearned((c, skillId) => {
+      if (c === character) this.itemNotifications?.showText(t('notifications.skillLearned', { skill: labels.skillName(skillId) }));
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offLearned);
     const offHotbar = HotbarService.onChange((c) => {
       if (c === character && assign.isOpen) assign.refresh();
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, offHotbar);
-    // Top-row keys 1-8 use the hotbar slots (KeyboardEvent.code Digit1-Digit8 - never the numpad); held keys
-    // do not repeat, and nothing happens while typing, in a conversation, a tutorial spotlight or a window.
+    // Top-row keys 1-8 use the hotbar slots (KeyboardEvent.code Digit1-Digit8 - never the numpad), Q / W the potion
+    // slots; held keys do not repeat, and nothing happens while typing, in a conversation, a tutorial spotlight or a
+    // window. (WASD no longer moves the character: W belongs to the SP potion.)
     const onKey = (e: KeyboardEvent): void => {
+      const potion = potionSlotOfKey(e.code);
+      if (potion) {
+        if (!e.repeat && isHotkeyPress(e, document.activeElement as HTMLElement | null) && this.canUseHotbar()) this.usePotionSlot(potion);
+        return;
+      }
       const slot = hotbarSlotOfKey(e.code);
       if (slot < 0 || e.repeat || !isHotkeyPress(e, document.activeElement as HTMLElement | null)) return;
       if (this.canUseHotbar()) this.useHotbarSlot(slot);
@@ -153,6 +231,32 @@ export class GameUIScene extends Phaser.Scene {
     };
     this.input.keyboard?.on('keydown-I', onI);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-I', onI));
+    // Auto Play: its settings window (above the Skill window, below Settings); X turns Auto Play on / off at any time
+    // (window open or not), except while typing.
+    const monsterTypes = [...new Set((MONSTER_SPAWNS[game.map.definition.id] ?? []).map((p) => p.monster))];
+    this.autoWindow = new AutoPlayWindow(this, 18, character, monsterTypes);
+    const onX = (e: KeyboardEvent): void => {
+      if (!isHotkeyPress(e, document.activeElement as HTMLElement | null)) return;
+      AutoPlayService.toggle(character);
+    };
+    this.input.keyboard?.on('keydown-X', onX);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-X', onX));
+    let autoShown = AutoPlayService.isOn(character);
+    this.hud.setAutoPlay(autoShown);
+    const offAuto = AutoPlayService.onChange((c) => {
+      if (c !== character || AutoPlayService.isOn(c) === autoShown) return;
+      autoShown = AutoPlayService.isOn(c);
+      this.hud?.setAutoPlay(autoShown);
+      this.itemNotifications?.showText(t(autoShown ? 'autoPlay.notifyOn' : 'autoPlay.notifyOff'));
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offAuto);
+    // K toggles the Skill window (not while typing or with Settings open on top).
+    const onK = (e: KeyboardEvent): void => {
+      if (!isHotkeyPress(e, document.activeElement as HTMLElement | null)) return;
+      if (this.canOpenWindows() && !this.settingsWindow?.isOpen && !this.assignWindow?.isOpen) this.toggleSkills();
+    };
+    this.input.keyboard?.on('keydown-K', onK);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-K', onK));
     if (character.passives) {
       const passive = new PassiveTreeWindow(this, character, 14);
       this.passiveWindow = passive;
@@ -215,17 +319,21 @@ export class GameUIScene extends Phaser.Scene {
       this.leaveDialog = null;
       this.spotlightOverlay = null;
       this.itemNotifications = null;
+      this.skillWindow = null;
+      this.autoWindow = null;
     });
   }
 
   update(_time: number, delta: number): void {
     this.updatePotionTraining();
+    this.updateScrollTraining();
     this.deathOverlay?.update(delta);
     this.spotlightOverlay?.update(delta, this.spotlightTarget());
     this.itemNotifications?.update(delta);
     this.statusWindow?.update();
     const game = this.gameScene();
     if (!this.hud || !game?.player) return;
+    this.hud.updateCooldowns((id) => game.skillCooldown(id));
     this.hud.update(
       game.player.getTilePosition(),
       game.monsters
@@ -281,6 +389,14 @@ export class GameUIScene extends Phaser.Scene {
   closeWindows(): boolean {
     if (this.assignWindow?.isOpen) {
       this.assignWindow.close();
+      return true;
+    }
+    if (this.skillWindow?.isOpen) {
+      this.skillWindow.close();
+      return true;
+    }
+    if (this.autoWindow?.isOpen) {
+      this.autoWindow.close();
       return true;
     }
     if (this.leaveDialog?.isOpen) {
@@ -342,6 +458,8 @@ export class GameUIScene extends Phaser.Scene {
     // the potion training points at controls while its own guide lines are open
     const potion = this.potionSpotlight();
     if (potion) return potion;
+    const scroll = this.scrollSpotlight();
+    if (scroll) return scroll;
     if (!this.canOpenWindows()) return null;
     const status = this.statusSpotlight();
     if (status || this.statusWindow?.isOpen) return status;
@@ -354,7 +472,7 @@ export class GameUIScene extends Phaser.Scene {
    */
   private statusSpotlight(): SpotlightTarget | null {
     const { character, statusWindow: w } = this;
-    if (!character || !w || this.inventoryWindow?.isOpen || this.passiveWindow?.isOpen) return null;
+    if (!character || !w || this.inventoryWindow?.isOpen || this.passiveWindow?.isOpen || this.skillWindow?.isOpen) return null;
     const step = statusTutorialStep(QuestService.quest02(character), w.isOpen, w.hasPending);
     if (!step) return null;
     const rect = step === 'openStatus' ? () => rectOfObject(this, this.hud?.statusButton) : () => w.tutorialArea(step === 'chooseStat' ? 'stats' : 'confirm');
@@ -368,7 +486,7 @@ export class GameUIScene extends Phaser.Scene {
   private passiveSpotlight(): SpotlightTarget | null {
     const w = this.passiveWindow;
     const step = w?.tutorial;
-    if (!w || !step || this.inventoryWindow?.isOpen) return null;
+    if (!w || !step || this.inventoryWindow?.isOpen || this.skillWindow?.isOpen) return null;
     const control = step === 'open' ? this.hud?.passiveButton : w.tutorialControl;
     return { id: step, rect: () => rectOfObject(this, control), label: t(`passive.tutorial.${step}`) };
   }
@@ -376,7 +494,7 @@ export class GameUIScene extends Phaser.Scene {
   /** Equipment tutorial (Tutorial Quest 02): Inventory button, the dagger in the bag, EQUIP. */
   private equipmentSpotlight(): SpotlightTarget | null {
     const { character, inventoryWindow: w } = this;
-    if (!character || !w || this.passiveWindow?.isOpen) return null;
+    if (!character || !w || this.passiveWindow?.isOpen || this.skillWindow?.isOpen) return null;
     const step = equipmentTutorialStep(QuestService.quest02(character), character.inventory, w.isOpen, w.selection.current);
     if (!step) return null;
     const control =
@@ -440,6 +558,8 @@ export class GameUIScene extends Phaser.Scene {
   private potionSpotlight(): SpotlightTarget | null {
     const { character, inventoryWindow: w, assignWindow: a } = this;
     if (!character || !w || !a || this.dialogueWindow?.isModal) return null;
+    const flash = this.potionFlash;
+    if (flash) return { id: 'potion.qSlot', rect: () => rectOfObject(this, this.hud?.potionZones[flash]), label: t('potionTutorial.qSlot') };
     const step = this.currentPotionStep();
     if (!step) return null;
     let rect: SpotlightTarget['rect'];
@@ -455,13 +575,89 @@ export class GameUIScene extends Phaser.Scene {
   }
 
   // -------------------------------------------------------------------------------------------
+  // Scroll tutorial (Tutorial Quest 06, lines 11-13): Inventory button > the scroll > USE (learned) > Skill button
+  // > Power Thrust > ASSIGN HOTKEY > a slot. Roland's guide lines (non-modal) open as each part begins; every
+  // step goes on only when the thing was really done.
+  // -------------------------------------------------------------------------------------------
+
+  private currentScrollStep(): ScrollTutorialStep | null {
+    const { character, inventoryWindow: w, assignWindow: a, skillWindow: s } = this;
+    if (!character || !w || !a || !s) return null;
+    const scroll = TUTORIAL_QUEST_06.reward.itemId;
+    const selected = w.selection.current;
+    return scrollTutorialStep(QuestService.quest06(character), {
+      learned: SkillService.isLearned(character, TUTORIAL_QUEST_06.skillId),
+      hasScroll: bagIndexOf(character.inventory, scroll) >= 0,
+      inventoryOpen: w.isOpen,
+      scrollSelected: selected?.kind === 'bag' && character.inventory?.bag[selected.index]?.itemId === scroll,
+      skillsOpen: s.isOpen,
+      skillSelected: s.selected === TUTORIAL_QUEST_06.skillId,
+      assignOpen: a.isOpen,
+    });
+  }
+
+  /** Opens / closes Roland's guide line when the tutorial reaches another part (dialogue 11, 12 or 13). */
+  private updateScrollTraining(): void {
+    const dialogue = this.dialogueWindow;
+    const character = this.character;
+    if (!dialogue || !character) return;
+    const step = this.currentScrollStep();
+    const guide = step ? scrollGuideOf(step) : null;
+    if (guide === this.scrollGuide) return;
+    const ids = TUTORIAL_QUEST_06.guideDialogueIds;
+    if (Object.values(ids).some((id) => dialogue.isShowing(DIALOGUES[id]))) {
+      dialogue.dismiss();
+      this.releaseGuideSuspension();
+    }
+    // another conversation is still open (e.g. the intro's last line): the guide line waits for it
+    if (guide && dialogue.isOpen) return;
+    this.scrollGuide = guide;
+    if (!guide) return;
+    this.gameScene()?.combat?.setSuspended(true);
+    this.guideSuspended = true;
+    dialogue.open(NPC_DEFINITIONS[TUTORIAL_QUEST_06.npcId].name, DIALOGUES[ids[guide]], () => this.releaseGuideSuspension(), { modal: false, position: 'top' });
+  }
+
+  /** What the scroll tutorial points at now (null = nothing; a normal conversation is open, or no step). */
+  private scrollSpotlight(): SpotlightTarget | null {
+    const { character, inventoryWindow: w, assignWindow: a, skillWindow: s } = this;
+    if (!character || !w || !a || !s || this.dialogueWindow?.isModal) return null;
+    const step = this.currentScrollStep();
+    if (!step) return null;
+    let rect: SpotlightTarget['rect'];
+    if (step === 'openInventory') {
+      if (this.statusWindow?.isOpen || this.passiveWindow?.isOpen || s.isOpen) return null;
+      rect = () => rectOfObject(this, this.hud?.inventoryButton);
+    } else if (step === 'selectScroll') {
+      rect = () => rectOfObject(this, w.slotZone({ kind: 'bag', index: bagIndexOf(character.inventory, TUTORIAL_QUEST_06.reward.itemId) }));
+    } else if (step === 'useScroll') rect = () => rectOfObject(this, w.scrollUseZone);
+    else if (step === 'openSkills') {
+      if (this.statusWindow?.isOpen || this.passiveWindow?.isOpen || w.isOpen) return null;
+      rect = () => rectOfObject(this, this.hud?.skillButton);
+    } else if (step === 'selectSkill') rect = () => rectOfObject(this, s.rowZone(TUTORIAL_QUEST_06.skillId));
+    else if (step === 'assignSkill') rect = () => rectOfObject(this, s.assignZone);
+    else rect = () => a.slotArea();
+    return { id: `scroll.${step}`, rect, label: t(`scrollTutorial.${step}`) };
+  }
+
+  // -------------------------------------------------------------------------------------------
   // Hotbar
   // -------------------------------------------------------------------------------------------
 
   /** The hotbar works only while the player may act and nothing else is in front of the world. */
   private canUseHotbar(): boolean {
-    const windows = [this.statusWindow, this.inventoryWindow, this.passiveWindow, this.settingsWindow, this.assignWindow];
+    const windows = [this.statusWindow, this.inventoryWindow, this.passiveWindow, this.settingsWindow, this.assignWindow, this.skillWindow, this.autoWindow];
     return this.canOpenWindows() && !this.spotlightOverlay?.isActive && !windows.some((w) => w?.isOpen);
+  }
+
+  /** A window, a spotlight or a dialog is in front of the world (skill target-select mode ends). */
+  get worldBlocked(): boolean {
+    return !this.canUseHotbar();
+  }
+
+  /** Q / W: the potion on that slot (an empty slot does nothing). */
+  private usePotionSlot(key: PotionSlotKey): void {
+    this.reportUse(this.gameScene()?.usePotionSlot(key) ?? null);
   }
 
   private useHotbarSlot(slot: number): void {
@@ -469,9 +665,11 @@ export class GameUIScene extends Phaser.Scene {
   }
 
   /** Says why an item could not be used, where that helps (a tutorial block and death say nothing). */
-  private reportUse(problem: UseProblem | null): void {
+  private reportUse(problem: UseProblem | ScrollProblem | null): void {
     if (problem === 'hpFull') this.itemNotifications?.showText(t('notifications.hpFull'));
+    else if (problem === 'spFull') this.itemNotifications?.showText(t('notifications.spFull'));
     else if (problem === 'none') this.itemNotifications?.showText(t('notifications.noItemLeft'));
+    else if (problem === 'alreadyLearned') this.itemNotifications?.showText(t('notifications.alreadyLearned'));
   }
 
   private isPlayerAlive(): boolean {
@@ -483,8 +681,9 @@ export class GameUIScene extends Phaser.Scene {
     return this.dialogueWindow;
   }
 
+  /** A conversation is open. Roland's tutorial guide lines (non-modal hints at the top) do not count. */
   get isDialogueOpen(): boolean {
-    return this.dialogueWindow?.isOpen ?? false;
+    return this.dialogueWindow?.isModal ?? false;
   }
 
   /** The death screen (DeathUi for PlayerDeathController). */
@@ -508,6 +707,8 @@ export class GameUIScene extends Phaser.Scene {
     if (!w.isOpen) {
       if (this.inventoryWindow?.isOpen) this.inventoryWindow.close();
       if (this.passiveWindow?.isOpen) this.passiveWindow.close();
+      this.skillWindow?.close();
+      this.autoWindow?.close();
     }
     w.toggle();
   }
@@ -523,6 +724,39 @@ export class GameUIScene extends Phaser.Scene {
     if (!w.isOpen) {
       if (this.statusWindow?.isOpen) this.statusWindow.close();
       if (this.passiveWindow?.isOpen) this.passiveWindow.close();
+      this.skillWindow?.close();
+      this.autoWindow?.close();
+    }
+    w.toggle();
+  }
+
+  /** Opens / closes the Auto Play settings (one modal window at a time: the others close first). */
+  toggleAutoPlayWindow(): void {
+    const w = this.autoWindow;
+    if (!w) return;
+    if (!w.isOpen) {
+      if (this.statusWindow?.isOpen) this.statusWindow.close();
+      if (this.inventoryWindow?.isOpen) this.inventoryWindow.close();
+      if (this.passiveWindow?.isOpen) this.passiveWindow.close();
+      this.skillWindow?.close();
+      this.autoWindow?.close();
+    }
+    w.toggle();
+  }
+
+  get isSkillWindowOpen(): boolean {
+    return this.skillWindow?.isOpen ?? false;
+  }
+
+  /** Opens / closes the Skill window (one modal window at a time: the others close first). */
+  toggleSkills(): void {
+    const w = this.skillWindow;
+    if (!w) return;
+    if (!w.isOpen) {
+      if (this.statusWindow?.isOpen) this.statusWindow.close();
+      if (this.inventoryWindow?.isOpen) this.inventoryWindow.close();
+      if (this.passiveWindow?.isOpen) this.passiveWindow.close();
+      this.autoWindow?.close();
     }
     w.toggle();
   }
@@ -533,6 +767,8 @@ export class GameUIScene extends Phaser.Scene {
     if (!w) return;
     if (!w.isOpen && this.statusWindow?.isOpen) this.statusWindow.close();
     if (!w.isOpen && this.inventoryWindow?.isOpen) this.inventoryWindow.close();
+    if (!w.isOpen) this.skillWindow?.close();
+    if (!w.isOpen) this.autoWindow?.close();
     w.toggle();
   }
 

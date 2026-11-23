@@ -13,6 +13,8 @@ export const TUTORIAL_QUEST_EXP_BUDGET = {
     tutorial_03_void_mite_hunt: 200,
     // tutorial_04_potion_training pays nothing
     tutorial_05_mutant_wolf_hunt: 150,
+    // the skill scroll tutorial (part of tutorial_06) pays nothing
+    tutorial_06_dark_avian_hunt: 150,
   } as Readonly<Record<string, number>>,
 } as const;
 

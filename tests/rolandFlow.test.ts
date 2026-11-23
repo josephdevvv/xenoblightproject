@@ -143,9 +143,9 @@ test('hotbar: 8 slots, items by reference, one slot per item (assigning again mo
   h = assignItem(h, 6, POTION)!;
   assert.deepEqual([h[2], h[6], slotOfItem(h, POTION)], [null, { type: 'item', itemId: POTION }, 6], 'moved, not doubled');
   for (const [slot, item] of [[8, POTION], [-1, POTION], [1.5, POTION], [0, 'armor_worn_cloth'], [0, 'nothing']] as const) assert.equal(assignItem(h, slot, item), null);
-  assert.deepEqual(ACTIVE_SKILL_IDS, ['drifter_lv1'], 'the registered skill ids (the basic attack is not a skill)');
+  assert.deepEqual(ACTIVE_SKILL_IDS, ['drifter_lv1', 'drifter_heal'], 'the registered skill ids (the basic attack is not a skill)');
   const c = newCharacter('Alpha');
-  for (const id of [...ACTIVE_SKILL_IDS, 'basic', 'self_heal']) assert.equal(isSkillUnlocked(c, id), false, 'skills are disabled');
+  for (const id of [...ACTIVE_SKILL_IDS, 'basic', 'self_heal']) assert.equal(isSkillUnlocked(c, id), false, 'nothing is learned on creation');
   const raw = [{ type: 'item', itemId: POTION }, { type: 'skill', skillId: 'drifter_lv1' }, { type: 'skill', skillId: 'invented' }, { type: 'item', itemId: 'armor_worn_cloth' }, 'x', null, { type: 'item', itemId: POTION }, 7, 'extra'];
   const { state, dropped } = sanitizeHotbar(raw);
   assert.deepEqual(state, [{ type: 'item', itemId: POTION }, { type: 'skill', skillId: 'drifter_lv1' }, null, null, null, null, null, null]);
@@ -166,8 +166,9 @@ test('hotbar layout: 8 equal slots, centred, the pack art\'s size and spacing; a
   for (const width of [960, 1280, 800]) {
     const L = hotbarLayout(width, 400);
     assert.equal(L.slots.length, 8);
+    // the whole row (8 slots, Q / W, Auto Play) is centred
     const left = L.slots[0].x;
-    const right = L.slots[7].x + L.slots[7].width;
+    const right = L.autoButton.x + L.autoButton.width;
     assert.ok(Math.abs(left - (width - right)) <= 1, `centred at ${width}`);
     for (const s of L.slots) assert.deepEqual([s.width, s.height, s.y], [HOTBAR_SLOT.width, HOTBAR_SLOT.height, 400]);
     for (let i = 1; i < 8; i++) assert.equal(L.slots[i].x - L.slots[i - 1].x - HOTBAR_SLOT.width, i === 4 ? HOTBAR_SLOT.middleGap : HOTBAR_SLOT.gap);
@@ -302,7 +303,9 @@ test('Roland: intro, training (no potion used), hotkey, last part, 5 Mutant Wolv
     for (let i = 0; i < 3; i++) assert.equal(QuestRewards.quest05(c).ok, false);
     const loaded = saveAndLoad(c);
     assert.equal(QuestRewards.quest05(loaded).ok, false, 'loaded: never paid again');
-    assert.deepEqual([npcQuestMarker(loaded, ROLAND), trackedQuest(loaded), QuestService.quest05(loaded).state], [null, null, 'COMPLETED'], 'no marker, no path, no further quest');
+    assert.equal(QuestService.quest05(loaded).state, 'COMPLETED');
+    // Roland's next test (the Dark Avian hunt) is offered at once: yellow !, "find Roland"
+    assert.deepEqual([npcQuestMarker(loaded, ROLAND), trackedQuest(loaded), QuestService.quest06(loaded).state], ['available', { questId: 'tutorial_06_dark_avian_hunt', objectiveKey: 'objective' }, 'OFFERED']);
     off();
   });
 });
@@ -346,7 +349,9 @@ test('dialogue texts: Roland and the new Mateus lines, Thai exactly and English'
   assert.deepEqual(lines('roland_potion_intro', 'th'), ['อ้าว คนเร่ร่อนนี่ Mateus ส่งเจ้ามางั้นหรอ โอเคๆ', 'ข้าจะสอนวิธีใช้งานไอเท็มที่เจ้าเพิ่งจะได้รับมาจาก Mateus']);
   assert.deepEqual(lines('roland_potion_select', 'th'), ['วิธีการใช้งานยาแดงฟื้นฟูก็กดคลิ๊กเข้าไปก่อน และ ดูด้านขวาส่วนรายละเอียดไอเท็ม']);
   assert.deepEqual(lines('roland_potion_use', 'th'), ['กดใช้งานเพื่อดื่ม']);
-  assert.deepEqual(lines('roland_potion_hotkey', 'th'), ['กดตั้งคีย์ลัดเพื่อให้ใช้งานง่ายๆ ปุ่ม 1-8 บนคีย์บอร์ด']);
+  assert.deepEqual(lines('roland_potion_hotkey', 'th'), ['กดตั้งคีย์ลัดเพื่อให้ใช้งานง่ายๆ ยาจะไปอยู่ที่ปุ่ม Q บนคีย์บอร์ด']);
+  assert.deepEqual(lines('roland_potion_hotkey', 'en'), ['Click Assign Hotkey to make it easier to use. The potion goes on the Q key.']);
+  setLanguage('th');
   assert.deepEqual(lines('roland_wolf_hunt', 'th'), [
     'เป็นยังไงล่ะ ไม่ยากเลยใช่ไหม เจ้าพร้อมสำหรับบททดสอบต่อไปหรือยัง',
     'บททดสอบอะไรอย่างงั้นหรือ เจ้าคงจะไม่รู้เรื่องราวอะไรเลยจริงๆสินะ',

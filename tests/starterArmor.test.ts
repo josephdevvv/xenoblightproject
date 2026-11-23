@@ -37,23 +37,23 @@ test('definition: exactly as specified - armor slot, Lv 1, DEF +1 and nothing el
     specialEffects: [],
     stackable: false,
   });
-  assert.deepEqual(icon, { url: 'assets/items/armor/worn_cloth_armor_icon_16x16.png', width: 16, height: 16 });
-  assert.deepEqual([...ITEM_CATALOG.keys()], [DAGGER, ARMOR, 'consumable_red_healing_potion'], 'the armor and, since, the potion');
+  assert.deepEqual(icon, { url: 'assets/items/armor/old_cloth_armor_icon_32x32.png', width: 32, height: 32 });
+  assert.deepEqual([...ITEM_CATALOG.keys()], [DAGGER, ARMOR, 'consumable_red_healing_potion', 'consumable_sp_recovery_potion', 'scroll_power_thrust', 'scroll_heal'], 'the armor and, since, the potions and the skill scrolls');
   assert.deepEqual(equipmentDerivedBonus({ ...createInventory(), equipment: { ...createInventory().equipment, armor: { itemId: ARMOR, instanceId: 'a' } } }), { flat: { def: 1 }, maxHpPercent: 0 });
 });
 
-test('icon: a new 16 x 16 PNG, transparent background, hard pixels only, not the dagger', () => {
+test('icon: a 32 x 32 PNG, transparent background, hard pixels only, not the dagger', () => {
   const file = path.join(process.cwd(), 'public', itemDefinition(ARMOR)!.icon.url);
   const img = readPng(file);
-  assert.deepEqual([img.width, img.height], [16, 16]);
-  const alpha = (x: number, y: number): number => img.data[(y * 16 + x) * 4 + 3];
-  for (const [x, y] of [[0, 0], [15, 0], [0, 15], [15, 15]]) assert.equal(alpha(x, y), 0, 'transparent corners');
+  assert.deepEqual([img.width, img.height], [32, 32]);
+  const alpha = (x: number, y: number): number => img.data[(y * 32 + x) * 4 + 3];
+  for (const [x, y] of [[0, 0], [31, 0], [0, 31], [31, 31]]) assert.equal(alpha(x, y), 0, 'transparent corners');
   let opaque = 0;
   for (let i = 3; i < img.data.length; i += 4) {
     assert.ok(img.data[i] === 0 || img.data[i] === 255, 'no anti-aliasing');
     if (img.data[i] === 255) opaque++;
   }
-  assert.ok(opaque > 120 && opaque < 230, `a readable figure (${opaque} px)`);
+  assert.ok(opaque > 250 && opaque < 700, `a readable figure (${opaque} px)`);
   assert.ok(!fs.readFileSync(file).equals(fs.readFileSync(path.join(process.cwd(), 'public', itemDefinition(DAGGER)!.icon.url))));
 });
 
@@ -62,11 +62,11 @@ test('texts: Thai and English name, description, type and DEF +1', () => {
   setLanguage('th');
   const th = itemInfo(ARMOR)!;
   assert.equal(th.name, 'ชุดผ้าเก่า');
-  assert.equal(th.description, 'ชุดผ้าเก่าที่ผ่านการใช้งานมาอย่างหนัก แม้จะป้องกันได้เพียงเล็กน้อย แต่ก็ดีกว่าไม่มีอะไรเลย');
+  assert.equal(th.description, 'ชุดผ้าซีดที่ปะชุนมาหลายครั้ง ป้องกันได้เพียงเล็กน้อย แต่ก็ดีกว่าไม่มีอะไรเลย');
   setLanguage('en');
   const en = itemInfo(ARMOR)!;
-  assert.equal(en.name, 'Worn Cloth Armor');
-  assert.equal(en.description, "An old, heavily worn cloth outfit. It offers little protection, but it's better than nothing.");
+  assert.equal(en.name, 'Old Cloth Armor');
+  assert.equal(en.description, 'Patched, faded cloth worn by countless drifters. Barely any protection, but better than nothing.');
   assert.equal(en.type, 'Armor · Lv 1');
   assert.deepEqual(en.effects, ['DEF +1']);
   assert.deepEqual(en.icon, { texture: 'item.icon.armor_worn_cloth' });

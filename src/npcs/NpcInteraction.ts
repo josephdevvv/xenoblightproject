@@ -19,7 +19,7 @@ export interface InteractingPlayer {
 /**
  * Left click on an NPC that has something to say: in range the interaction starts at once; otherwise the
  * player walks there (the normal click-to-move pathfinding - never a teleport) and it starts on arrival.
- * Anything else the player does (WASD, another click, dying) cancels it, and an NPC that cannot be reached
+ * Anything else the player does (another click, dying) cancels it, and an NPC that cannot be reached
  * is given up.
  */
 export class NpcInteraction<T extends InteractableNpc> {

@@ -19,7 +19,11 @@ import { hotbarLayout } from './HotbarLayout';
 import { HotbarService } from '../../hotbar/HotbarService';
 import { InventoryService } from '../../inventory/InventoryService';
 import { itemCount } from '../../inventory/InventoryState';
-import { itemIconKey } from '../../items/ItemCatalog';
+import { entryIcon } from '../hotbar/hotbarIcons';
+import { cooldownSeconds, elapsedFraction, handAngle, remainingWedge, sweepStep } from './CooldownSweep';
+import { POTION_KEY_LABEL, POTION_SLOT_KEYS, type PotionSlotKey } from '../../hotbar/PotionSlots';
+import { SkillService } from '../../skills/SkillService';
+import { isSkillUnlocked } from '../../skills/ActiveSkills';
 
 const BAR = HUD_LAYOUT.bars;
 const TEXT = HUD_LAYOUT.dynamic_text;
@@ -42,10 +46,18 @@ export interface DungeonHudOptions {
   onPassive: () => void;
   /** Opens / closes the Inventory. */
   onInventory: () => void;
-  /** Current HP (combat); max HP when absent. SP has no consumer yet and stays at max. */
+  /** Opens / closes the Skill window. */
+  onSkills?: () => void;
+  /** The Auto Play button (right of the hotbar): opens its settings. */
+  onAutoPlay?: () => void;
+  /** Current SP (combat); max SP when absent. */
+  currentSp?: () => number;
+  /** Current HP (combat); max HP when absent. */
   currentHp?: () => number;
   /** A hotbar slot was clicked (0-based) - the same as its key 1-8. */
   onHotbarSlot?: (slot: number) => void;
+  /** A click on the Q (HP) / W (SP) potion slot. */
+  onPotionSlot?: (key: PotionSlotKey) => void;
 }
 
 /**
@@ -91,6 +103,7 @@ export class DungeonHud {
   private questParams: Record<string, number> | undefined;
   private lastTile = '';
   private lastHp: number | null = null;
+  private lastSp: number | null = null;
   /** Unspent-points pips on the Status and Passive Tree menu slots (one shared look: unspentPip). */
   private readonly statusPip: Phaser.GameObjects.Rectangle;
   private readonly passivePip: Phaser.GameObjects.Rectangle;
@@ -100,12 +113,33 @@ export class DungeonHud {
   readonly passiveButton: Phaser.GameObjects.Zone;
   /** The Inventory menu button (tutorial spotlight target). */
   readonly inventoryButton: Phaser.GameObjects.Zone;
+  /** The Skill window menu button (tutorial spotlight target). */
+  readonly skillButton: Phaser.GameObjects.Zone;
+  /** The Auto Play button right of the hotbar. */
+  readonly autoButton: Phaser.GameObjects.Zone;
+  private readonly autoFrame: Phaser.GameObjects.Graphics;
+  private readonly autoLabel: Phaser.GameObjects.Text;
+  private readonly autoStateText: Phaser.GameObjects.Text;
+  private readonly autoButtonRect: { x: number; y: number; width: number; height: number };
+  private autoTag: Phaser.GameObjects.Text | null = null;
+  private autoOn = false;
   /** Where notices below the minimap start: its right edge, under the map name. */
   readonly belowMinimap: { right: number; top: number };
   /** Hotbar slots 1-8: click zones (UI hit testing, checks), icons and quantities. */
   readonly hotbarZones: Phaser.GameObjects.Zone[];
   private readonly hotbarIcons: Phaser.GameObjects.Image[];
   private readonly hotbarCounts: Phaser.GameObjects.Text[];
+  /**
+   * Cooldown sweep per slot: a grayscale, darkened copy of the icon over the coloured one, masked to the part of the
+   * cooldown still to come (CooldownSweep), the clock hand and the seconds left. Redrawn only when a slot's sweep moves
+   * a whole step or its seconds change.
+   */
+  private readonly cooldownViews: { gray: Phaser.GameObjects.Image; mask: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text; key: string }[];
+  private readonly cooldownHands: Phaser.GameObjects.Graphics;
+  /** The Q / W potion slots (tutorial spotlight target: the potion training ends on Q). */
+  readonly potionZones: Readonly<Record<PotionSlotKey, Phaser.GameObjects.Zone>>;
+  private readonly potionIcons: Readonly<Record<PotionSlotKey, Phaser.GameObjects.Image>>;
+  private readonly potionCounts: Readonly<Record<PotionSlotKey, Phaser.GameObjects.Text>>;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -151,12 +185,31 @@ export class DungeonHud {
     const H = hotbarLayout(scene.scale.width, hotbarTop);
     const frames = scene.add.graphics().setDepth(depth + 1);
     frames.fillStyle(HOTBAR_COLORS.divider, 1).fillRect(H.divider.x, H.divider.y, 1, H.divider.height);
-    for (const s of H.slots) {
+    frames.fillRect(H.potionDivider.x, H.potionDivider.y, 1, H.potionDivider.height);
+    for (const s of [...H.slots, ...H.potionSlots]) {
       frames.fillStyle(HOTBAR_COLORS.fill, 1).fillRect(s.x, s.y, s.width, s.height);
       frames.fillStyle(HOTBAR_COLORS.frame, 1).fillRect(s.x, s.y, s.width, 1).fillRect(s.x, s.y + s.height - 1, s.width, 1).fillRect(s.x, s.y, 1, s.height).fillRect(s.x + s.width - 1, s.y, 1, s.height);
     }
     H.slots.forEach((s, i) => this.text(s.x + 3, s.y + 2, String(i + 1), 'small', PALETTE.gray, false));
     this.hotbarIcons = H.slots.map((s) => scene.add.image(s.x + Math.floor(s.width / 2), s.y + Math.floor(s.height / 2) + 2, '__DEFAULT').setDepth(depth + 2).setVisible(false));
+    this.cooldownViews = H.slots.map((s, i) => {
+      const base = this.hotbarIcons[i];
+      const gray = scene.add.image(base.x, base.y, '__DEFAULT').setDepth(depth + 2).setVisible(false);
+      // grayscale + darker where WebGL FX exist; a dark tint otherwise
+      const fx = gray.preFX?.addColorMatrix();
+      if (fx) {
+        fx.grayscale(1);
+        fx.brightness(0.55, true);
+      } else gray.setTint(0x555555);
+      const mask = scene.make.graphics({}, false);
+      gray.setMask(mask.createGeometryMask());
+      const text = this.text(s.x + Math.floor(s.width / 2), s.y + Math.floor(s.height / 2) + 2, '', 'small', PALETTE.white, false)
+        .setOrigin(0.5, 0.5)
+        .setStroke(PALETTE.black, 3)
+        .setDepth(depth + 3);
+      return { gray, mask, text, key: '' };
+    });
+    this.cooldownHands = scene.add.graphics().setDepth(depth + 2);
     this.hotbarCounts = H.slots.map((s) =>
       this.text(s.x + s.width - 3, s.y + s.height - 2, '', 'small', PALETTE.white, false)
         .setOrigin(1, 1)
@@ -170,10 +223,37 @@ export class DungeonHud {
       });
       return zone;
     });
+    // Potion slots Q (HP) / W (SP) between the hotbar and Auto Play: key cap, icon, quantity; a click uses it
+    const potionPart = <T>(make: (s: (typeof H.potionSlots)[number], key: PotionSlotKey) => T): Record<PotionSlotKey, T> => ({
+      hp: make(H.potionSlots[0], 'hp'),
+      sp: make(H.potionSlots[1], 'sp'),
+    });
+    potionPart((s, key) => this.text(s.x + 3, s.y + 2, POTION_KEY_LABEL[key], 'small', PALETTE.gray, false));
+    this.potionIcons = potionPart((s) => scene.add.image(s.x + Math.floor(s.width / 2), s.y + Math.floor(s.height / 2) + 2, '__DEFAULT').setDepth(depth + 2).setVisible(false));
+    this.potionCounts = potionPart((s) => this.text(s.x + s.width - 3, s.y + s.height - 2, '', 'small', PALETTE.white, false).setOrigin(1, 1).setStroke(PALETTE.black, 3).setDepth(depth + 3));
+    this.potionZones = potionPart((s, key) => {
+      const zone = scene.add.zone(s.x, s.y, s.width, s.height).setOrigin(0, 0).setDepth(depth + 4).setInteractive();
+      zone.on('pointerup', (p: Phaser.Input.Pointer) => {
+        if (p.button === 0) this.options.onPotionSlot?.(key);
+      });
+      return zone;
+    });
+    // Auto Play button right of W: AUTO + ON / OFF, red while running; a click opens its settings (X toggles)
+    const A = H.autoButton;
+    this.autoButtonRect = A;
+    this.autoFrame = scene.add.graphics().setDepth(depth + 1);
+    this.text(A.x + 3, A.y + 2, 'X', 'small', PALETTE.gray, false);
+    this.autoLabel = this.text(A.x + A.width / 2, A.y + 15, '', 'small', PALETTE.pale, false).setOrigin(0.5, 0.5);
+    this.autoStateText = this.text(A.x + A.width / 2, A.y + 27, '', 'small', PALETTE.slate, false).setOrigin(0.5, 0.5);
+    this.autoButton = scene.add.zone(A.x, A.y, A.width, A.height).setOrigin(0, 0).setDepth(depth + 4).setInteractive({ useHandCursor: true });
+    this.autoButton.on('pointerup', (p: Phaser.Input.Pointer) => {
+      if (p.button === 0) this.options.onAutoPlay?.();
+    });
+    this.drawAutoButton();
     const refreshHotbar = (c: CharacterData): void => {
       if (c === options.character) this.refreshHotbar();
     };
-    const offs = [InventoryService.onChange(refreshHotbar), HotbarService.onChange(refreshHotbar)];
+    const offs = [InventoryService.onChange(refreshHotbar), HotbarService.onChange(refreshHotbar), SkillService.onLearned(refreshHotbar)];
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => offs.forEach((off) => off()));
     this.refreshHotbar();
 
@@ -184,6 +264,7 @@ export class DungeonHud {
     this.questObjective = this.text(pin.x + pin.width + 4, pin.y + 17, '', 'small', PALETTE.silver);
     const auto = this.space.point(Q, TEXT.auto_label);
     const autoText = this.text(auto.x, auto.y, '', 'small', PALETTE.slate);
+    this.autoTag = autoText;
 
     // 5. Map, coordinates and menu.
     const M = '03_map_and_menu';
@@ -232,6 +313,18 @@ export class DungeonHud {
       g.fillRect(cx + 2, slot.y + 8, 4, 3);
       g.fillRect(cx, slot.y + 8, 1, 2);
     });
+    // Skills (fourth slot): an open book.
+    this.skillButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[3]), 'hud.menuSkills', () => this.options.onSkills?.(), (g, slot, color) => {
+      const cx = slot.x + Math.floor(slot.width / 2);
+      const top = slot.y + 2;
+      g.fillStyle(toColorInt(color), 1);
+      g.fillRect(cx - 6, top + 1, 5, 1).fillRect(cx + 2, top + 1, 5, 1);
+      g.fillRect(cx - 7, top + 2, 1, 7).fillRect(cx + 7, top + 2, 1, 7);
+      g.fillRect(cx - 6, top + 9, 5, 1).fillRect(cx + 2, top + 9, 5, 1);
+      g.fillRect(cx, top + 2, 1, 8);
+      g.fillRect(cx - 5, top + 4, 3, 1).fillRect(cx + 3, top + 4, 3, 1);
+      g.fillRect(cx - 5, top + 6, 3, 1).fillRect(cx + 3, top + 6, 3, 1);
+    });
     // The pack's menu button (three bars, baked into the art) opens Settings.
     this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuMore), 'hud.menuSettings', () => this.options.onSettings(), null);
 
@@ -243,9 +336,29 @@ export class DungeonHud {
     localize(scene, () => {
       this.refreshQuest();
       autoText.setText(t('hud.auto'));
+      this.drawAutoButton();
       mapName.setText(labels.map(options.map.definition.id));
       this.refreshStatus();
     });
+  }
+
+  /** Auto Play running or not: the button turns red with ON, the AUTO tag of the quest panel lights up. */
+  setAutoPlay(on: boolean): void {
+    if (on === this.autoOn) return;
+    this.autoOn = on;
+    this.drawAutoButton();
+  }
+
+  private drawAutoButton(): void {
+    const A = this.autoButtonRect;
+    const on = this.autoOn;
+    const g = this.autoFrame.clear();
+    g.fillStyle(on ? 0x2a1216 : HOTBAR_COLORS.fill, 1).fillRect(A.x, A.y, A.width, A.height);
+    const edge = on ? 0xd3424b : HOTBAR_COLORS.frame;
+    g.fillStyle(edge, 1).fillRect(A.x, A.y, A.width, 1).fillRect(A.x, A.y + A.height - 1, A.width, 1).fillRect(A.x, A.y, 1, A.height).fillRect(A.x + A.width - 1, A.y, 1, A.height);
+    this.autoLabel.setText(t('hud.auto').toUpperCase()).setColor(on ? PALETTE.white : PALETTE.pale);
+    this.autoStateText.setText(on ? t('autoPlay.on') : t('autoPlay.off')).setColor(on ? '#d3424b' : PALETTE.slate);
+    this.autoTag?.setColor(on ? '#d3424b' : PALETTE.slate);
   }
 
   /** Small red pip on the Passive Tree menu slot while passive points are unspent (the tutorial has its own spotlight). */
@@ -269,12 +382,69 @@ export class DungeonHud {
     const state = HotbarService.state(c);
     this.hotbarIcons.forEach((icon, i) => {
       const e = state[i] ?? null;
-      const key = e?.type === 'item' ? itemIconKey(e.itemId) : null;
-      const shown = key !== null && this.scene.textures.exists(key);
+      const pic = e ? entryIcon(e) : null;
+      const shown = pic !== null && this.scene.textures.exists(pic.texture);
       icon.setVisible(shown);
       const count = e?.type === 'item' ? itemCount(c.inventory, e.itemId) : null;
-      if (shown) icon.setTexture(key).setAlpha(count === 0 ? 0.35 : 1);
+      // an item with none left, or a skill that is not learned (e.g. from an edited file), is shown dimmed
+      const usable = e?.type === 'item' ? count !== 0 : e ? isSkillUnlocked(c, e.skillId) : false;
+      if (shown) icon.setTexture(pic.texture, pic.frame).setScale(pic.hudScale).setAlpha(usable ? 1 : 0.35);
       this.hotbarCounts[i].setText(count === null ? '' : String(count));
+      // the cooldown copy follows the slot's picture; the next cooldown update redraws it
+      const cd = this.cooldownViews[i];
+      if (shown) cd.gray.setTexture(pic.texture, pic.frame).setScale(pic.hudScale);
+      cd.key = '';
+    });
+    const potions = HotbarService.potions(c);
+    for (const key of POTION_SLOT_KEYS) {
+      const itemId = potions[key];
+      const pic = itemId ? entryIcon({ type: 'item', itemId }) : null;
+      const shown = pic !== null && this.scene.textures.exists(pic.texture);
+      const count = itemId ? itemCount(c.inventory, itemId) : null;
+      this.potionIcons[key].setVisible(shown);
+      if (shown) this.potionIcons[key].setTexture(pic.texture, pic.frame).setScale(pic.hudScale).setAlpha(count === 0 ? 0.35 : 1);
+      this.potionCounts[key].setText(count === null ? '' : String(count));
+    }
+  }
+
+  /**
+   * Per-frame: the cooldown sweep of every skill slot, from the skills' real remaining / total cooldown (manual and
+   * Auto Play casts alike). `cooldown` = null when the skill is ready.
+   */
+  updateCooldowns(cooldown: (skillId: string) => { remainingMs: number; totalMs: number } | null): void {
+    const state = HotbarService.state(this.options.character);
+    let handsDirty = false;
+    this.cooldownViews.forEach((cd, i) => {
+      const e = state[i] ?? null;
+      const c = e?.type === 'skill' && this.hotbarIcons[i].visible ? cooldown(e.skillId) : null;
+      const key = c ? `${sweepStep(c.remainingMs, c.totalMs)}:${cooldownSeconds(c.remainingMs)}` : 'ready';
+      if (key === cd.key) return;
+      cd.key = key;
+      handsDirty = true;
+      cd.mask.clear();
+      if (!c) {
+        cd.gray.setVisible(false);
+        cd.text.setText('');
+        return;
+      }
+      const icon = this.hotbarIcons[i];
+      const wedge = remainingWedge({ x: icon.x, y: icon.y }, Math.ceil(Math.max(icon.displayWidth, icon.displayHeight)), elapsedFraction(c.remainingMs, c.totalMs));
+      cd.mask.fillStyle(0xffffff, 1).fillPoints(wedge, true);
+      cd.gray.setVisible(true);
+      cd.text.setText(String(cooldownSeconds(c.remainingMs)));
+    });
+    if (!handsDirty) return;
+    // the clock hands: one 1-px line from each cooling slot's centre to the edge of its icon
+    const g = this.cooldownHands.clear();
+    this.cooldownViews.forEach((cd, i) => {
+      if (!cd.gray.visible) return;
+      const e = state[i];
+      const c = e?.type === 'skill' ? cooldown(e.skillId) : null;
+      if (!c) return;
+      const icon = this.hotbarIcons[i];
+      const r = Math.floor(Math.min(icon.displayWidth, icon.displayHeight) / 2);
+      const a = handAngle(elapsedFraction(c.remainingMs, c.totalMs));
+      g.lineStyle(1, 0xe7e7ee, 0.8).lineBetween(icon.x, icon.y, Math.round(icon.x + Math.cos(a) * r), Math.round(icon.y + Math.sin(a) * r));
     });
   }
 
@@ -295,8 +465,10 @@ export class DungeonHud {
   /** Per-frame: coordinates, minimap and HP (only redrawn when it changes). */
   update(playerTile: Point, monsters: readonly Point[]): void {
     const hp = this.options.currentHp ? Math.round(this.options.currentHp()) : null;
-    if (hp !== null && hp !== this.lastHp) {
-      this.lastHp = hp;
+    const sp = this.options.currentSp ? Math.round(this.options.currentSp()) : null;
+    if ((hp !== null && hp !== this.lastHp) || (sp !== null && sp !== this.lastSp)) {
+      this.lastHp = hp ?? this.lastHp;
+      this.lastSp = sp ?? this.lastSp;
       this.refreshStatus();
     }
     const label = `${Math.floor(playerTile.x)}, ${Math.floor(playerTile.y)}`;
@@ -307,7 +479,7 @@ export class DungeonHud {
     this.minimap.update(playerTile, monsters);
   }
 
-  /** Name, level, HP (current from combat), SP (= max, no SP use yet) and EXP towards the next level. */
+  /** Name, level, HP and SP (current from combat) and EXP towards the next level. */
   refreshStatus(): void {
     const c = this.options.character;
     const derived = CharacterStatusService.derived(c);
@@ -315,11 +487,12 @@ export class DungeonHud {
     this.levelText.setText(t('hud.level', { level: c.status.level }));
     const maxHp = Math.round(derived.maxHp);
     const hp = Math.min(maxHp, this.options.currentHp ? Math.round(this.options.currentHp()) : maxHp);
-    const sp = Math.round(derived.maxSp);
+    const maxSp = Math.round(derived.maxSp);
+    const sp = Math.min(maxSp, this.options.currentSp ? Math.round(this.options.currentSp()) : maxSp);
     this.hpText.setText(t('hud.hp', { current: hp, max: maxHp }));
-    this.spText.setText(t('hud.sp', { current: sp, max: sp }));
+    this.spText.setText(t('hud.sp', { current: sp, max: maxSp }));
     this.setBar(this.hpBar, this.hpArea, hp, maxHp);
-    this.setBar(this.spBar, this.spArea, sp, sp);
+    this.setBar(this.spBar, this.spArea, sp, maxSp);
     const ratio = levelProgress(c.status.level, c.status.exp, STATUS_RULES.maxLevel);
     this.setBar(this.expBar, this.expArea, ratio, 1);
     this.expText.setText(t('hud.exp', { percent: (ratio * 100).toFixed(2) }));

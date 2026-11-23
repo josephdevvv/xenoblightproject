@@ -6,13 +6,12 @@ import { TextureKeys } from '../assets/TextureKeys';
 import { CharacterView } from '../characters/CharacterView';
 import { createCharacterData, createDefaultAppearance, type CharacterData } from '../data/CharacterData';
 import { CharacterStore } from '../data/CharacterStore';
-import { KeyboardMovementInput } from '../player/KeyboardMovementInput';
 import { PlayerController } from '../player/PlayerController';
 import { MONSTER_DEFINITIONS, type MonsterId } from '../monsters/MonsterDefinition';
 import { MonsterSpawner } from '../monsters/MonsterSpawner';
 import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
 import { CharacterStatusService } from '../status/CharacterStatusService';
-import { t } from '../i18n';
+import { t, type TranslationKey } from '../i18n';
 import { loadItemIcons } from '../items/ItemIcons';
 import { GameServices, type Services } from '../systems/GameServices';
 import type { GameUIScene } from './GameUIScene';
@@ -37,13 +36,23 @@ import { isQuest03AtMateus, TUTORIAL_QUEST_03 } from '../quests/TutorialQuest03'
 import { QuestRewards, type QuestExpPaid, type QuestTurnIn } from '../quests/QuestRewards';
 import { isQuest04AtRoland, TUTORIAL_QUEST_04 } from '../quests/TutorialQuest04';
 import { isQuest05AtRoland, TUTORIAL_QUEST_05 } from '../quests/TutorialQuest05';
+import { isQuest06AtRoland, TUTORIAL_QUEST_06 } from '../quests/TutorialQuest06';
 import { HotbarService } from '../hotbar/HotbarService';
 import { itemCount } from '../inventory/InventoryState';
-import { hpRestored, useProblem, type UseProblem } from '../items/ConsumableUse';
-import { isActiveSkillId, isSkillUnlocked } from '../skills/ActiveSkills';
+import { hpRestored, scrollProblem, spRestored, useProblem, type ScrollProblem, type UseProblem } from '../items/ConsumableUse';
+import { itemDefinition } from '../items/ItemCatalog';
+import { SkillService } from '../skills/SkillService';
+import { isSkillId, needsTarget, SKILL_DEFINITIONS, skillHealAmount, type SkillId } from '../skills/SkillDefinitions';
+import { labels } from '../i18n/labels';
+import type { ActionDirection, Direction } from '../core/Direction';
 import { monsterSheetKey } from '../monsters/art/MonsterArt';
 import { InventoryService } from '../inventory/InventoryService';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
+import { SKILL_CURSOR, SkillTargetCursor } from '../ui/world/SkillTargetCursor';
+import { AutoPlayController } from '../autoplay/AutoPlayController';
+import { AutoPlayService } from '../autoplay/AutoPlayService';
+import { AutoPlayRangeView } from '../ui/world/AutoPlayRangeView';
+import type { PotionSlotKey } from '../hotbar/PotionSlots';
 import { PLAYER_MOVEMENT } from '../player/PlayerController';
 import { GameHud } from '../ui/GameHud';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
@@ -70,8 +79,17 @@ const CULLING_DEBUG_SOURCE = 'Culling';
 const MONSTER_DEBUG_SOURCE = 'Monsters';
 /** Cache owner of the player's own art (standing, walk, combat sheets, impact VFX) while this scene runs. */
 const PLAYER_ART_OWNER = 'player-art';
+/**
+ * Two potions never go in at the same moment: after one is used, another waits this long - whoever asks (Q, the
+ * Inventory's USE, Auto Combat). Stops a manual press and an automatic use from both landing at once.
+ */
+const POTION_DOUBLE_USE_GUARD_MS = 300;
+
 /** Minimum distance (world px, rendered coordinates) between a monster and the player spawn. */
 const MONSTER_MIN_SPAWN_DISTANCE_PX = 20;
+
+/** The cast animation has four directions: the nearest one to where the player faces. */
+const CAST_FACING: Readonly<Record<Direction, ActionDirection>> = { N: 'NE', NE: 'NE', E: 'SE', SE: 'SE', S: 'SW', SW: 'SW', W: 'NW', NW: 'NW' };
 
 /**
  * First playable map. Loading goes through MapLoadingManager (PRELOAD -> PREPARE -> BUILD ->
@@ -104,12 +122,25 @@ export class GameScene extends Phaser.Scene {
   private character!: CharacterData;
   clickMarker!: ClickMarker;
   monsterCursor!: MonsterCursor;
+  /** The skill cursor of target-select mode (idle / pressed). */
+  skillCursor!: SkillTargetCursor;
+  /** Target-select mode: this skill is cast on the monster the next left click hits. */
+  private skillTargeting: SkillId | null = null;
+  /** Auto Play (attack only): decisions every few frames through the normal combat commands. */
+  autoPlay!: AutoPlayController<MonsterEntity>;
+  private autoRange!: AutoPlayRangeView;
+  /** A right click cancelled target-select mode: the browser menu it would open is skipped once. */
+  private suppressContextMenu = false;
   private readonly monstersWithArt = new Set<MonsterId>();
   private loading!: LoadingScreen;
   private mapId = DEFAULT_MAP_ID;
   private ready = false;
   private failed = false;
   private leaving = false;
+  /** No potion before this (scene time): see POTION_DOUBLE_USE_GUARD_MS. */
+  private potionGuardUntil = 0;
+  /** When each skill with a cooldown can be used again (scene time; not saved). */
+  private readonly skillReadyAt = new Map<string, number>();
   /** Only for placing the player once after loading a file - respawning never uses it. */
   private loadedLocation: SavedLocation | null = null;
 
@@ -122,6 +153,9 @@ export class GameScene extends Phaser.Scene {
     this.scene.settings.data = {}; // Phaser would hand the same data to the next start without any
     this.ready = false;
     this.failed = false;
+    this.skillReadyAt.clear();
+    this.potionGuardUntil = 0;
+    this.skillTargeting = null;
     this.leaving = false;
     const character = this.resolveCharacter();
     this.character = character;
@@ -133,6 +167,11 @@ export class GameScene extends Phaser.Scene {
       // dying / dead / respawning: only the respawn button leaves the death screen
       if (this.death && !this.death.life.isAlive()) return;
       if (this.isTalking()) return; // a conversation ends with its own NEXT button
+      // target-select mode is cancelled first (nothing else happens)
+      if (this.skillTargeting) {
+        this.cancelSkillTargeting();
+        return;
+      }
       // An open UI window closes first; otherwise ESC leaves the game (asked first: nothing is saved by itself).
       const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
       if (ui?.closeWindows()) return;
@@ -140,12 +179,27 @@ export class GameScene extends Phaser.Scene {
       else this.returnToMenu();
     };
     this.input.keyboard?.on('keydown-ESC', onEscape);
-    // Keys 1-8 belong to the hotbar (GameUIScene). Skills are disabled for now: no key fires one directly -
-    // when they come back they are used through the hotbar (useHotbarSlot).
+    // Keys 1-8 belong to the hotbar (GameUIScene). No key fires a skill directly: skills are used through the
+    // hotbar (useHotbarSlot); a target-required one then waits for its click (target-select mode).
     this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
     this.input.on(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
     this.input.on(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
+    // released outside the game: only the skill cursor needs to hear it (the attack cursor keeps its own rules)
+    const onUpOutside = (): void => {
+      if (this.skillCursor?.state === 'press') this.skillCursor.set(this.skillTargeting ? 'idle' : 'none');
+    };
+    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, onUpOutside);
+    const onContextMenu = (e: MouseEvent): void => {
+      if (!this.suppressContextMenu) return;
+      this.suppressContextMenu = false;
+      e.preventDefault();
+    };
+    this.game.canvas.addEventListener('contextmenu', onContextMenu);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.canvas.removeEventListener('contextmenu', onContextMenu);
+      this.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, onUpOutside);
+      this.skillTargeting = null;
+      this.skillCursor?.set('none');
       this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
       this.attackVfx?.dispose();
@@ -170,6 +224,7 @@ export class GameScene extends Phaser.Scene {
     // Combat decides first (target approach / attacks), then the player moves - only while alive.
     const alive = this.death.life.isAlive();
     this.combat.update(delta);
+    this.updateAutoPlay(alive);
     if (alive && !this.isTalking()) this.player.update(delta);
     if (alive) this.npcInteraction.update();
     else this.npcInteraction.cancel();
@@ -189,8 +244,10 @@ export class GameScene extends Phaser.Scene {
     }
     this.combat.updateMarker();
     this.attackVfx.update();
+    // target-select mode ends by itself when the player can no longer use it (window, conversation, death)
+    if (this.skillTargeting && (!alive || !this.canPerform('attack') || this.uiScene()?.worldBlocked)) this.cancelSkillTargeting();
     // pointer outside the canvas keeps its last position: only a pointer over the game can hover
-    this.monsterCursor.update(delta, alive && !this.isTalking() && this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
+    if (this.skillCursor.state === 'none') this.monsterCursor.update(delta, alive && !this.isTalking() && this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
     this.atmosphere.update(delta);
     this.culler.update();
@@ -219,6 +276,9 @@ export class GameScene extends Phaser.Scene {
         services.assets
           .load({ key: MONSTER_CURSOR.key, type: 'image', url: MONSTER_CURSOR.url })
           .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor over monsters`)),
+        services.assets
+          .load({ key: SKILL_CURSOR.key, type: 'image', url: SKILL_CURSOR.url })
+          .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor in skill target mode`)),
       ]);
       if (!this.sys.isActive()) return;
       this.map = prepared.map;
@@ -261,7 +321,8 @@ export class GameScene extends Phaser.Scene {
     const spawn = this.map.getSpawnPoint();
     const spawnWorld = this.map.tileToWorld(spawn.x, spawn.y);
     const view = new CharacterView(this, character.appearance, spawnWorld.x, spawnWorld.y);
-    this.player = new PlayerController(this.map, view, new KeyboardMovementInput(this), spawn);
+    // movement by left click only (no keyboard movement: W is the SP potion key)
+    this.player = new PlayerController(this.map, view, spawn);
 
     // Monsters: static visual entities, validated against the map and the player spawn.
     this.monsters = new MonsterSpawner(this, this.map);
@@ -289,11 +350,9 @@ export class GameScene extends Phaser.Scene {
     this.playerCombat = this.combatSet ? new PlayerCombatAnimator(view, this.combatSet) : null;
     if (this.playerCombat) this.player.actions = this.playerCombat;
     this.npcInteraction = new NpcInteraction<NpcEntity>(this.player, (npc) => this.talkTo(npc));
-    const onManualMove = this.player.onManualMove;
-    this.player.onManualMove = () => {
-      onManualMove?.();
-      this.npcInteraction.cancel();
-    };
+    this.autoPlay = new AutoPlayController<MonsterEntity>(this.autoPlayPort());
+    this.combat.onPlayerAttacked = (monster) => this.autoPlay.notifyAttacked(monster);
+    this.autoRange = new AutoPlayRangeView(this, (x, y) => this.map.tileToWorld(x, y));
     // The tutorial quests follow what the player does (first passive node, dagger worn, a stat point spent)
     const syncQuest = (c: CharacterData): void => {
       if (c === character) QuestService.sync(c);
@@ -303,6 +362,7 @@ export class GameScene extends Phaser.Scene {
     this.questTrailView = new PathTrailView(this, (x, y) => this.map.tileToWorld(x, y));
     this.clickMarker = new ClickMarker(this);
     this.monsterCursor = new MonsterCursor(this.textures);
+    this.skillCursor = new SkillTargetCursor(this.textures);
 
     // Camera
     const cam = this.cameras.main;
@@ -353,8 +413,13 @@ export class GameScene extends Phaser.Scene {
    * something to say is approached and talked to; anywhere else on walkable ground the player walks there. Clicks on the HUD / open windows never reach the world.
    */
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
+    if (this.ready && this.skillTargeting) {
+      this.onTargetingPointerDown(pointer);
+      return;
+    }
     if (!this.ready || !pointer.leftButtonDown() || !this.canPerform('move') || this.isOverUi(pointer)) return;
     this.npcInteraction.cancel(); // any new command replaces a pending approach
+    this.autoPlay.notifyManual(); // a command by hand: Auto Play waits a moment instead of overriding it
     const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
     const monster = this.pickMonster(world.x, world.y);
     const npc = this.pickTalkingNpc(world.x, world.y);
@@ -403,6 +468,8 @@ export class GameScene extends Phaser.Scene {
   // Tutorial Quest 03: back to Mateus -> talk -> 5 Void Mites -> back to Mateus (20 potions, 200 EXP)
   // Tutorial Quest 04: to Roland -> talk -> potion training (GameUIScene) -> talk on (wolf hunt)
   // Tutorial Quest 05: 5 Mutant Wolves -> back to Roland (150 EXP)
+  // Tutorial Quest 06: Roland -> talk (Power Thrust scroll) -> scroll tutorial (GameUIScene) -> line 14 ->
+  //   10 Dark Avians -> back to Roland (150 EXP, no conversation)
   // -------------------------------------------------------------------------------------------
 
   /** The NPC the active quest sends the player to (dotted path), or null. */
@@ -417,7 +484,8 @@ export class GameScene extends Phaser.Scene {
     if (isQuest02AtMateus(QuestService.quest02(c))) return TUTORIAL_QUEST_02.npcId;
     if (isQuest03AtMateus(QuestService.quest03(c))) return TUTORIAL_QUEST_03.npcId;
     if (isQuest04AtRoland(QuestService.quest04(c))) return TUTORIAL_QUEST_04.npcId;
-    return isQuest05AtRoland(QuestService.quest05(c)) ? TUTORIAL_QUEST_05.npcId : null;
+    if (isQuest05AtRoland(QuestService.quest05(c))) return TUTORIAL_QUEST_05.npcId;
+    return isQuest06AtRoland(QuestService.quest06(c)) ? TUTORIAL_QUEST_06.npcId : null;
   }
 
   /** Entering the map: new characters get the quest; a handoff that was cut off is finished. */
@@ -429,6 +497,10 @@ export class GameScene extends Phaser.Scene {
     if (QuestService.quest02(character).state === 'EQUIPMENT_TUTORIAL') InventoryService.grantOnce(character, TUTORIAL_QUEST_02.reward);
     // the Void Mite hunt was turned in before it gave potions: the potion training needs them - given once
     if (QuestService.quest03(character).state === 'COMPLETED') InventoryService.grantOnce(character, TUTORIAL_QUEST_03.reward);
+    // the scroll tutorial needs the Power Thrust scroll while the skill is not learned - still only once (grant id)
+    if (QuestService.quest06(character).state === 'SCROLL_TUTORIAL' && !SkillService.isLearned(character, TUTORIAL_QUEST_06.skillId)) {
+      InventoryService.grantOnce(character, TUTORIAL_QUEST_06.reward);
+    }
   }
 
   /** NPCs that react to a click now (the others behave as before: the click is a walk command). */
@@ -548,7 +620,10 @@ export class GameScene extends Phaser.Scene {
     if (result.error !== 'notReady') ui.notifications?.showText(t(result.error === 'bagFull' ? 'notifications.bagFull' : 'notifications.itemFailed'));
   }
 
-  /** Roland's conversations: potion training (start, and its last part after the hotkey) and the wolf hunt's turn-in. */
+  /**
+   * Roland's conversations: potion training (start, and its last part after the hotkey), the wolf hunt's turn-in,
+   * the Dark Avian hunt (intro with the scroll, line 14 after the hotkey) and its turn-in.
+   */
   private talkToRoland(ui: GameUIScene, name: string): boolean {
     const { character } = this;
     const dialogue = ui.dialogue!;
@@ -575,7 +650,81 @@ export class GameScene extends Phaser.Scene {
       } });
       return true;
     }
+    if (QuestService.advance06(character, 'talk')) {
+      // lines 1-10, the Dark Avian above line 9; clicking through line 10 gives the scroll (once)
+      this.beginConversation(ui);
+      const picture = this.avianPreview();
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_06.introDialogueId], () => {
+        this.combat.setSuspended(false);
+        this.giveQuest06Scroll(ui);
+      }, {
+        picture: (step) => (step === TUTORIAL_QUEST_06.previewStep ? picture : null),
+        onInterrupted: () => {
+          this.combat.setSuspended(false);
+          QuestService.advance06(character, 'cancelTalk');
+        },
+      });
+      return true;
+    }
+    if (this.continueAvianBriefing()) return true;
+    if (QuestService.quest06(character).state === 'READY_TO_TURN_IN') {
+      // 10/10: paid by talking to Roland - no new conversation
+      const result = QuestRewards.quest06(character);
+      if (result.ok) this.showQuestExp(result);
+      return result.ok;
+    }
     return false;
+  }
+
+  /**
+   * Line 14 ("off you go"): right after Power Thrust got its hotkey, or by talking to Roland again (e.g. after
+   * loading). Its end starts the Dark Avian hunt.
+   */
+  continueAvianBriefing(): boolean {
+    const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
+    const dialogue = ui?.dialogue;
+    const roland = this.npcs.find((n) => n.definition.id === TUTORIAL_QUEST_06.npcId);
+    if (!ui || !dialogue || dialogue.isOpen || !roland || !QuestService.advance06(this.character, 'finalTalk')) return false;
+    const { character } = this;
+    this.beginConversation(ui);
+    dialogue.open(roland.definition.name, DIALOGUES[TUTORIAL_QUEST_06.finalDialogueId], () => {
+      this.combat.setSuspended(false);
+      QuestService.advance06(character, 'startHunt');
+    }, {
+      onInterrupted: () => {
+        this.combat.setSuspended(false);
+        QuestService.advance06(character, 'cancelFinal');
+      },
+    });
+    return true;
+  }
+
+  /** The Power Thrust scroll, once per character (grant id). Not given = the reason is shown and Roland can be asked again. */
+  private giveQuest06Scroll(ui: GameUIScene): void {
+    const error = InventoryService.grantOnce(this.character, TUTORIAL_QUEST_06.reward);
+    if (error !== null && error !== 'alreadyGranted') {
+      console.error(`[quests] ${TUTORIAL_QUEST_06.id}: scroll not given (${error})`);
+      ui.notifications?.showText(t(error === 'bagFull' ? 'notifications.bagFull' : 'notifications.itemFailed'));
+      QuestService.advance06(this.character, 'cancelTalk');
+      return;
+    }
+    QuestService.advance06(this.character, 'scrollGiven');
+  }
+
+  /**
+   * The Dark Avian for the dialogue picture: the top half of its first idle frame (the art is drawn 32 px above
+   * the ground line, so the lower half of the cell is empty). The extra frame is added to the loaded sheet once.
+   */
+  private avianPreview(): { texture: string; frame: string | number; scale: number } {
+    const key = monsterSheetKey('dark_avian', 'idle');
+    if (!this.textures.exists(key)) return { texture: key, frame: 0, scale: 3 };
+    const texture = this.textures.get(key);
+    const PREVIEW = 'dialogue_preview';
+    if (!texture.has(PREVIEW)) {
+      const f = texture.get(0);
+      texture.add(PREVIEW, f.sourceIndex, f.cutX, f.cutY, f.cutWidth, Math.floor(f.cutHeight / 2));
+    }
+    return { texture: key, frame: PREVIEW, scale: 3 };
   }
 
   /**
@@ -608,33 +757,201 @@ export class GameScene extends Phaser.Scene {
    * step, one in the bag, HP not full - and only then is ONE taken out of the bag and HP restored (never above
    * max HP). null = used; otherwise why not (nothing changed).
    */
-  useItem(itemId: string, bagIndex = -1): UseProblem | null {
+  useItem(itemId: string, bagIndex = -1): UseProblem | ScrollProblem | null {
     if (!this.ready) return 'notUsable';
+    if (itemDefinition(itemId)?.category === 'skill_scroll') return this.useScroll(itemId, bagIndex);
     const { character } = this;
     const hp = this.combat.getPlayerHp();
     const maxHp = this.combat.getPlayerMaxHp();
+    const sp = this.combat.getPlayerSp();
+    const maxSp = this.combat.getPlayerMaxSp();
     const problem = useProblem(itemId, {
       alive: this.death.life.isAlive() && !this.combat.isDefeated(),
       quantity: itemCount(character.inventory, itemId),
       hp,
       maxHp,
+      sp,
+      maxSp,
       blocked: !this.canPerform('useItem') || QuestService.isItemUseBlocked(character),
     });
     if (problem) return problem;
+    if (this.time.now < this.potionGuardUntil) return 'blocked'; // one just went in (manual and automatic at once)
     const restore = hpRestored(itemId, hp, maxHp);
+    const restoreSp = spRestored(itemId, sp, maxSp);
     if (!InventoryService.consumeOne(character, itemId, bagIndex)) return 'none';
-    this.combat.healPlayer(restore);
+    this.potionGuardUntil = this.time.now + POTION_DOUBLE_USE_GUARD_MS;
+    if (restore > 0) this.combat.healPlayer(restore);
+    if (restoreSp > 0) this.combat.restoreSp(restoreSp);
     return null;
   }
 
-  /** A hotbar slot (key 1-8 or a click): uses its item, or its skill once skills can be unlocked. */
-  useHotbarSlot(slot: number): UseProblem | null {
+  /** Q / W: the potion on that slot, by the normal USE rules (nothing at full HP). An empty slot does nothing. */
+  usePotionSlot(key: PotionSlotKey): UseProblem | ScrollProblem | null {
+    const itemId = HotbarService.potions(this.character)[key];
+    return itemId ? this.useItem(itemId) : null;
+  }
+
+  /**
+   * A skill scroll: checked first (alive, no conversation, one in the bag, skill not known yet), then ONE is taken
+   * out of the bag and its skill is learned for good. A known skill uses nothing up.
+   */
+  private useScroll(itemId: string, bagIndex: number): ScrollProblem | null {
+    const { character } = this;
+    const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
+    const problem = scrollProblem(itemId, {
+      alive: this.death.life.isAlive() && !this.combat.isDefeated(),
+      // Roland's guide lines are not modal: the scroll tutorial asks for this very click
+      blocked: !this.death.life.canPerform('useItem') || (ui?.dialogue?.isModal ?? false),
+      quantity: itemCount(character.inventory, itemId),
+      learned: (skill) => SkillService.isLearned(character, skill),
+    });
+    if (problem) return problem;
+    const skill = itemDefinition(itemId)?.teaches;
+    if (!skill || !InventoryService.consumeOne(character, itemId, bagIndex)) return 'none';
+    SkillService.learn(character, skill);
+    return null;
+  }
+
+  /** A hotbar slot (key 1-8 or a click): uses its item, or its skill (learned skills only). */
+  useHotbarSlot(slot: number): UseProblem | ScrollProblem | null {
     const entry = HotbarService.state(this.character)[slot] ?? null;
     if (!entry) return null;
     if (entry.type === 'item') return this.useItem(entry.itemId);
-    // skills are disabled: nothing is unlocked, so nothing happens
-    if (isActiveSkillId(entry.skillId) && isSkillUnlocked(this.character, entry.skillId) && this.canPerform('attack')) this.combat.useSkill(entry.skillId);
+    this.useSkill(entry.skillId);
     return null;
+  }
+
+  /**
+   * A skill from the hotbar. Power Thrust enters target-select mode (the click on a monster casts it: it replaces
+   * the next swing on that target, same hit frame and VFX); Heal restores 30 % of max HP at once with the cast
+   * animation and then waits 30 s. Why a skill did nothing is shown as a notice.
+   */
+  private useSkill(id: string): void {
+    const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
+    const notify = (key: TranslationKey, params?: Record<string, string | number>): void => ui?.notifications?.showText(t(key, params));
+    if (!this.ready || !this.death.life.isAlive() || this.combat.isDefeated()) return;
+    if (!isSkillId(id) || !SkillService.isLearned(this.character, id)) {
+      notify('notifications.skillLocked');
+      return;
+    }
+    const def = SKILL_DEFINITIONS[id];
+    const now = this.time.now;
+    const readyAt = this.skillReadyAt.get(id) ?? 0;
+    if (now < readyAt) {
+      notify('notifications.skillCooldown', { skill: labels.skillName(id), seconds: Math.ceil((readyAt - now) / 1000) });
+      return;
+    }
+    if (this.combat.getPlayerSp() < def.spCost) {
+      notify('notifications.notEnoughSp', { skill: labels.skillName(id), cost: def.spCost });
+      return;
+    }
+    if (needsTarget(def)) {
+      // target-required: no cast yet - the skill cursor asks for the target, the click casts it
+      if (this.canPerform('attack')) this.beginSkillTargeting(id);
+      return;
+    }
+    // self-target (Heal): cast at once on the player, never target-select mode
+    if (this.castSelfSkill(id) === 'hpFull') notify('notifications.hpFull');
+  }
+
+  /** Learned, off cooldown and enough SP. */
+  private skillReady(id: SkillId): boolean {
+    return SkillService.isLearned(this.character, id) && this.time.now >= (this.skillReadyAt.get(id) ?? 0) && this.combat.getPlayerSp() >= SKILL_DEFINITIONS[id].spCost;
+  }
+
+  /** A skill's cooldown now (HUD sweep): remaining / total ms from its real ready time, or null when ready. */
+  skillCooldown(id: string): { remainingMs: number; totalMs: number } | null {
+    if (!isSkillId(id)) return null;
+    const remainingMs = (this.skillReadyAt.get(id) ?? 0) - this.time.now;
+    const totalMs = SKILL_DEFINITIONS[id].cooldownMs;
+    return remainingMs > 0 && totalMs > 0 ? { remainingMs: Math.min(remainingMs, totalMs), totalMs } : null;
+  }
+
+  /** It goes off now: pays the SP and starts the cooldown (false = it cannot: nothing paid). */
+  private activateSkill(id: SkillId): boolean {
+    const def = SKILL_DEFINITIONS[id];
+    if (!this.skillReady(id) || !this.combat.spendSp(def.spCost)) return false;
+    if (def.cooldownMs > 0) this.skillReadyAt.set(id, this.time.now + def.cooldownMs);
+    return true;
+  }
+
+  /** A self skill (Heal) on the player: hotkey and Auto Play. null = cast; otherwise why not (nothing changed). */
+  private castSelfSkill(id: SkillId): 'hpFull' | 'blocked' | null {
+    const def = SKILL_DEFINITIONS[id];
+    if (def.kind !== 'heal' || !this.skillReady(id) || !this.canPerform('cast')) return 'blocked';
+    const maxHp = this.combat.getPlayerMaxHp();
+    if (this.combat.getPlayerHp() >= maxHp) return 'hpFull';
+    if (!this.activateSkill(id)) return 'blocked'; // SP paid, cooldown started - only now
+    this.player.actions.play('cast', CAST_FACING[this.player.getFacing()]);
+    this.combat.healPlayer(skillHealAmount(def, maxHp));
+    return null;
+  }
+
+  /** A target skill on a monster: the target click and Auto Play. It replaces the next swing on that monster. */
+  private castAttackSkill(id: SkillId, monster: MonsterEntity): boolean {
+    const def = SKILL_DEFINITIONS[id];
+    if (def.kind !== 'attack' || !this.skillReady(id) || !this.canPerform('attack')) return false;
+    if (this.combat.getTarget() !== monster) this.combat.attack(monster);
+    // queued for the next swing: SP is paid and the cooldown starts when that swing really goes off
+    return this.combat.useSkill(def.attackId, () => this.activateSkill(id));
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Auto Play (attack only): AutoPlayController decides, these are its hands - the same commands as manual play.
+  // -------------------------------------------------------------------------------------------
+
+  private autoPlayPort(): ConstructorParameters<typeof AutoPlayController<MonsterEntity>>[0] {
+    const range = (): number => this.combat.playerStats().attackRange;
+    return {
+      now: () => this.time.now,
+      canAct: () => this.ready && this.death.life.isAlive() && !this.combat.isDefeated() && this.canPerform('attack'),
+      me: () => this.player.getTilePosition(),
+      hp: () => this.combat.getPlayerHp(),
+      maxHp: () => this.combat.getPlayerMaxHp(),
+      candidates: () =>
+        this.monsters.getMonsters().map((m) => ({ ref: m, monsterId: m.definition.id, position: m.position, alive: m.isAlive(), engaged: m.getMode() === 'chase' })),
+      currentTarget: () => this.combat.getTarget(),
+      attack: (m) => {
+        this.npcInteraction.cancel();
+        this.combat.attack(m);
+      },
+      hasQueuedSkill: () => this.combat.getQueuedSkill() !== null,
+      inReach: (m) => {
+        const me = this.player.getTilePosition();
+        return Math.hypot(m.position.x - me.x, m.position.y - me.y) <= range() + 1;
+      },
+      hotbar: () => HotbarService.state(this.character),
+      learned: (id) => SkillService.isLearned(this.character, id),
+      skillReady: (id) => this.skillReady(id),
+      castAttackSkill: (id, m) => this.castAttackSkill(id, m),
+      castSelfSkill: (id) => this.castSelfSkill(id) === null,
+      // ONLY the potion on Q - an empty slot or none left skips it (the bag is never searched for another one)
+      drinkPotion: () => {
+        const id = HotbarService.potions(this.character).hp;
+        return id !== null && itemCount(this.character.inventory, id) > 0 && this.useItem(id) === null;
+      },
+      // ONLY the potion on W (the SP Recovery Potion) - an empty slot or none left skips it
+      sp: () => ({ sp: this.combat.getPlayerSp(), max: this.combat.getPlayerMaxSp() }),
+      recoverSp: () => {
+        const id = HotbarService.potions(this.character).sp;
+        return id !== null && itemCount(this.character.inventory, id) > 0 && this.useItem(id) === null;
+      },
+      moveTo: (p) => this.combat.moveTo(p),
+      isMoving: () => this.player.hasPath(),
+    };
+  }
+
+  /** Runs Auto Play, turns it off at death (it never restarts by itself) and shows the hunting circle. */
+  private updateAutoPlay(alive: boolean): void {
+    const c = this.character;
+    if (AutoPlayService.isOn(c) && !alive) {
+      AutoPlayService.setOn(c, false);
+      this.uiScene()?.notifications?.showText(t('autoPlay.offDeath'));
+    }
+    const on = AutoPlayService.isOn(c);
+    const settings = AutoPlayService.settings(c);
+    this.autoPlay.update(on, settings);
+    this.autoRange.show(on && settings.range.mode === 'radius' ? { center: this.autoPlay.anchor, radius: settings.range.radius } : null);
   }
 
   /** The usual EXP / LEVEL UP feedback for quest EXP that was just paid (nothing when it was not). */
@@ -664,7 +981,49 @@ export class GameScene extends Phaser.Scene {
 
   private onPointerUp(pointer: Phaser.Input.Pointer): void {
     if (!this.ready) return;
+    // the pressed skill cursor lasts while the button is held: back to "ready", or to the normal cursor after a cast
+    if (this.skillCursor.state === 'press') this.skillCursor.set(this.skillTargeting ? 'idle' : 'none');
     this.monsterCursor.release(this.pointerOverMonster(pointer) !== null);
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Skill target-select mode: a target-required skill from the hotbar shows the skill cursor; the next left click
+  // on a monster IS the cast (that monster becomes the target and the skill replaces the next swing - same rules
+  // as before). Esc, a right click, a window, a conversation or death cancel it. Self skills never enter it.
+  // -------------------------------------------------------------------------------------------
+
+  private beginSkillTargeting(id: SkillId): void {
+    this.skillTargeting = id;
+    this.monsterCursor.reset();
+    this.skillCursor.set('idle');
+  }
+
+  private cancelSkillTargeting(): void {
+    this.skillTargeting = null;
+    this.skillCursor.set('none');
+  }
+
+  private onTargetingPointerDown(pointer: Phaser.Input.Pointer): void {
+    const id = this.skillTargeting!;
+    if (pointer.rightButtonDown()) {
+      this.suppressContextMenu = true;
+      this.cancelSkillTargeting();
+      return;
+    }
+    if (!pointer.leftButtonDown() || this.isOverUi(pointer)) return;
+    this.skillCursor.set('press');
+    const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+    const monster = this.pickMonster(world.x, world.y);
+    // a click beside every monster casts nothing: the mode stays until a monster is clicked or it is cancelled
+    if (!monster) return;
+    this.npcInteraction.cancel();
+    this.autoPlay.notifyManual();
+    if (!this.castAttackSkill(id, monster)) return;
+    this.skillTargeting = null; // cast: the cursor goes back to normal when the button is released
+  }
+
+  private uiScene(): GameUIScene | null {
+    return this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
   }
 
   private onPointerOut(): void {

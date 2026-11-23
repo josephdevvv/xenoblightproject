@@ -1,17 +1,9 @@
 import Phaser from 'phaser';
 import type { TileBox } from '../world/structures/StructureLayer';
-import {
-  actionDirectionFromGroundVector,
-  directionFromGroundVector,
-  directionFromScreenInput,
-  screenInputToGroundVector,
-  type ActionDirection,
-  type Direction,
-} from '../core/Direction';
+import { actionDirectionFromGroundVector, directionFromGroundVector, type ActionDirection, type Direction } from '../core/Direction';
 import type { Point } from '../core/types';
 import type { CharacterView } from '../characters/CharacterView';
 import type { IsometricMap } from '../world/IsometricMap';
-import type { KeyboardMovementInput } from './KeyboardMovementInput';
 import { Pathfinder } from '../world/navigation/Pathfinder';
 import { PlayerMovement } from './PlayerMovement';
 
@@ -57,14 +49,11 @@ export class PlayerController {
   /** Click-to-move waypoints (tile space); empty when not following a path. */
   private path: Point[] = [];
   private stuckMs = 0;
-  /** Called when the player takes manual control (WASD), e.g. to cancel a combat target. */
-  onManualMove: (() => void) | null = null;
   actions: PlayerActionAnimations = NO_ACTION_ANIMATIONS;
 
   constructor(
     private readonly map: IsometricMap,
     readonly view: CharacterView,
-    private readonly input: KeyboardMovementInput,
     spawn: Point,
   ) {
     this.movement = new PlayerMovement(spawn, map, PLAYER_MOVEMENT);
@@ -72,20 +61,9 @@ export class PlayerController {
     this.syncView();
   }
 
+  /** Movement is by mouse only (click-to-move along a found path); there are no keyboard movement keys. */
   update(deltaMs: number): void {
-    const intent = this.input.read();
-    const direction = directionFromScreenInput(intent.x, intent.y);
-
-    let moved = false;
-    if (direction) {
-      // Keyboard always wins: it cancels click-to-move (and, through onManualMove, a combat target).
-      if (this.path.length) this.stopPath();
-      this.onManualMove?.();
-      this.facing = direction;
-      moved = this.movement.step(screenInputToGroundVector(intent.x, intent.y), deltaMs / 1000);
-    } else if (this.path.length) {
-      moved = this.followPath(deltaMs);
-    }
+    const moved = this.path.length > 0 && this.followPath(deltaMs);
     this.state = moved ? 'walk' : 'idle';
 
     this.syncView();

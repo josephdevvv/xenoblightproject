@@ -58,12 +58,17 @@ export class CombatSystem {
   private elapsed = 0;
   private readonly rng: () => number;
   readonly monsterContext: MonsterCombatContext;
+  /** A monster's swing reached the player (hit or miss) - Auto Play's "retaliate". */
+  onPlayerAttacked: ((monster: MonsterEntity) => void) | null = null;
   /** Called once when the player's HP reaches 0 (the death flow takes over; there is no auto-respawn). */
   onPlayerDefeated: (() => void) | null = null;
   /** Attack VFX layer (on-hit effects drawn on the target's body). Set by the scene. */
   vfx: AttackVfxLayer | null = null;
   private pendingHits: PendingPlayerHit[] = [];
   private queuedSkill: PlayerAttackId | null = null;
+  /** Pays for the queued skill when its swing starts (SP, cooldown); false = the swing stays a basic attack. */
+  private queuedActivate: (() => boolean) | null = null;
+  private playerSp: number;
   private lastCombatAt = -Infinity;
   /** Kill rewards already paid (once per monster life). */
   readonly killRewards = new KillRewardLedger();
@@ -82,16 +87,17 @@ export class CombatSystem {
     this.playerTarget = { hitAnchor: () => spriteHitAnchor(player.view.sprite) };
     this.numbers = new DamageNumbers(scene);
     this.playerHp = this.playerStats().maxHp;
+    this.playerSp = this.getPlayerMaxSp();
     this.marker = scene.add.ellipse(0, 0, 30, 12).setStrokeStyle(1, 0xffd27a, 0.9).setVisible(false);
     this.monsterContext = {
       player: null,
       onAttackContact: (m) => this.resolveMonsterHit(m),
     };
-    player.onManualMove = () => this.clearTarget();
     // level up / stat allocation: keep HP sensible (full heal on level up, clamp on max changes)
     const unsubscribe = CharacterStatusService.onChange((c) => {
       if (c !== character) return;
       this.playerHp = Math.min(this.playerHp, this.playerStats().maxHp);
+      this.playerSp = Math.min(this.playerSp, this.getPlayerMaxSp());
     });
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
   }
@@ -122,6 +128,9 @@ export class CombatSystem {
     this.target?.setTargeted(false);
     this.target = null;
     this.marker.setVisible(false);
+    // a skill waiting for a swing on that target is dropped (nothing was paid for it)
+    this.queuedSkill = null;
+    this.queuedActivate = null;
     if (this.pendingHits.length) {
       this.pendingHits = [];
       this.player.actions.reset?.();
@@ -133,9 +142,11 @@ export class CombatSystem {
    * same dagger_thrust animation and hit frame, different damage multiplier and impact scale.
    * Returns false without a target. (No SP cost or cooldown is defined yet.)
    */
-  useSkill(id: PlayerAttackId): boolean {
+  useSkill(id: PlayerAttackId, activate: (() => boolean) | null = null): boolean {
     if (this.isDefeated() || this.suspended || !this.target || !this.target.isAlive()) return false;
+    // one skill waits at a time: a new one replaces it (never two casts on one swing)
     this.queuedSkill = id;
+    this.queuedActivate = activate;
     return true;
   }
 
@@ -186,6 +197,33 @@ export class CombatSystem {
     const w = this.player.getWorldPosition();
     this.numbers.show(w.x, w.y - 64, `+${healed} HP`, 'exp');
     return healed;
+  }
+
+  /** Max SP now (derived stats, whole points). */
+  getPlayerMaxSp(): number {
+    return Math.max(0, Math.round(CharacterStatusService.derived(this.character).maxSp));
+  }
+
+  getPlayerSp(): number {
+    return this.playerSp;
+  }
+
+  /** Pays SP for a skill. False (nothing paid) while defeated or with too little SP. */
+  spendSp(amount: number): boolean {
+    if (this.isDefeated() || !Number.isFinite(amount) || amount < 0 || this.playerSp < amount) return false;
+    this.playerSp -= amount;
+    return true;
+  }
+
+  /** Restores SP (items): never above max SP, nothing while defeated. Returns the SP actually restored. */
+  restoreSp(amount: number): number {
+    if (this.isDefeated() || !Number.isFinite(amount) || amount <= 0) return 0;
+    const restored = Math.min(Math.floor(amount), Math.max(0, this.getPlayerMaxSp() - this.playerSp));
+    if (restored <= 0) return 0;
+    this.playerSp += restored;
+    const w = this.player.getWorldPosition();
+    this.numbers.show(w.x, w.y - 64, `+${restored} SP`, 'info');
+    return restored;
   }
 
   /** Max HP now (derived stats). */
@@ -266,8 +304,12 @@ export class CombatSystem {
    */
   private playerAttack(target: MonsterEntity, stats: CombatStats): void {
     this.attackCooldownMs = stats.attackIntervalMs;
-    const attack = PLAYER_ATTACKS[this.queuedSkill ?? 'basic'];
+    let id = this.queuedSkill;
+    const activate = this.queuedActivate;
     this.queuedSkill = null;
+    this.queuedActivate = null;
+    if (id && activate && !activate()) id = null; // not enough SP / on cooldown by now: a basic swing
+    const attack = PLAYER_ATTACKS[id ?? 'basic'];
     this.lastCombatAt = this.elapsed;
     this.player.actions.play('attack', this.player.actionFacingTowards(target.position));
     this.pendingHits.push({ target, attack, at: this.elapsed + playerImpactDelayMs(this.spriteId, attack) });
@@ -322,7 +364,8 @@ export class CombatSystem {
     const w = this.player.getWorldPosition();
     this.numbers.show(w.x, w.y - 64, `+${exp} EXP`, 'exp');
     if (levels > 0) {
-      this.playerHp = this.playerStats().maxHp; // level up: full heal
+      this.playerHp = this.playerStats().maxHp; // level up: full heal (HP and SP)
+      this.playerSp = this.getPlayerMaxSp();
       this.numbers.show(w.x, w.y - 80, `LEVEL ${this.character.status.level}!`, 'crit');
     }
   }
@@ -336,6 +379,7 @@ export class CombatSystem {
     const me = this.player.getTilePosition();
     const reach = monster.definition.combat.attackRange + CONTACT_SLACK;
     if (Math.hypot(monster.position.x - me.x, monster.position.y - me.y) > reach) return; // stepped out of reach
+    this.onPlayerAttacked?.(monster);
     const result = rollAttack(monsterCombatStats(monster.definition), this.playerStats(), this.rng);
     const w = this.player.getWorldPosition();
     if (!result.hit) {
@@ -400,6 +444,8 @@ export class CombatSystem {
     this.player.teleport({ x: point.x, y: point.y });
     this.player.view.sprite.clearTint();
     this.playerHp = this.playerStats().maxHp;
+    this.playerSp = this.getPlayerMaxSp();
+    this.queuedActivate = null;
     this.attackCooldownMs = 0;
     this.repathMs = 0;
     this.pathFails = 0;

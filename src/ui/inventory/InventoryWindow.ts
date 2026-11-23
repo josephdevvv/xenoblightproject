@@ -83,7 +83,7 @@ export class InventoryWindow {
 
     const onClick = (slot: SlotRef): void => this.selection.select(slot);
     this.equipment = new EquipmentPanel(scene, this.root, L, source, this.selection, onClick);
-    this.grid = new InventoryGridPanel(scene, this.root, L, source, this.selection, onClick);
+    this.grid = new InventoryGridPanel(scene, this.root, L, source, this.selection, onClick, () => this.open);
     this.detail = new ItemDetailPanel(
       scene,
       this.root,
@@ -107,6 +107,7 @@ export class InventoryWindow {
 
   /** The click zone of a slot (tutorial spotlight target). */
   slotZone(slot: SlotRef): Phaser.GameObjects.Zone | null {
+    if (slot.kind === 'bag' && slot.index >= 0) this.grid.ensureVisible(slot.index); // the bag scrolls: bring it into view
     return (slot.kind === 'bag' ? this.grid : this.equipment).slots.zoneOf(slot);
   }
 
@@ -122,6 +123,11 @@ export class InventoryWindow {
 
   get assignZone(): Phaser.GameObjects.Zone | null {
     return this.detail.actionZone('assign');
+  }
+
+  /** USE of a selected skill scroll (tutorial spotlight target). */
+  get scrollUseZone(): Phaser.GameObjects.Zone | null {
+    return this.detail.actionZone('scroll');
   }
 
   /** The item description panel on the screen (tutorial spotlight target), while the window is open. */
@@ -167,6 +173,12 @@ export class InventoryWindow {
     const action = slotAction(this.source, slot);
     const now = this.scene.time.now;
     if (!slot || !action || now < this.actionPauseUntil) return;
+    if (action.kind === 'scroll' && slot.kind === 'bag') {
+      // a skill scroll's only action: USE (the game decides; the scroll goes only when the skill is learned)
+      this.onUse?.(action.itemId, slot.index);
+      this.actionPauseUntil = now + ACTION_PAUSE_MS;
+      return;
+    }
     if (slot.kind === 'bag') {
       if (action.kind !== 'equip' || action.problem !== null) return;
       if (!this.source.equip(slot.index, action.slot)) {

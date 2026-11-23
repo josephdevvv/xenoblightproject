@@ -17,6 +17,11 @@ export const DIALOGUES = {
   roland_potion_hotkey: lines('roland_potion_hotkey', 1),
   roland_wolf_hunt: lines('roland_wolf_hunt', 4),
   roland_wolf_hunt_done: lines('roland_wolf_hunt_done', 2),
+  roland_avian_intro: lines('roland_avian_intro', 10),
+  roland_avian_scroll: lines('roland_avian_scroll', 1),
+  roland_avian_skills: lines('roland_avian_skills', 1),
+  roland_avian_hotkey: lines('roland_avian_hotkey', 1),
+  roland_avian_go: lines('roland_avian_go', 1),
 } as const satisfies Record<string, readonly string[]>;
 
 export type DialogueId = keyof typeof DIALOGUES;

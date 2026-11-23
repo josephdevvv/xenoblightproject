@@ -163,7 +163,7 @@ test('the whole sequence: markers, 100 EXP once, Status tutorial on any stat, 5 
     assert.deepEqual([npcQuestMarker(after, 'roland_01'), trackedQuest(after)], ['available', { questId: 'tutorial_04_potion_training', objectiveKey: 'objective' }], 'on to Roland');
     assert.equal(isQuest03AtMateus(QuestService.quest03(after)), false);
     assert.deepEqual(completed, ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt'], 'each completed once');
-    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt', 'tutorial_04_potion_training', 'tutorial_05_mutant_wolf_hunt']);
+    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt', 'tutorial_04_potion_training', 'tutorial_05_mutant_wolf_hunt', 'tutorial_06_dark_avian_hunt']);
     off();
     offDone();
   });

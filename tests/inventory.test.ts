@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { EMPTY_INVENTORY, EQUIPMENT_SLOTS, INVENTORY_GRID, INVENTORY_SLOT_COUNT, isValidSlot, sameSlot, SlotSelection, type SlotRef } from '../src/inventory/InventorySlots';
+import { bagScrollToShow, clampBagScroll, EMPTY_INVENTORY, EQUIPMENT_SLOTS, INVENTORY_GRID, INVENTORY_ROWS, INVENTORY_SLOT_COUNT, isValidSlot, MAX_BAG_SCROLL, sameSlot, SlotSelection, type SlotRef } from '../src/inventory/InventorySlots';
+import { createInventory, sanitizeInventory } from '../src/inventory/InventoryState';
 import { getDictionary } from '../src/i18n';
 import { iconScale, inventoryLayout, SILHOUETTE_GRID, type InventoryLayout } from '../src/ui/inventory/InventoryLayout';
 import { GLYPH_SIZE, SLOT_GLYPHS } from '../src/ui/inventory/inventoryTheme';
@@ -53,7 +54,8 @@ test('layout on every screen size: whole pixels, inside the screen, panels side 
     assert.ok(equipment[0] < grid[0] && grid[0] < detail[0], 'equipment | grid | detail');
     assert.ok(within(l.close, l.footer), at);
 
-    assert.equal(l.grid.length, INVENTORY_SLOT_COUNT);
+    assert.equal(l.grid.length, INVENTORY_GRID.columns * INVENTORY_GRID.rows, 'the visible cells (the bag scrolls)');
+    assert.ok(within(l.scrollbar, grid) && l.scrollbar[0] >= l.grid[INVENTORY_GRID.columns - 1][0] + l.grid[0][2], 'scroll bar right of the cells, inside the panel');
     for (const s of l.grid) assert.ok(within(s, grid) && s[1] >= grid[1] + l.caption.rule, at);
     const eq = equipmentRects(l);
     for (const s of eq) assert.ok(within(s, equipment) && s[1] >= equipment[1] + l.caption.rule, at);
@@ -133,4 +135,18 @@ test('icon scale: whole pixels up, shrunk only when too large', () => {
   assert.equal(iconScale(32, 32, 36), 1);
   assert.equal(iconScale(36, 12, 36), 1);
   assert.equal(iconScale(72, 36, 36), 0.5);
+});
+
+test('bag: 100 slots, 6 x 6 visible, scrolled by rows; older 36-slot saves keep every item in place', () => {
+  assert.deepEqual([INVENTORY_SLOT_COUNT, INVENTORY_ROWS, MAX_BAG_SCROLL], [100, 17, 11]);
+  assert.equal(createInventory().bag.length, 100);
+  assert.deepEqual([isValidSlot({ kind: 'bag', index: 99 }), isValidSlot({ kind: 'bag', index: 100 })], [true, false]);
+  assert.deepEqual([clampBagScroll(-3), clampBagScroll(50), clampBagScroll(4.4), clampBagScroll(Number.NaN)], [0, 11, 4, 0]);
+  // the least scrolling that shows a slot
+  assert.deepEqual([bagScrollToShow(0, 5), bagScrollToShow(0, 36), bagScrollToShow(0, 99), bagScrollToShow(11, 0), bagScrollToShow(3, 40)], [0, 1, 11, 0, 3]);
+  const old = Array.from({ length: 36 }, (_, i) => (i === 35 ? { itemId: 'consumable_red_healing_potion', quantity: 7 } : null));
+  const { state, repaired } = sanitizeInventory({ bag: old, equipment: {}, grants: [] });
+  assert.equal(state.bag.length, 100);
+  assert.deepEqual(state.bag[35], { itemId: 'consumable_red_healing_potion', quantity: 7 });
+  assert.deepEqual(repaired, []);
 });

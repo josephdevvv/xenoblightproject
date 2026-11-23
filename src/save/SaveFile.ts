@@ -4,6 +4,9 @@ import { validateCharacterName, type CharacterData } from '../data/CharacterData
 import { parseCharacterProfile, type CharacterProfile } from '../data/CharacterProfileStore';
 import { STARTER_CLASS_ID } from '../data/StarterCharacters';
 import { createHotbar, sanitizeHotbar, type HotbarState } from '../hotbar/Hotbar';
+import { createPotionSlots, migratePotionSlots, sanitizePotionSlots, type PotionSlots } from '../hotbar/PotionSlots';
+import { createSkills, sanitizeSkills, type SkillsState } from '../skills/LearnedSkills';
+import { createAutoPlaySettings, sanitizeAutoPlay, type AutoPlaySettings } from '../autoplay/AutoPlaySettings';
 import { createInventory, sanitizeInventory, type InventoryState } from '../inventory/InventoryState';
 import { createPassiveProgress, sanitizePassiveProgress, type PassiveProgress } from '../passives/PassiveProgress';
 import { parseSavedStatus } from '../status/StatusRecord';
@@ -38,6 +41,12 @@ export interface GameSave {
   inventory: InventoryState;
   /** Hotbar slots 1-8 (an empty hotbar for files from before it existed). */
   hotbar: HotbarState;
+  /** Q / W potion slots (files from before them: a potion found on 1-8 is moved there). */
+  potionSlots: PotionSlots;
+  /** Learned skills (none for files from before skills could be learned). */
+  skills: SkillsState;
+  /** Auto Play settings (defaults for files from before Auto Play existed). */
+  autoPlay: AutoPlaySettings;
   /** Save point of this file (never a respawn point). */
   savedLocation: SavedLocation | null;
   savedAt: number | null;
@@ -66,6 +75,9 @@ export function serializeSave(character: CharacterData, savedLocation: SavedLoca
     quests: character.quests ?? {},
     inventory: character.inventory ?? createInventory(),
     hotbar: character.hotbar ?? createHotbar(),
+    potionSlots: character.potionSlots ?? createPotionSlots(),
+    skills: character.skills ?? createSkills(),
+    autoPlay: character.autoPlay ?? createAutoPlaySettings(),
     location: savedLocation,
   };
   return JSON.stringify({ ...document, checksum: checksum(document) }, null, 2);
@@ -122,6 +134,22 @@ function parse(text: string): ParseResult {
   repaired.push(...parsedInventory.repaired.map((r) => `inventory: ${r}`));
   const parsedHotbar = sanitizeHotbar(document.hotbar);
   repaired.push(...parsedHotbar.dropped);
+  let hotbarState = parsedHotbar.state;
+  let potionSlots: PotionSlots;
+  if (document.potionSlots === undefined) {
+    // a file from before Q / W: its potion moves off the numbered hotbar onto its own slot
+    const migrated = migratePotionSlots(hotbarState);
+    potionSlots = migrated.slots;
+    hotbarState = migrated.hotbar;
+  } else {
+    const parsedPotions = sanitizePotionSlots(document.potionSlots);
+    repaired.push(...parsedPotions.dropped);
+    potionSlots = parsedPotions.state;
+  }
+  const parsedSkills = sanitizeSkills(document.skills);
+  repaired.push(...parsedSkills.dropped);
+  const parsedAutoPlay = sanitizeAutoPlay(document.autoPlay);
+  repaired.push(...parsedAutoPlay.repaired);
   const questRecords: Record<string, unknown> = {};
   for (const [id, record] of Object.entries(quests as Json)) {
     if (isObject(record)) questRecords[id] = record;
@@ -136,7 +164,10 @@ function parse(text: string): ParseResult {
       passives: parsedPassives.progress,
       quests: questRecords,
       inventory: parsedInventory.state,
-      hotbar: parsedHotbar.state,
+      hotbar: hotbarState,
+      potionSlots,
+      skills: parsedSkills.state,
+      autoPlay: parsedAutoPlay.settings,
       savedLocation: parseSavedLocation(location),
       savedAt: typeof document.savedAt === 'number' && Number.isFinite(document.savedAt) ? document.savedAt : null,
       repaired,

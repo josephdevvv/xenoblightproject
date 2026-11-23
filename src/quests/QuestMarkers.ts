@@ -5,6 +5,7 @@ import { TUTORIAL_QUEST_02 } from './TutorialQuest02';
 import { TUTORIAL_QUEST_03 } from './TutorialQuest03';
 import { TUTORIAL_QUEST_04 } from './TutorialQuest04';
 import { TUTORIAL_QUEST_05 } from './TutorialQuest05';
+import { TUTORIAL_QUEST_06 } from './TutorialQuest06';
 import { TUTORIAL_QUEST_01 } from './TutorialQuest01';
 
 /**
@@ -126,12 +127,33 @@ function quest05Marker(character: CharacterData): QuestMarkerState | null {
   }
 }
 
+/** Roland: yellow ! until the Dark Avian hunt is accepted, the gray arrow through the tutorial and the hunt, the check mark at 10/10. */
+function quest06Marker(character: CharacterData): QuestMarkerState | null {
+  switch (QuestService.quest06(character).state) {
+    case 'NOT_STARTED':
+      return QuestService.quest05(character).state === 'COMPLETED' ? 'available' : null;
+    case 'OFFERED':
+    case 'INTRO_DIALOGUE':
+      return 'available';
+    case 'SCROLL_TUTORIAL':
+    case 'SKILL_ASSIGNED':
+    case 'FINAL_DIALOGUE':
+    case 'HUNTING':
+      return 'inProgress';
+    case 'READY_TO_TURN_IN':
+      return 'completed';
+    case 'COMPLETED':
+      return null;
+  }
+}
+
 export const QUEST_MARKER_SOURCES: readonly QuestMarkerSource[] = [
   { npcId: TUTORIAL_QUEST_01.npcId, marker: quest01Marker },
   { npcId: TUTORIAL_QUEST_02.npcId, marker: quest02Marker },
   { npcId: TUTORIAL_QUEST_03.npcId, marker: quest03Marker },
   { npcId: TUTORIAL_QUEST_04.npcId, marker: quest04Marker },
   { npcId: TUTORIAL_QUEST_05.npcId, marker: quest05Marker },
+  { npcId: TUTORIAL_QUEST_06.npcId, marker: quest06Marker },
 ];
 
 /** The one marker an NPC shows for this character now. */

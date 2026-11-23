@@ -7,6 +7,9 @@ import type { PassiveProgress } from '../passives/PassiveProgress';
 import { equipmentDerivedBonus, type InventoryState } from '../inventory/InventoryState';
 import { startingInventory } from '../items/StartingEquipment';
 import { createHotbar, type HotbarState } from '../hotbar/Hotbar';
+import { createSkills, type SkillsState } from '../skills/LearnedSkills';
+import { createAutoPlaySettings, type AutoPlaySettings } from '../autoplay/AutoPlaySettings';
+import { createPotionSlots, type PotionSlots } from '../hotbar/PotionSlots';
 import { QuestService } from '../quests/QuestService';
 import type { StatAllocationDraft } from './StatAllocation';
 import { addExp } from '../progression/LevelProgression';
@@ -26,6 +29,12 @@ export interface SavedProgress {
   inventory: InventoryState;
   /** Absent = an empty hotbar. */
   hotbar?: HotbarState;
+  /** Absent = nothing learned. */
+  skills?: SkillsState;
+  /** Absent = empty Q / W. */
+  potionSlots?: PotionSlots;
+  /** Absent = default Auto Play settings. */
+  autoPlay?: AutoPlaySettings;
 }
 
 type Listener = (character: CharacterData) => void;
@@ -45,6 +54,9 @@ export const CharacterStatusService = {
     character.passives = sanitizePassiveProgress(null, character.status.level).progress;
     character.inventory = startingInventory();
     character.hotbar = createHotbar();
+    character.skills = createSkills();
+    character.potionSlots = createPotionSlots();
+    character.autoPlay = createAutoPlaySettings();
     QuestService.begin(character);
   },
 
@@ -55,6 +67,9 @@ export const CharacterStatusService = {
     character.passives = sanitizePassiveProgress(saved.passives, character.status.level).progress;
     character.inventory = saved.inventory;
     character.hotbar = saved.hotbar ?? createHotbar();
+    character.skills = saved.skills ?? createSkills();
+    character.potionSlots = saved.potionSlots ?? createPotionSlots();
+    character.autoPlay = saved.autoPlay ?? createAutoPlaySettings();
     QuestService.restore(character, saved.quests);
   },
 

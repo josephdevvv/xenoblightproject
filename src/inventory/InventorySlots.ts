@@ -7,8 +7,27 @@
 export const EQUIPMENT_SLOTS = ['weapon', 'hat', 'armor', 'shoes', 'charm'] as const;
 export type EquipmentSlotId = (typeof EQUIPMENT_SLOTS)[number];
 
+/** Bag capacity: 100 slots (no weight system). */
+export const INVENTORY_SLOT_COUNT = 100;
+/** The bag grid of the Inventory window: 6 columns, 6 rows visible at a time - it scrolls by rows. */
 export const INVENTORY_GRID = { columns: 6, rows: 6 } as const;
-export const INVENTORY_SLOT_COUNT = INVENTORY_GRID.columns * INVENTORY_GRID.rows;
+/** Rows of the whole bag (the last one may be partly filled: 100 = 16 x 6 + 4). */
+export const INVENTORY_ROWS = Math.ceil(INVENTORY_SLOT_COUNT / INVENTORY_GRID.columns);
+/** The highest first visible row. */
+export const MAX_BAG_SCROLL = Math.max(0, INVENTORY_ROWS - INVENTORY_GRID.rows);
+
+/** First visible row, clamped. */
+export function clampBagScroll(row: number): number {
+  return Math.min(MAX_BAG_SCROLL, Math.max(0, Math.round(Number.isFinite(row) ? row : 0)));
+}
+
+/** The first visible row that shows bag slot `index`, moving as little as possible from `row`. */
+export function bagScrollToShow(row: number, index: number): number {
+  const r = Math.floor(index / INVENTORY_GRID.columns);
+  if (r < row) return clampBagScroll(r);
+  if (r >= row + INVENTORY_GRID.rows) return clampBagScroll(r - INVENTORY_GRID.rows + 1);
+  return clampBagScroll(row);
+}
 
 /** One slot of the window. */
 export type SlotRef = { readonly kind: 'equipment'; readonly slot: EquipmentSlotId } | { readonly kind: 'bag'; readonly index: number };
@@ -56,6 +75,8 @@ export interface InventorySource {
   onChange(listener: () => void): () => void;
   /** The consumable in a bag slot (its item id), or null. Absent = no consumables. */
   consumableAt?(bagIndex: number): string | null;
+  /** The skill scroll in a bag slot (its item id), or null. */
+  scrollAt?(bagIndex: number): string | null;
 }
 
 /** Every slot empty. */
@@ -69,7 +90,7 @@ export const EMPTY_INVENTORY: InventorySource = {
 };
 
 /** What can be done with the item in a slot: equip / unequip, or use / assign a hotkey for a consumable. */
-export type SlotAction = ({ kind: 'equip' } & EquipOption) | { kind: 'unequip' } | { kind: 'consumable'; itemId: string };
+export type SlotAction = ({ kind: 'equip' } & EquipOption) | { kind: 'unequip' } | { kind: 'consumable'; itemId: string } | { kind: 'scroll'; itemId: string };
 
 /** Bag item that can be worn -> equip; worn item -> unequip; consumable -> use + hotkey; anything else -> nothing. */
 export function slotAction(source: InventorySource, slot: SlotRef | null): SlotAction | null {
@@ -77,6 +98,8 @@ export function slotAction(source: InventorySource, slot: SlotRef | null): SlotA
   if (slot.kind === 'equipment') return source.canUnequip() ? { kind: 'unequip' } : null;
   const consumable = source.consumableAt?.(slot.index) ?? null;
   if (consumable) return { kind: 'consumable', itemId: consumable };
+  const scroll = source.scrollAt?.(slot.index) ?? null;
+  if (scroll) return { kind: 'scroll', itemId: scroll };
   const option = source.equipOption(slot.index);
   return option ? { kind: 'equip', ...option } : null;
 }

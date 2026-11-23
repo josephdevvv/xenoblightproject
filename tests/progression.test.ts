@@ -77,11 +77,15 @@ test('kill rewards: once per monster life (a respawn pays again, a repeat never)
   assert.equal(ledger.size, 3);
 });
 
-test('Tutorial Quest budget: 900 reserved, 450 allocated to the three quests that pay EXP, allocations validated', () => {
+test('Tutorial Quest budget: 900 reserved, 600 allocated to the four quests that pay EXP, allocations validated', () => {
   assert.equal(TUTORIAL_QUEST_EXP_BUDGET.total, 900);
-  assert.deepEqual(TUTORIAL_QUEST_EXP_BUDGET.allocations, { tutorial_02_rusty_dagger: 100, tutorial_03_void_mite_hunt: 200, tutorial_05_mutant_wolf_hunt: 150 }, 'the potion training pays nothing');
-  assert.equal(allocatedQuestExp(), 450);
-  assert.equal(remainingQuestExp(), 450);
+  assert.deepEqual(
+    TUTORIAL_QUEST_EXP_BUDGET.allocations,
+    { tutorial_02_rusty_dagger: 100, tutorial_03_void_mite_hunt: 200, tutorial_05_mutant_wolf_hunt: 150, tutorial_06_dark_avian_hunt: 150 },
+    'the potion training and the scroll tutorial pay nothing',
+  );
+  assert.equal(allocatedQuestExp(), 600);
+  assert.equal(remainingQuestExp(), 300);
   assert.deepEqual(validateQuestAllocations(TUTORIAL_QUEST_EXP_BUDGET.allocations), []);
   assert.deepEqual(validateQuestAllocations({ a: 300, b: 600 }), []);
   assert.equal(validateQuestAllocations({ a: 600, b: 400 }).length, 1, 'over budget');

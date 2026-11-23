@@ -30,15 +30,33 @@ export function slotOfItem(state: HotbarState, itemId: string): number {
   return state.findIndex((e) => e?.type === 'item' && e.itemId === itemId);
 }
 
+/** The same item / skill. */
+export function sameEntry(a: HotbarEntry | null, b: HotbarEntry | null): boolean {
+  if (!a || !b) return a === b;
+  return a.type === 'item' ? b.type === 'item' && a.itemId === b.itemId : b.type === 'skill' && a.skillId === b.skillId;
+}
+
+/** The slot an entry is on, or -1. */
+export function slotOfEntry(state: HotbarState, entry: HotbarEntry): number {
+  return state.findIndex((e) => sameEntry(e, entry));
+}
+
 /**
- * Puts an item on a slot (whatever was there is replaced). An item is on one slot at a time: assigning it again
- * moves it. null = not possible (not a consumable, no such slot); nothing changes.
+ * Puts an item or a skill on a slot (whatever was there is replaced). Each is on one slot at a time: assigning it
+ * again moves it; items and skills share the 8 slots. null = not possible (not a consumable / skill, no such
+ * slot); nothing changes. (Whether a skill is learned is HotbarService's check.)
  */
-export function assignItem(state: HotbarState, slot: number, itemId: string): HotbarState | null {
-  if (!isValidSlot(slot) || !isHotbarItem(itemId)) return null;
-  const next = state.map((e) => (e?.type === 'item' && e.itemId === itemId ? null : e));
-  next[slot] = { type: 'item', itemId };
+export function assignEntry(state: HotbarState, slot: number, entry: HotbarEntry): HotbarState | null {
+  if (!isValidSlot(slot)) return null;
+  if (entry.type === 'item' ? !isHotbarItem(entry.itemId) : !isActiveSkillId(entry.skillId)) return null;
+  const next = state.map((e) => (sameEntry(e, entry) ? null : e));
+  next[slot] = entry.type === 'item' ? { type: 'item', itemId: entry.itemId } : { type: 'skill', skillId: entry.skillId };
   return next;
+}
+
+/** An item on a slot (see assignEntry). */
+export function assignItem(state: HotbarState, slot: number, itemId: string): HotbarState | null {
+  return assignEntry(state, slot, { type: 'item', itemId });
 }
 
 export function clearSlot(state: HotbarState, slot: number): HotbarState {
@@ -58,13 +76,15 @@ export function sanitizeHotbar(raw: unknown): { state: HotbarState; dropped: str
   if (raw === undefined || raw === null) return { state, dropped };
   if (!Array.isArray(raw)) return { state, dropped: ['hotbar'] };
   const seenItems = new Set<string>();
+  const seenSkills = new Set<string>();
   raw.slice(0, HOTBAR_SIZE).forEach((e, slot) => {
     if (e === null || e === undefined) return;
     const d = e as { type?: unknown; itemId?: unknown; skillId?: unknown };
     if (d.type === 'item' && typeof d.itemId === 'string' && isHotbarItem(d.itemId) && !seenItems.has(d.itemId)) {
       seenItems.add(d.itemId);
       state[slot] = { type: 'item', itemId: d.itemId };
-    } else if (d.type === 'skill' && typeof d.skillId === 'string' && isActiveSkillId(d.skillId)) {
+    } else if (d.type === 'skill' && typeof d.skillId === 'string' && isActiveSkillId(d.skillId) && !seenSkills.has(d.skillId)) {
+      seenSkills.add(d.skillId);
       state[slot] = { type: 'skill', skillId: d.skillId };
     } else dropped.push(`hotbar slot ${slot + 1}`);
   });

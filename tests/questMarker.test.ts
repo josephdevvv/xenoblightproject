@@ -94,7 +94,7 @@ test('Mateus: yellow -> gray -> yellow -> gray -> green check mark, exactly with
     assert.deepEqual([isQuest01Active(QuestService.quest01(c)), isQuest02AtMateus(QuestService.quest02(c))], [false, true], 'dotted path back to Mateus');
     assert.deepEqual([QuestService.advance(c, 'talk'), QuestService.advance02(c, 'talk')], [false, false], 'no earlier conversation again');
 
-    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt', 'tutorial_04_potion_training', 'tutorial_05_mutant_wolf_hunt'], 'no other quest');
+    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt', 'tutorial_04_potion_training', 'tutorial_05_mutant_wolf_hunt', 'tutorial_06_dark_avian_hunt'], 'no other quest');
     assert.equal(QuestService.quest03(c).state, 'NOT_STARTED', 'not before the turn-in and the Status tutorial');
     assert.deepEqual(completed, ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger']);
     assert.deepEqual(gained, [reward.itemId]);

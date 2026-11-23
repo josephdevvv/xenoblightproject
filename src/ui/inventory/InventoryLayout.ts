@@ -1,4 +1,4 @@
-import { INVENTORY_GRID, INVENTORY_SLOT_COUNT, type EquipmentSlotId } from '../../inventory/InventorySlots';
+import { INVENTORY_GRID, type EquipmentSlotId } from '../../inventory/InventorySlots';
 import type { Rect } from '../passiveTree/PassiveTreeLayout';
 
 /**
@@ -15,7 +15,10 @@ export interface InventoryLayout {
   caption: { x: number; y: number; rule: number };
   equipment: Record<EquipmentSlotId, Rect>;
   silhouette: { x: number; y: number; unit: number };
+  /** The visible bag cells (columns x visible rows), row by row; which bag slot each shows depends on the scroll. */
   grid: readonly Rect[];
+  /** The bag's scroll bar, right of the cells. */
+  scrollbar: Rect;
   detail: {
     icon: Rect;
     nameY: number;
@@ -51,6 +54,7 @@ const PANEL_GAP = 4;
 const PANEL_PAD = 12;
 const CAPTION = 26;
 const SLOT_GAP = 5;
+const SCROLLBAR = { width: 6, gap: 6 } as const;
 const MAX_SLOT = 40;
 /** Height of the label line above an equipment slot. */
 const SLOT_LABEL = 14;
@@ -77,14 +81,14 @@ export function inventoryLayout(screenWidth: number, screenHeight: number): Inve
 
   // Bag grid, centred in its panel under the caption
   const { columns, rows } = INVENTORY_GRID;
-  const roomW = mid - PANEL_PAD * 2 - SLOT_GAP * (columns - 1);
+  const roomW = mid - PANEL_PAD * 2 - SLOT_GAP * (columns - 1) - SCROLLBAR.width - SCROLLBAR.gap;
   const roomH = panelH - CAPTION - PANEL_PAD - SLOT_GAP * (rows - 1);
   const slot = Math.max(8, Math.min(MAX_SLOT, Math.floor(roomW / columns), Math.floor(roomH / rows)));
   const gridW = columns * slot + (columns - 1) * SLOT_GAP;
   const gridH = rows * slot + (rows - 1) * SLOT_GAP;
-  const gx = grid[0] + Math.floor((mid - gridW) / 2);
+  const gx = grid[0] + Math.floor((mid - gridW - SCROLLBAR.width - SCROLLBAR.gap) / 2);
   const gy = top + CAPTION + Math.floor((panelH - CAPTION - gridH) / 2);
-  const slots = Array.from({ length: INVENTORY_SLOT_COUNT }, (_, i): Rect => [gx + (i % columns) * (slot + SLOT_GAP), gy + Math.floor(i / columns) * (slot + SLOT_GAP), slot, slot]);
+  const slots = Array.from({ length: columns * rows }, (_, i): Rect => [gx + (i % columns) * (slot + SLOT_GAP), gy + Math.floor(i / columns) * (slot + SLOT_GAP), slot, slot]);
 
   // Equipment: hat above the head, armor on the chest, shoes under the feet, weapon / charm at the hands
   const cx = equipment[0] + Math.floor(side / 2);
@@ -127,6 +131,7 @@ export function inventoryLayout(screenWidth: number, screenHeight: number): Inve
     },
     silhouette: { x: cx - Math.floor((unit * SILHOUETTE_GRID.width) / 2), y: bodyY, unit },
     grid: slots,
+    scrollbar: [gx + gridW + SCROLLBAR.gap, gy, SCROLLBAR.width, gridH],
     detail: {
       icon: [detail[0] + Math.floor((side - iconSize) / 2), iconY, iconSize, iconSize],
       nameY,

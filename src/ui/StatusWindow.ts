@@ -69,12 +69,13 @@ export class StatusWindow {
   /** Screen rectangles the Status tutorial points at: the six stat rows with their + buttons, and CONFIRM. */
   private readonly tutorialAreas: { stats: Rect; confirm: Rect };
 
-  /** `currentHp`: HP now (combat); max HP when absent. SP has no consumer yet and stays at max (as in the HUD). */
+  /** `currentHp` / `currentSp`: HP / SP now (combat); the maximum when absent. */
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly character: CharacterData,
     depth: number,
     private readonly currentHp: () => number = () => Number.POSITIVE_INFINITY,
+    private readonly currentSp: () => number = () => Number.POSITIVE_INFINITY,
   ) {
     const { width: sw, height: sh } = scene.scale;
     const L = statusLayout(sw, sh);
@@ -316,7 +317,8 @@ export class StatusWindow {
       const percent = PERCENT_STATS.has(row.key);
       const now = formatStatValue(current[row.key], percent);
       const after = formatStatValue(next[row.key], percent);
-      const filled = row.key === 'maxHp' ? `${this.shownHp} / ` : row.key === 'maxSp' ? `${now} / ` : '';
+      const spNow = Math.min(Math.round(current.maxSp), Math.round(this.currentSp()));
+      const filled = row.key === 'maxHp' ? `${this.shownHp} / ` : row.key === 'maxSp' ? `${spNow} / ` : '';
       row.value.setText(filled + (now === after ? now : `${now} > ${after}`)).setColor(now === after ? PALETTE.white : PREVIEW_COLOR);
       const name = row.key === 'maxHp' ? t('status.vitals.hp') : row.key === 'maxSp' ? t('status.vitals.sp') : labels.derived(row.key);
       fitText(row.label, name, row.right - row.x - Math.ceil(row.value.width) - 8);

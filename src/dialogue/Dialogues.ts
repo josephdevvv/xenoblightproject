@@ -10,7 +10,13 @@ export const DIALOGUES = {
   mateus_rusty_dagger: lines('mateus_rusty_dagger', 3),
   mateus_rusty_dagger_turn_in: lines('mateus_rusty_dagger_turn_in', 3),
   mateus_void_mite_hunt: lines('mateus_void_mite_hunt', 4),
-  mateus_void_mite_hunt_done: lines('mateus_void_mite_hunt_done', 2),
+  mateus_void_mite_hunt_done: lines('mateus_void_mite_hunt_done', 3),
+  roland_potion_intro: lines('roland_potion_intro', 2),
+  roland_potion_select: lines('roland_potion_select', 1),
+  roland_potion_use: lines('roland_potion_use', 1),
+  roland_potion_hotkey: lines('roland_potion_hotkey', 1),
+  roland_wolf_hunt: lines('roland_wolf_hunt', 4),
+  roland_wolf_hunt_done: lines('roland_wolf_hunt_done', 2),
 } as const satisfies Record<string, readonly string[]>;
 
 export type DialogueId = keyof typeof DIALOGUES;

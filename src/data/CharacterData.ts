@@ -1,3 +1,4 @@
+import type { HotbarState } from '../hotbar/Hotbar';
 import type { InventoryState } from '../inventory/InventoryState';
 import type { PassiveProgress } from '../passives/PassiveProgress';
 import type { QuestLog } from '../quests/QuestService';
@@ -31,6 +32,8 @@ export interface CharacterData {
   quests?: QuestLog;
   /** Bag and worn equipment. Loaded with the status; changed only by InventoryService. */
   inventory?: InventoryState;
+  /** Hotbar slots 1-8 (references to consumables / skills). Changed only by HotbarService. */
+  hotbar?: HotbarState;
 }
 
 export const NAME_MIN_LENGTH = 3;

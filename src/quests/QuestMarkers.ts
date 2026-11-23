@@ -3,6 +3,8 @@ import type { NpcId } from '../npcs/NpcDefinition';
 import { QuestService } from './QuestService';
 import { TUTORIAL_QUEST_02 } from './TutorialQuest02';
 import { TUTORIAL_QUEST_03 } from './TutorialQuest03';
+import { TUTORIAL_QUEST_04 } from './TutorialQuest04';
+import { TUTORIAL_QUEST_05 } from './TutorialQuest05';
 import { TUTORIAL_QUEST_01 } from './TutorialQuest01';
 
 /**
@@ -92,10 +94,44 @@ function quest03Marker(character: CharacterData): QuestMarkerState | null {
   }
 }
 
+/** Roland: yellow ! until the potion training was accepted, then the gray arrow until it is over. */
+function quest04Marker(character: CharacterData): QuestMarkerState | null {
+  switch (QuestService.quest04(character).state) {
+    case 'NOT_STARTED':
+      return QuestService.quest03(character).state === 'COMPLETED' ? 'available' : null;
+    case 'OFFERED':
+    case 'INTRO_DIALOGUE':
+      return 'available';
+    case 'POTION_TUTORIAL':
+    case 'HOTKEY_ASSIGNED':
+    case 'FINAL_DIALOGUE':
+      return 'inProgress';
+    case 'COMPLETED':
+      return null;
+  }
+}
+
+/** Roland: the gray arrow while hunting, the check mark at 5/5 until turned in; then nothing. */
+function quest05Marker(character: CharacterData): QuestMarkerState | null {
+  switch (QuestService.quest05(character).state) {
+    case 'NOT_STARTED':
+      return QuestService.quest04(character).state === 'COMPLETED' ? 'inProgress' : null;
+    case 'HUNTING':
+      return 'inProgress';
+    case 'READY_TO_TURN_IN':
+    case 'TURN_IN_DIALOGUE':
+      return 'completed';
+    case 'COMPLETED':
+      return null;
+  }
+}
+
 export const QUEST_MARKER_SOURCES: readonly QuestMarkerSource[] = [
   { npcId: TUTORIAL_QUEST_01.npcId, marker: quest01Marker },
   { npcId: TUTORIAL_QUEST_02.npcId, marker: quest02Marker },
   { npcId: TUTORIAL_QUEST_03.npcId, marker: quest03Marker },
+  { npcId: TUTORIAL_QUEST_04.npcId, marker: quest04Marker },
+  { npcId: TUTORIAL_QUEST_05.npcId, marker: quest05Marker },
 ];
 
 /** The one marker an NPC shows for this character now. */

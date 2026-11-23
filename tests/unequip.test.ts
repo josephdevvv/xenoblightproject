@@ -70,7 +70,7 @@ test('equip -> unequip -> re-equip: bonus removed and restored through the norma
     assert.equal(melee(c), 14);
     assert.deepEqual(InventoryService.unequip(c, 'weapon'), { bagIndex: 0 });
     assert.equal(melee(c), 10);
-    assert.deepEqual(equipmentDerivedBonus(c.inventory), { flat: {}, maxHpPercent: 0 });
+    assert.deepEqual(equipmentDerivedBonus(c.inventory), { flat: { def: 1 }, maxHpPercent: 0 }, 'only the starter armor is left');
     assert.deepEqual([c.inventory!.equipment.weapon, c.inventory!.bag[0]?.itemId, c.inventory!.bag[0]?.quantity], [null, DAGGER, 1]);
     const reloaded = saveAndLoad(c);
     assert.deepEqual(reloaded.inventory, c.inventory);
@@ -78,7 +78,7 @@ test('equip -> unequip -> re-equip: bonus removed and restored through the norma
     assert.equal(InventoryService.equip(reloaded, 0, 'weapon'), null);
     assert.equal(melee(reloaded), 14);
     const again = saveAndLoad(reloaded);
-    assert.deepEqual([again.inventory!.equipment.weapon?.itemId, count(again.inventory!), melee(again)], [DAGGER, 1, 14]);
+    assert.deepEqual([again.inventory!.equipment.weapon?.itemId, count(again.inventory!), melee(again)], [DAGGER, 2, 14]);
   });
 });
 
@@ -86,12 +86,12 @@ test('rapid repeats never double or lose the item', () => {
   withoutStorage(() => {
     const c = withDagger('Alpha');
     for (let i = 0; i < 5; i++) InventoryService.unequip(c, 'weapon');
-    assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [1, null]);
+    assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [2, null]);
     for (let round = 0; round < 50; round++) {
       for (let i = 0; i < 3; i++) InventoryService.equip(c, bagIndexOf(c.inventory, DAGGER), 'weapon');
-      assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon?.itemId], [1, DAGGER]);
+      assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon?.itemId], [2, DAGGER]);
       for (let i = 0; i < 3; i++) InventoryService.unequip(c, 'weapon');
-      assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [1, null]);
+      assert.deepEqual([count(c.inventory!), c.inventory!.equipment.weapon], [2, null]);
     }
   });
 });
@@ -126,7 +126,7 @@ test('Tutorial Quest 02 stays completed: no restart, no second dagger, no EXP', 
       QuestService.sync02(c);
     }
     assert.deepEqual(done, []);
-    assert.deepEqual([JSON.stringify(c.status), count(c.inventory!)], [status, 1]);
+    assert.deepEqual([JSON.stringify(c.status), count(c.inventory!)], [status, 2]);
     off();
   });
 });

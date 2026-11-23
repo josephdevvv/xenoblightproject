@@ -7,7 +7,7 @@ import { MONSTER_DEFINITIONS } from '../src/monsters/MonsterDefinition';
 import { readPng, type Rgba } from './helpers/png';
 
 const PUBLIC = path.join(process.cwd(), 'public');
-const SOURCE: Record<MonsterArtId, { dir: string; folders: Record<string, string>; vfx: string }> = {
+const SOURCE: Record<MonsterArtId, { dir: string; folders: Record<string, string>; vfx: string; frames?: true }> = {
   void_mite: {
     dir: 'art-source/monsters/void_mite',
     folders: { idle: 'Idle', walk: 'Walk', attack: 'Attack_Stomp', hit: 'Hit_Reaction', death: 'Death_Fall' },
@@ -18,12 +18,27 @@ const SOURCE: Record<MonsterArtId, { dir: string; folders: Record<string, string
     folders: { idle: 'Idle', walk: 'Walk_Light_Run', attack: 'Attack_Pounce_Bite', hit: 'Hit_Reaction', death: 'Death_Prone' },
     vfx: 'VFX_Bite_Impact',
   },
+  dark_avian: {
+    dir: 'art-source/monsters/dark_avian',
+    folders: { idle: '01_idle_4dir', walk: '02_flight_4dir', attack: '04_attack_mouth_vfx_4dir', hit: '05_hit_4dir', death: '06_death_4dir' },
+    vfx: '07_stomp_impact_vfx_4dir',
+    frames: true,
+  },
 };
 /** Actions the import tool rescales to the idle body size (delivered at the wrong scale). */
 const RESCALED: Partial<Record<MonsterArtId, string[]>> = { void_mite: ['death'] };
 const PACK_DIRS = { SE: 'south_east', SW: 'south_west', NE: 'north_east', NW: 'north_west' } as const;
 
 function packSheet(id: MonsterArtId, folder: string, facing: keyof typeof PACK_DIRS): Rgba {
+  if (SOURCE[id].frames) {
+    // one PNG per frame: the delivered frames side by side, in their order
+    const dir = path.join(process.cwd(), SOURCE[id].dir, folder, 'frames', PACK_DIRS[facing]);
+    const imgs = fs.readdirSync(dir).filter((f) => f.endsWith('.png')).sort().map((f) => readPng(path.join(dir, f)));
+    const w = imgs[0].width, h = imgs[0].height;
+    const data = new Uint8Array(w * imgs.length * h * 4);
+    imgs.forEach((img, i) => { for (let y = 0; y < h; y++) data.set(img.data.subarray(y * w * 4, (y + 1) * w * 4), (y * w * imgs.length + i * w) * 4); });
+    return { width: w * imgs.length, height: h, data };
+  }
   const dir = path.join(process.cwd(), SOURCE[id].dir, folder, PACK_DIRS[facing], 'sheet');
   return readPng(path.join(dir, fs.readdirSync(dir).find((f) => f.endsWith('.png'))!));
 }
@@ -59,6 +74,7 @@ for (const id of Object.keys(MONSTER_ART) as MonsterArtId[]) {
   });
 
   test(`${id}: feet stay on the ground root in every frame of every facing (no hop between actions)`, () => {
+    const flying = MONSTER_DEFINITIONS[Object.values(MONSTER_DEFINITIONS).find((d) => d.art === id)!.id].flight;
     for (const action of MONSTER_ACTIONS) {
       const m = art.meta.actions[action];
       const sheet = readPng(path.join(PUBLIC, art.basePath, m.file));
@@ -70,6 +86,13 @@ for (const id of Object.keys(MONSTER_ART) as MonsterArtId[]) {
           const gap = anchor.y - (bottom + 1);
           // leaps / flips in the art (pounce, recoil, the mite flipping over as it dies) may leave the ground
           const limit = action === 'death' ? 10 : action === 'attack' || action === 'hit' ? 6 : 3;
+          if (flying) {
+            // a flyer's root is its body line in the air: the death clip falls towards the ground (at most the
+            // flying height), wing beats and dives may dip a few px below the line
+            const below = action === 'death' ? flying.heightPx : 4;
+            assert.ok(gap >= -below && gap <= limit + 4, `${action} ${facing} frame ${f + 1}: ${gap}px from the body line`);
+            continue;
+          }
           assert.ok(gap >= 0 && gap <= limit, `${action} ${facing} frame ${f + 1}: feet ${gap}px off the ground`);
         }
       });
@@ -117,6 +140,33 @@ test('both monsters are defined with their art; Void Mite gameplay data unchange
   assert.deepEqual(MONSTER_DEFINITIONS.voidmite.behavior, { type: 'wander', radiusTiles: 3, speed: 0.9, pauseMs: [900, 2800] });
   assert.equal(MONSTER_DEFINITIONS.mutant_wolf.art, 'mutant_wolf');
   assert.equal(MONSTER_DEFINITIONS.mutant_wolf.displayName, 'Mutant Wolf');
+});
+
+test('Dark Avian: Zone 3 flyer - 32 px up, HP / ATK 1.7x the Mutant Wolf, 5 s respawn, art as delivered', () => {
+  const v = MONSTER_DEFINITIONS.dark_avian;
+  const w = MONSTER_DEFINITIONS.mutant_wolf;
+  assert.deepEqual([v.id, v.displayName, v.art], ['dark_avian', 'Dark Avian', 'dark_avian']);
+  assert.deepEqual(v.flight, { heightPx: 32, bobPx: 2, bobPeriodMs: 1600 });
+  assert.equal(w.flight, undefined, 'the other monsters walk');
+  assert.equal(v.combat.maxHp, Math.round(w.combat.maxHp * 1.7));
+  assert.equal(v.combat.atk, Math.round(w.combat.atk * 1.7));
+  assert.equal(v.combat.respawnMs, 5000);
+  assert.deepEqual([w.combat.maxHp, w.combat.atk, w.combat.def, w.combat.hit, w.combat.flee, w.combat.attackIntervalMs], [45, 23, 2, 200, 85, 1900], 'the wolf is unchanged');
+  const art = MONSTER_ART.dark_avian;
+  assert.equal(art.meta.name, 'Dark Avian');
+  assert.deepEqual(MONSTER_ACTIONS.map((a) => [a, art.meta.actions[a].frames, art.meta.actions[a].frameWidth, art.meta.actions[a].frameHeight]), [
+    ['idle', 1, 32, 64],
+    ['walk', 4, 32, 64],
+    ['attack', 6, 64, 64],
+    ['hit', 4, 32, 64],
+    ['death', 6, 32, 64],
+  ]);
+  assert.deepEqual([art.meta.vfx.frames, art.meta.vfx.frameWidth, art.meta.vfx.frameHeight], [3, 32, 32]);
+  assert.equal(art.impactFrame, 4, 'the hit lands on frame 4 (the mouth effect starts there)');
+  // the delivered frames already leave the lower half of the 64 px cell empty: the root is the body line, so the
+  // runtime lift of 32 px puts the empty half on the ground - never a second, doubled offset
+  for (const facing of MONSTER_FACINGS) assert.equal(art.meta.actions.idle.anchors[facing].y, 31);
+  assert.ok(64 - art.meta.actions.idle.anchors.SE.y >= v.flight!.heightPx);
 });
 
 test('facing follows movement on screen (4 isometric facings)', () => {

@@ -5,7 +5,7 @@ import { QuestMarker } from '../ui/world/QuestMarker';
 import { createNameLabel, NAME_LABEL_COLORS, placeNameLabel } from '../ui/world/WorldNameLabel';
 import type { IsometricMap } from '../world/IsometricMap';
 import { IdleCycle } from './IdleCycle';
-import { npcSheetKey, type NpcDefinition } from './NpcDefinition';
+import { NPC_DISPLAY_SCALE, npcSheetKey, type NpcDefinition } from './NpcDefinition';
 
 /**
  * A stationary NPC on its tile: the idle routine (IdleCycle) picks the frame; all frames share the sheet's
@@ -32,14 +32,17 @@ export class NpcEntity {
     const x = Math.round(world.x);
     const y = Math.round(world.y);
     // one ground anchor for every frame (the sheet is registered to one feet row): no hop while animating
-    this.sprite = scene.add.sprite(x, y, npcSheetKey(definition), meta.standFrame).setOrigin(meta.anchor.x / meta.frameWidth, meta.anchor.y / meta.frameHeight);
+    this.sprite = scene.add
+      .sprite(x, y, npcSheetKey(definition), meta.standFrame)
+      .setOrigin(meta.anchor.x / meta.frameWidth, meta.anchor.y / meta.frameHeight)
+      .setScale(NPC_DISPLAY_SCALE);
     const r = 0.3;
     const box = { minX: col + 0.5 - r, minY: row + 0.5 - r, maxX: col + 0.5 + r, maxY: row + 0.5 + r };
     this.showFrame(meta.standFrame);
     this.sprite.setDepth(map.resolveDepth(box, world.y, this.sprite.getBounds()));
     this.label = createNameLabel(scene, definition.name, NAME_LABEL_COLORS.npc);
     placeNameLabel(this.label, x, y);
-    this.questMarker = new QuestMarker(scene, { x: x - meta.anchor.x + definition.head.x, y: y - meta.anchor.y + definition.head.top });
+    this.questMarker = new QuestMarker(scene, npcHeadTop(definition, x, y));
   }
 
   /** Where it stands (tile space, tile centre). */
@@ -52,9 +55,10 @@ export class NpcEntity {
   contains(x: number, y: number, slack = 4): boolean {
     const b = frameOpaqueBounds(this.sprite);
     if (!b) return false;
-    const left = this.sprite.x - this.sprite.displayOriginX;
-    const top = this.sprite.y - this.sprite.displayOriginY;
-    return x >= left + b.left - slack && x <= left + b.right + 1 + slack && y >= top + b.top - slack && y <= top + b.bottom + 1 + slack;
+    const s = this.sprite.scaleX;
+    const left = this.sprite.x - this.sprite.displayOriginX * s;
+    const top = this.sprite.y - this.sprite.displayOriginY * s;
+    return x >= left + b.left * s - slack && x <= left + (b.right + 1) * s + slack && y >= top + b.top * s - slack && y <= top + (b.bottom + 1) * s + slack;
   }
 
   update(deltaMs: number): void {
@@ -73,4 +77,13 @@ export class NpcEntity {
     this.shown = frame;
     this.sprite.setFrame(frame);
   }
+}
+
+/** World point (whole pixels) at the middle of the top of the head, for an NPC whose feet are at (x, y). */
+export function npcHeadTop(definition: NpcDefinition, x: number, y: number): { x: number; y: number } {
+  const { anchor } = definition.art.meta;
+  return {
+    x: Math.round(x + (definition.head.x - anchor.x) * NPC_DISPLAY_SCALE),
+    y: Math.round(y - (anchor.y - definition.head.top) * NPC_DISPLAY_SCALE),
+  };
 }

@@ -6,7 +6,7 @@ import type { DerivedStats } from '../status/DerivedStats';
  * bonuses: InventoryState / InventoryService. Names and descriptions are translated
  * texts under `items.<id>` in src/i18n (labels.itemName / labels.itemDescription).
  */
-export const ITEM_CATEGORIES = ['equipment'] as const;
+export const ITEM_CATEGORIES = ['equipment', 'consumable'] as const;
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 
 export const WEAPON_TYPES = ['dagger'] as const;
@@ -25,11 +25,18 @@ export interface ItemIcon {
   height: number;
 }
 
+/** What using a consumable does. */
+export interface ItemUseEffect {
+  /** HP restored (never above max HP). */
+  restoreHp: number;
+}
+
 export interface ItemDefinition {
   /** Stable id (saves, translations, icon texture). */
   id: string;
   category: ItemCategory;
-  equipmentSlot: EquipmentSlotId;
+  /** Equipment only; null for every other item (it can never be worn). */
+  equipmentSlot: EquipmentSlotId | null;
   /** Weapons only, otherwise null. */
   weaponType: WeaponType | null;
   requiredLevel: number;
@@ -40,6 +47,8 @@ export interface ItemDefinition {
   specialEffects: readonly string[];
   stackable: boolean;
   icon: Readonly<ItemIcon>;
+  /** Consumables only: what one use does. */
+  use?: Readonly<ItemUseEffect>;
 }
 
 /** Problems of one definition, empty when it is valid. */
@@ -47,8 +56,9 @@ export function itemProblems(d: ItemDefinition): string[] {
   const out: string[] = [];
   if (!/^[a-z][a-z0-9_]*$/.test(d.id)) out.push('id: lower-case letters, digits and _ only');
   if (!ITEM_CATEGORIES.includes(d.category)) out.push(`category: ${d.category}`);
-  if (!EQUIPMENT_SLOTS.includes(d.equipmentSlot)) out.push(`equipmentSlot: ${d.equipmentSlot}`);
+  if (d.category === 'equipment' ? d.equipmentSlot === null || !EQUIPMENT_SLOTS.includes(d.equipmentSlot) : d.equipmentSlot !== null) out.push(`equipmentSlot: ${d.equipmentSlot}`);
   if (d.equipmentSlot === 'weapon' ? d.weaponType === null || !WEAPON_TYPES.includes(d.weaponType) : d.weaponType !== null) out.push(`weaponType: ${d.weaponType}`);
+  if (d.category === 'consumable' ? !d.use || !Number.isInteger(d.use.restoreHp) || d.use.restoreHp <= 0 : d.use !== undefined) out.push('use');
   if (!Number.isInteger(d.requiredLevel) || d.requiredLevel < 1) out.push(`requiredLevel: ${d.requiredLevel}`);
   for (const [key, value] of Object.entries({ ...d.bonuses, ...d.additionalStats })) if (!Number.isFinite(value)) out.push(`${key}: ${value}`);
   if (d.category === 'equipment' && d.stackable) out.push('equipment does not stack');

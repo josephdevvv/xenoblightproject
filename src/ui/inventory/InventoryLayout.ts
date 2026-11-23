@@ -24,8 +24,10 @@ export interface InventoryLayout {
     effects: DetailSection;
     textX: number;
     textWidth: number;
-    /** UNEQUIP, at the bottom of the panel. */
+    /** EQUIP / UNEQUIP, at the bottom of the panel. */
     button: Rect;
+    /** USE | ASSIGN HOTKEY for consumables: the same row split in two. */
+    buttonPair: readonly [Rect, Rect];
   };
   footer: Rect;
   hint: { x: number; y: number };
@@ -134,11 +136,22 @@ export function inventoryLayout(screenWidth: number, screenHeight: number): Inve
       textX: detail[0] + PANEL_PAD,
       textWidth: side - PANEL_PAD * 2,
       button: [detail[0] + PANEL_PAD, buttonY, side - PANEL_PAD * 2, BUTTON_HEIGHT],
+      buttonPair: splitButton([detail[0] + PANEL_PAD, buttonY, side - PANEL_PAD * 2, BUTTON_HEIGHT]),
     },
     footer: [FRAME, top + panelH + FRAME, w - FRAME * 2, FOOTER],
     hint: { x: FRAME + PANEL_PAD, y: top + panelH + FRAME + Math.floor(FOOTER / 2) },
     close: [w - FRAME - PANEL_PAD - 98, top + panelH + FRAME + Math.floor((FOOTER - 20) / 2), 98, 20],
   };
+}
+
+/** One button row as two buttons with a gap; the right one takes the odd pixel. */
+function splitButton([x, y, w, h]: Rect): readonly [Rect, Rect] {
+  const gap = 6;
+  const left = Math.floor((w - gap) / 2);
+  return [
+    [x, y, left, h],
+    [x + left + gap, y, w - left - gap, h],
+  ];
 }
 
 /** Scale of an icon in a square box: whole steps up, shrunk only when it is too big. */

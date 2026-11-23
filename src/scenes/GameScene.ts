@@ -34,7 +34,13 @@ import { QuestService } from '../quests/QuestService';
 import { isQuest01Active, TUTORIAL_QUEST_01 } from '../quests/TutorialQuest01';
 import { isQuest02AtMateus, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
 import { isQuest03AtMateus, TUTORIAL_QUEST_03 } from '../quests/TutorialQuest03';
-import { QuestRewards, type QuestExpPaid } from '../quests/QuestRewards';
+import { QuestRewards, type QuestExpPaid, type QuestTurnIn } from '../quests/QuestRewards';
+import { isQuest04AtRoland, TUTORIAL_QUEST_04 } from '../quests/TutorialQuest04';
+import { isQuest05AtRoland, TUTORIAL_QUEST_05 } from '../quests/TutorialQuest05';
+import { HotbarService } from '../hotbar/HotbarService';
+import { itemCount } from '../inventory/InventoryState';
+import { hpRestored, useProblem, type UseProblem } from '../items/ConsumableUse';
+import { isActiveSkillId, isSkillUnlocked } from '../skills/ActiveSkills';
 import { monsterSheetKey } from '../monsters/art/MonsterArt';
 import { InventoryService } from '../inventory/InventoryService';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
@@ -134,18 +140,14 @@ export class GameScene extends Phaser.Scene {
       else this.returnToMenu();
     };
     this.input.keyboard?.on('keydown-ESC', onEscape);
-    // 1: Drifter Lv.1 attack skill (dagger thrust, 200 % ATK) as the next swing on the current target
-    const onSkill = (): void => {
-      if (this.ready && this.canPerform('attack')) this.combat.useSkill('drifter_lv1');
-    };
-    this.input.keyboard?.on('keydown-ONE', onSkill);
+    // Keys 1-8 belong to the hotbar (GameUIScene). Skills are disabled for now: no key fires one directly -
+    // when they come back they are used through the hotbar (useHotbarSlot).
     this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
     this.input.on(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
     this.input.on(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
-      this.input.keyboard?.off('keydown-ONE', onSkill);
       this.attackVfx?.dispose();
       this.input.off(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
       this.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
@@ -398,7 +400,9 @@ export class GameScene extends Phaser.Scene {
   // Tutorial Quest 01: find Mateus -> talk -> the existing Passive Tree tutorial
   // Tutorial Quest 02: back to Mateus -> talk (Rusty Dagger) -> equipment tutorial -> back to Mateus
   //   (100 EXP) -> Status tutorial
-  // Tutorial Quest 03: back to Mateus -> talk -> 5 Void Mites -> back to Mateus (200 EXP)
+  // Tutorial Quest 03: back to Mateus -> talk -> 5 Void Mites -> back to Mateus (20 potions, 200 EXP)
+  // Tutorial Quest 04: to Roland -> talk -> potion training (GameUIScene) -> talk on (wolf hunt)
+  // Tutorial Quest 05: 5 Mutant Wolves -> back to Roland (150 EXP)
   // -------------------------------------------------------------------------------------------
 
   /** The NPC the active quest sends the player to (dotted path), or null. */
@@ -411,7 +415,9 @@ export class GameScene extends Phaser.Scene {
     const c = this.character;
     if (isQuest01Active(QuestService.quest01(c))) return TUTORIAL_QUEST_01.npcId;
     if (isQuest02AtMateus(QuestService.quest02(c))) return TUTORIAL_QUEST_02.npcId;
-    return isQuest03AtMateus(QuestService.quest03(c)) ? TUTORIAL_QUEST_03.npcId : null;
+    if (isQuest03AtMateus(QuestService.quest03(c))) return TUTORIAL_QUEST_03.npcId;
+    if (isQuest04AtRoland(QuestService.quest04(c))) return TUTORIAL_QUEST_04.npcId;
+    return isQuest05AtRoland(QuestService.quest05(c)) ? TUTORIAL_QUEST_05.npcId : null;
   }
 
   /** Entering the map: new characters get the quest; a handoff that was cut off is finished. */
@@ -421,6 +427,8 @@ export class GameScene extends Phaser.Scene {
     QuestService.sync(character);
     // a repaired save file without the dagger: the equipment tutorial needs it - still only once
     if (QuestService.quest02(character).state === 'EQUIPMENT_TUTORIAL') InventoryService.grantOnce(character, TUTORIAL_QUEST_02.reward);
+    // the Void Mite hunt was turned in before it gave potions: the potion training needs them - given once
+    if (QuestService.quest03(character).state === 'COMPLETED') InventoryService.grantOnce(character, TUTORIAL_QUEST_03.reward);
   }
 
   /** NPCs that react to a click now (the others behave as before: the click is a walk command). */
@@ -435,6 +443,10 @@ export class GameScene extends Phaser.Scene {
     if (!ui || !dialogue || dialogue.isOpen || npc !== this.questNpc()) return;
     const { character } = this;
     const name = npc.definition.name;
+    if (npc.definition.id === TUTORIAL_QUEST_04.npcId) {
+      this.talkToRoland(ui, name);
+      return;
+    }
     if (QuestService.advance(character, 'talk')) {
       this.beginConversation(ui);
       dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_01.dialogueId], () => {
@@ -503,14 +515,15 @@ export class GameScene extends Phaser.Scene {
         },
       );
     } else if (QuestService.advance03(character, 'turnIn')) {
-      // 5/5: 200 EXP when the last line is confirmed
+      // 5/5: 20 potions and 200 EXP when the last line is confirmed; then on to Roland
       this.beginConversation(ui);
       dialogue.open(
         name,
         DIALOGUES[TUTORIAL_QUEST_03.completeDialogueId],
         () => {
           this.combat.setSuspended(false);
-          this.showQuestExp(QuestRewards.quest03(character));
+          this.finishTurnIn(ui, QuestRewards.quest03(character), () => QuestService.advance03(character, 'cancelTurnIn'));
+          QuestService.sync(character);
         },
         {
           onInterrupted: () => {
@@ -520,6 +533,108 @@ export class GameScene extends Phaser.Scene {
         },
       );
     }
+  }
+
+  /**
+   * A turn-in that pays at the end of its conversation: the usual feedback, or - when its items did not fit -
+   * the reason, and the quest waits to be turned in again (nothing was given, nothing is lost).
+   */
+  private finishTurnIn(ui: GameUIScene, result: QuestTurnIn, undo: () => void): void {
+    if (result.ok) {
+      this.showQuestExp(result);
+      return;
+    }
+    undo();
+    if (result.error !== 'notReady') ui.notifications?.showText(t(result.error === 'bagFull' ? 'notifications.bagFull' : 'notifications.itemFailed'));
+  }
+
+  /** Roland's conversations: potion training (start, and its last part after the hotkey) and the wolf hunt's turn-in. */
+  private talkToRoland(ui: GameUIScene, name: string): boolean {
+    const { character } = this;
+    const dialogue = ui.dialogue!;
+    if (QuestService.advance04(character, 'talk')) {
+      this.beginConversation(ui);
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_04.introDialogueId], () => {
+        this.combat.setSuspended(false);
+        QuestService.advance04(character, 'finishIntro');
+      }, { onInterrupted: () => {
+        this.combat.setSuspended(false);
+        QuestService.advance04(character, 'cancelTalk');
+      } });
+      return true;
+    }
+    if (this.continuePotionTraining()) return true;
+    if (QuestService.advance05(character, 'turnIn')) {
+      this.beginConversation(ui);
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_05.completeDialogueId], () => {
+        this.combat.setSuspended(false);
+        this.finishTurnIn(ui, QuestRewards.quest05(character), () => QuestService.advance05(character, 'cancelTurnIn'));
+      }, { onInterrupted: () => {
+        this.combat.setSuspended(false);
+        QuestService.advance05(character, 'cancelTurnIn');
+      } });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * The potion training's last part (dialogues 6-9, the Mutant Wolf picture on the 8th): right after the hotkey
+   * was assigned, or by talking to Roland again (e.g. after loading). Its end starts the wolf hunt.
+   */
+  continuePotionTraining(): boolean {
+    const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
+    const dialogue = ui?.dialogue;
+    const roland = this.npcs.find((n) => n.definition.id === TUTORIAL_QUEST_04.npcId);
+    if (!ui || !dialogue || dialogue.isOpen || !roland || !QuestService.advance04(this.character, 'finalTalk')) return false;
+    const { character } = this;
+    this.beginConversation(ui);
+    const picture = { texture: monsterSheetKey('mutant_wolf', 'idle'), frame: 0, scale: 2 };
+    dialogue.open(roland.definition.name, DIALOGUES[TUTORIAL_QUEST_04.finalDialogueId], () => {
+      this.combat.setSuspended(false);
+      QuestService.advance04(character, 'complete');
+    }, {
+      picture: (step) => (step === TUTORIAL_QUEST_04.wolfPreviewStep ? picture : null),
+      onInterrupted: () => {
+        this.combat.setSuspended(false);
+        QuestService.advance04(character, 'cancelFinal');
+      },
+    });
+    return true;
+  }
+
+  /**
+   * Uses one of an item (Inventory USE, hotbar): every rule is checked first - alive, not blocked by a tutorial
+   * step, one in the bag, HP not full - and only then is ONE taken out of the bag and HP restored (never above
+   * max HP). null = used; otherwise why not (nothing changed).
+   */
+  useItem(itemId: string, bagIndex = -1): UseProblem | null {
+    if (!this.ready) return 'notUsable';
+    const { character } = this;
+    const hp = this.combat.getPlayerHp();
+    const maxHp = this.combat.getPlayerMaxHp();
+    const problem = useProblem(itemId, {
+      alive: this.death.life.isAlive() && !this.combat.isDefeated(),
+      quantity: itemCount(character.inventory, itemId),
+      hp,
+      maxHp,
+      blocked: !this.canPerform('useItem') || QuestService.isItemUseBlocked(character),
+    });
+    if (problem) return problem;
+    const restore = hpRestored(itemId, hp, maxHp);
+    if (!InventoryService.consumeOne(character, itemId, bagIndex)) return 'none';
+    this.combat.healPlayer(restore);
+    return null;
+  }
+
+  /** A hotbar slot (key 1-8 or a click): uses its item, or its skill once skills can be unlocked. */
+  useHotbarSlot(slot: number): UseProblem | null {
+    const entry = HotbarService.state(this.character)[slot] ?? null;
+    if (!entry) return null;
+    if (entry.type === 'item') return this.useItem(entry.itemId);
+    // skills are disabled: nothing is unlocked, so nothing happens
+    if (isActiveSkillId(entry.skillId) && isSkillUnlocked(this.character, entry.skillId) && this.canPerform('attack')) this.combat.useSkill(entry.skillId);
+    return null;
   }
 
   /** The usual EXP / LEVEL UP feedback for quest EXP that was just paid (nothing when it was not). */

@@ -46,6 +46,18 @@ const SHEETS = {
     playFrames: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     facing: 'SW',
   },
+  // roland_01 ("Roland"): 320 x 320, 5 x 5 grid of 64 x 64, row-major; all 25 frames used.
+  // Frame 1 = standing pose; frames 2-25 = the idle animation played once (same rule as the guards).
+  roland_01: {
+    source: 'art-source/npcs/roland_01/NPCRolandIdleAnimation.png',
+    file: 'NPCRolandIdleAnimation.png',
+    frameWidth: 64,
+    frameHeight: 64,
+    columns: 5,
+    standFrame: 1,
+    playFrames: Array.from({ length: 24 }, (_, i) => i + 2),
+    facing: 'SW',
+  },
 };
 
 function readAlpha(file) {

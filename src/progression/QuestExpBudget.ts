@@ -11,6 +11,8 @@ export const TUTORIAL_QUEST_EXP_BUDGET = {
   allocations: {
     tutorial_02_rusty_dagger: 100,
     tutorial_03_void_mite_hunt: 200,
+    // tutorial_04_potion_training pays nothing
+    tutorial_05_mutant_wolf_hunt: 150,
   } as Readonly<Record<string, number>>,
 } as const;
 

@@ -255,11 +255,21 @@ export const en: Messages = {
     equip: 'Equip',
     equipNeedsLevel: 'Requires Lv {level}',
     unequip: 'Unequip',
+    use: 'Use',
+    assignHotkey: 'Assign Hotkey',
     effects: 'Stats / Effects',
     keys: 'Click to select a slot  ·  I / Esc close',
     close: 'CLOSE',
   },
   items: {
+    consumable_red_healing_potion: {
+      name: 'Red Healing Potion',
+      description: 'A red potion that restores 50 HP when consumed.',
+    },
+    armor_worn_cloth: {
+      name: 'Worn Cloth Armor',
+      description: "An old, heavily worn cloth outfit. It offers little protection, but it's better than nothing.",
+    },
     weapon_rusty_dagger: {
       name: 'Rusty Dagger',
       description: 'An old dagger covered in rust. Its edge has dulled, but it can still serve as a weapon for self-defense.',
@@ -270,6 +280,8 @@ export const en: Messages = {
     requiredLevel: 'Lv {level}',
     physicalAtk: 'Physical ATK {value}',
     magicAtk: 'Magic ATK {value}',
+    consumable: 'Consumable',
+    restoreHp: 'Restores HP +{value}',
   },
   notifications: {
     obtained: 'Obtained',
@@ -277,11 +289,25 @@ export const en: Messages = {
     bagFull: 'Inventory full',
     equipFailed: 'The item could not be equipped',
     itemFailed: 'The item could not be received',
+    hpFull: 'HP is already full',
+    noItemLeft: 'None left',
   },
   equipmentTutorial: {
     openInventory: 'Open the Inventory (I)',
     selectItem: 'Select the Rusty Dagger',
     equipItem: 'Press the Equip button',
+  },
+  potionTutorial: {
+    openInventory: 'Open the Inventory (I)',
+    selectPotion: 'Select the Red Healing Potion',
+    explainUse: 'The Use button is here',
+    assignHotkey: 'Press Assign Hotkey',
+    chooseSlot: 'Choose a hotkey slot',
+  },
+  hotbar: {
+    assignTitle: 'Assign Hotkey',
+    assignHint: 'Choose slot 1-8 for {name}',
+    cancel: 'Cancel',
   },
   statusTutorial: {
     openStatus: 'Open Status (T)',
@@ -299,6 +325,16 @@ export const en: Messages = {
       name: 'Void Mite Hunt',
       objective: 'Return to Mateus and talk to him',
       objectiveHunt: 'Defeat Void Mites ({count}/{total})',
+    },
+    tutorial_04_potion_training: {
+      name: 'Potion Training',
+      objective: 'Find Roland',
+      objectiveTutorial: 'Learn to use the Red Healing Potion',
+      objectiveReturn: 'Return to Roland and talk to him',
+    },
+    tutorial_05_mutant_wolf_hunt: {
+      name: 'Mutant Wolf Hunt',
+      objectiveHunt: 'Defeat Mutant Wolves ({count}/{total})',
     },
     tutorial_01_find_mateus: {
       name: 'Find Mateus',
@@ -329,7 +365,31 @@ export const en: Messages = {
     },
     mateus_void_mite_hunt_done: {
       l1: "Well done! You're more capable than I thought.",
-      l2: 'Get some rest, then come talk to me again.',
+      l2: 'Next, go find Roland. He should be somewhere near the abandoned houses farther ahead.',
+      l3: "We'll meet again later. Here's your reward.",
+    },
+    roland_potion_intro: {
+      l1: 'Oh, a wanderer! Mateus sent you, huh? Alright, alright.',
+      l2: "I'll teach you how to use the items you just received from Mateus.",
+    },
+    roland_potion_select: {
+      l1: 'To use a Red Healing Potion, select it in your inventory first, then look at the item details on the right.',
+    },
+    roland_potion_use: {
+      l1: 'Click Use to drink the potion.',
+    },
+    roland_potion_hotkey: {
+      l1: 'Click Assign Hotkey to make it easier to use. You can assign it to keys 1 through 8.',
+    },
+    roland_wolf_hunt: {
+      l1: "See? That wasn't difficult, was it? Are you ready for your next test?",
+      l2: "Wondering what kind of test? You really don't know anything about what's happening here, do you?",
+      l3: 'For now, I want you to hunt down some Mutant Wolves.',
+      l4: "Five should be enough. Then I'll give you something worthwhile and tell you a little more.",
+    },
+    roland_wolf_hunt_done: {
+      l1: 'That was quick. Not bad at all.',
+      l2: 'You look out of breath, though. Take a little rest.',
     },
   },
   death: {

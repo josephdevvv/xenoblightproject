@@ -11,8 +11,8 @@ import { DETAIL_LINE_HEIGHT, iconScale, type DetailSection, type InventoryLayout
 import { drawOutline, drawSlotFrame, INV_COLORS } from './inventoryTheme';
 
 /**
- * Right panel: icon, name, type, description and stats / effects of one item, or the empty placeholder. One
- * button at the bottom: EQUIP for a bag item, UNEQUIP for a worn one, none otherwise.
+ * Right panel: icon, name, type, description and stats / effects of one item, or the empty placeholder. At the
+ * bottom: EQUIP for a bag item to wear, UNEQUIP for a worn one, USE + ASSIGN HOTKEY for a consumable.
  */
 export class ItemDetailPanel {
   private readonly icon: Phaser.GameObjects.Image;
@@ -24,6 +24,9 @@ export class ItemDetailPanel {
   private readonly effects: Phaser.GameObjects.Text[];
   private readonly buttonFrame: Phaser.GameObjects.Graphics;
   private readonly actionButton: FrameButton;
+  private readonly pairFrame: Phaser.GameObjects.Graphics;
+  private readonly useButton: FrameButton;
+  private readonly assignButton: FrameButton;
   private item: ItemInfo | null = null;
   private action: SlotAction | null = null;
 
@@ -32,6 +35,8 @@ export class ItemDetailPanel {
     root: Phaser.GameObjects.Container,
     private readonly layout: InventoryLayout,
     onAction: () => void,
+    onUse: () => void = () => undefined,
+    onAssign: () => void = () => undefined,
   ) {
     const D = layout.detail;
     const [ix, iy, iw, ih] = D.icon;
@@ -54,10 +59,16 @@ export class ItemDetailPanel {
     drawOutline(this.buttonFrame, D.button, 0, INV_COLORS.line);
     root.add(this.buttonFrame);
     this.actionButton = new FrameButton(scene, root, D.button, INV_COLORS.lineText, onAction);
+    this.pairFrame = scene.add.graphics();
+    for (const r of D.buttonPair) drawOutline(this.pairFrame, r, 0, INV_COLORS.line);
+    root.add(this.pairFrame);
+    this.useButton = new FrameButton(scene, root, D.buttonPair[0], INV_COLORS.lineText, onUse);
+    this.assignButton = new FrameButton(scene, root, D.buttonPair[1], INV_COLORS.lineText, onAssign);
   }
 
-  /** The click zone of the button while it does `kind` (tutorial spotlight target). */
-  actionZone(kind: SlotAction['kind']): Phaser.GameObjects.Zone | null {
+  /** The click zone of a button while it is offered (tutorial spotlight target). */
+  actionZone(kind: 'equip' | 'unequip' | 'use' | 'assign'): Phaser.GameObjects.Zone | null {
+    if (kind === 'use' || kind === 'assign') return this.action?.kind === 'consumable' ? (kind === 'use' ? this.useButton : this.assignButton).zone : null;
     return this.action?.kind === kind ? this.actionButton.zone : null;
   }
 
@@ -86,12 +97,18 @@ export class ItemDetailPanel {
     this.fill(this.description, item ? this.wrap(item.description, this.description[0], textWidth) : [], textWidth);
     this.fill(this.effects, item?.effects ?? [], textWidth);
     const { action } = this;
-    if (action) {
+    const single = action !== null && action.kind !== 'consumable';
+    if (action && action.kind !== 'consumable') {
       this.actionButton.label.setText(actionLabel(action));
       this.actionButton.setEnabled(action.kind === 'unequip' || action.problem === null);
     }
-    this.actionButton.setVisible(action !== null);
-    this.buttonFrame.setVisible(action !== null);
+    this.actionButton.setVisible(single);
+    this.buttonFrame.setVisible(single);
+    const pair = action?.kind === 'consumable';
+    this.useButton.label.setText(t('inventory.use'));
+    this.assignButton.label.setText(t('inventory.assignHotkey'));
+    for (const b of [this.useButton, this.assignButton]) b.setVisible(pair);
+    this.pairFrame.setVisible(pair);
   }
 
   /** One text per line; when there are more lines than texts, the last one ends in "..". */
@@ -118,7 +135,7 @@ export class ItemDetailPanel {
 }
 
 /** The button says what it does, or why it cannot. */
-function actionLabel(action: SlotAction): string {
+function actionLabel(action: Exclude<SlotAction, { kind: 'consumable' }>): string {
   if (action.kind === 'unequip') return t('inventory.unequip');
   if (action.problem === 'levelTooLow') return t('inventory.equipNeedsLevel', { level: action.requiredLevel });
   return t('inventory.equip');

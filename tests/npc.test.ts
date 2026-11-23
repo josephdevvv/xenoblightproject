@@ -14,6 +14,7 @@ const DELIVERED: Record<string, string> = {
   city_guard_01: 'art-source/npcs/city_guard_01/MateusIdleAnimation.png',
   city_guard_jack: 'art-source/npcs/city_guard_jack/DoorGuard01IdleAnimation.png',
   city_guard_sonny: 'art-source/npcs/city_guard_sonny/DoorGuard02IdleAnimation.png',
+  roland_01: 'art-source/npcs/roland_01/NPCRolandIdleAnimation.png',
 };
 
 function standsFree(def: NpcDefinition): boolean {
@@ -79,29 +80,31 @@ test('idle routine: one cycle = 16.8 s, no overlapping plays even with huge fram
 });
 
 for (const def of ALL) {
-  test(`${def.name} art: ${def.art.meta.file} unchanged, 4 x 4 of 64 x 64, frames 1-13 on one feet row, 14-16 empty`, () => {
+  test(`${def.name} art: ${def.art.meta.file} unchanged, 64 x 64 frames, the used ones on one feet row, the rest empty`, () => {
     const meta = def.art.meta;
     const delivered = path.join(process.cwd(), DELIVERED[def.id]);
     const shipped = path.join(process.cwd(), 'public', def.art.url);
     assert.ok(def.art.url.endsWith(meta.file));
     assert.ok(fs.readFileSync(shipped).equals(fs.readFileSync(delivered)), 'byte-identical to the delivered file');
     const img = readPng(shipped);
-    assert.equal(img.width, 256);
-    assert.equal(img.height, 256);
+    const grid = def.id === 'roland_01' ? 5 : 4;
+    const used = def.id === 'roland_01' ? 25 : 13;
+    assert.equal(img.width, 64 * grid);
+    assert.equal(img.height, 64 * grid);
     assert.equal(meta.frameWidth, 64);
     assert.equal(meta.frameHeight, 64);
-    assert.equal(meta.columns, 4);
+    assert.equal(meta.columns, grid);
     assert.equal(meta.standFrame, 0);
-    assert.deepEqual(meta.playFrames, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    assert.deepEqual(meta.playFrames, Array.from({ length: used - 1 }, (_, i) => i + 1), 'frame 1 stands, the others play once in order');
     const bottomOf = (i: number): number => {
-      const cx = (i % 4) * 64;
-      const cy = Math.floor(i / 4) * 64;
+      const cx = (i % grid) * 64;
+      const cy = Math.floor(i / grid) * 64;
       let b = -1;
       for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if (img.data[((cy + y) * img.width + cx + x) * 4 + 3] >= 128) b = y;
       return b;
     };
     for (const i of [meta.standFrame, ...meta.playFrames]) assert.equal(bottomOf(i) + 1, meta.anchor.y, `frame ${i + 1} stands on the anchor row`);
-    for (const i of [13, 14, 15]) assert.equal(bottomOf(i), -1, `frame ${i + 1} is empty and unused`);
+    for (let i = used; i < grid * grid; i++) assert.equal(bottomOf(i), -1, `frame ${i + 1} is empty and unused`);
   });
 }
 
@@ -127,7 +130,7 @@ test('gate guards Jack (13, 3) and Sonny (16, 3): stable ids, standable tiles, M
   assert.equal(guard.art.meta.file, 'MateusIdleAnimation.png');
   assert.deepEqual(guard.art.meta.anchor, { x: 36, y: 55, top: 6 });
   // one NPC per tile, all on the first map, distinct texture keys
-  assert.equal(npcsOnMap(ASHEN_CROSSROADS.id).length, 3);
+  assert.equal(npcsOnMap(ASHEN_CROSSROADS.id).length, 4, 'Mateus, Jack, Sonny, Roland');
   assert.equal(new Set(ALL.map((n) => `${n.tile.col},${n.tile.row}`)).size, ALL.length);
   assert.equal(new Set(ALL.map((n) => n.art.meta.id)).size, ALL.length);
 });

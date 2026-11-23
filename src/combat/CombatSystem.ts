@@ -176,6 +176,23 @@ export class CombatSystem {
     return playerCombatStats(CharacterStatusService.derived(this.character));
   }
 
+  /** Restores HP (items): never above max HP, nothing while defeated. Returns the HP actually restored. */
+  healPlayer(amount: number): number {
+    if (this.isDefeated() || !Number.isFinite(amount) || amount <= 0) return 0;
+    const max = this.playerStats().maxHp;
+    const healed = Math.min(Math.floor(amount), Math.max(0, max - this.playerHp));
+    if (healed <= 0) return 0;
+    this.playerHp += healed;
+    const w = this.player.getWorldPosition();
+    this.numbers.show(w.x, w.y - 64, `+${healed} HP`, 'exp');
+    return healed;
+  }
+
+  /** Max HP now (derived stats). */
+  getPlayerMaxHp(): number {
+    return this.playerStats().maxHp;
+  }
+
   getPlayerHp(): number {
     return this.playerHp;
   }
@@ -203,8 +220,9 @@ export class CombatSystem {
   /** Call after the monsters moved: keeps the target ring under the target's feet. */
   updateMarker(): void {
     if (!this.target) return;
-    const s = this.target.sprite;
-    this.marker.setPosition(s.x, s.y).setDepth(s.depth - 1).setVisible(true);
+    // on the ground point (a flying monster's body is drawn above it)
+    const w = this.target.world;
+    this.marker.setPosition(Math.round(w.x), Math.round(w.y)).setDepth(this.target.sprite.depth - 1).setVisible(true);
   }
 
   private updateTarget(deltaMs: number): void {

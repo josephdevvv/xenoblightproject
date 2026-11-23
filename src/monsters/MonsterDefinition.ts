@@ -6,7 +6,19 @@ import type { MonsterArtId } from './art/MonsterArt';
  * (configurable data; the formulas are in combat/CombatRules.ts and use the same stat names as players).
  */
 
-export type MonsterId = 'voidmite' | 'mutant_wolf';
+export type MonsterId = 'voidmite' | 'mutant_wolf' | 'dark_avian';
+
+/**
+ * A flying monster's body is drawn above its ground point: movement, collision, pathfinding, depth and the
+ * target ring stay on the ground; only the sprite is lifted (a small shadow marks the ground point).
+ */
+export interface MonsterFlight {
+  /** Height of the body above the ground (native px). */
+  heightPx: number;
+  /** Gentle bobbing: up to this many px up and down around the height, whole pixels only. */
+  bobPx: number;
+  bobPeriodMs: number;
+}
 
 /** Idle wandering around the spawn point. Purely positional: no AI decisions, targets or combat. */
 export interface MonsterWanderBehavior {
@@ -41,8 +53,16 @@ export interface MonsterDefinition {
   footprintRadius: number;
   /** Omit for a monster that stays where it spawned. */
   behavior?: MonsterWanderBehavior;
+  /** Flying monsters only. */
+  flight?: MonsterFlight;
   combat: MonsterCombatDefinition;
 }
+
+/**
+ * Every monster comes back this long after its death (one shared rule), at its own spawn point - the same
+ * monster, never a second one, so a map's population stays exactly its spawn table.
+ */
+export const MONSTER_RESPAWN_DELAY_MS = 5000;
 
 export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>> = {
   voidmite: {
@@ -66,7 +86,7 @@ export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>>
       attackRange: 0.9,
       chaseSpeed: 1.2,
       leashTiles: 7,
-      respawnMs: 12000,
+      respawnMs: MONSTER_RESPAWN_DELAY_MS,
     },
   },
   mutant_wolf: {
@@ -90,7 +110,32 @@ export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>>
       attackRange: 1.1,
       chaseSpeed: 2.4,
       leashTiles: 9,
-      respawnMs: 20000,
+      respawnMs: MONSTER_RESPAWN_DELAY_MS,
+    },
+  },
+  dark_avian: {
+    id: 'dark_avian',
+    displayName: 'Dark Avian',
+    category: 'monster',
+    art: 'dark_avian',
+    footprintRadius: 0.32,
+    behavior: { type: 'wander', radiusTiles: 3, speed: 1.4, pauseMs: [1200, 3200] },
+    flight: { heightPx: 32, bobPx: 2, bobPeriodMs: 1600 },
+    // Zone 3 monster, balanced on the Mutant Wolf: HP and ATK x1.7 (45 -> 77, 23 -> 39, rounded). The rest is
+    // set, not multiplied: HIT stays 200 (the hit chance caps at 95 % anyway), a little more DEF and FLEE
+    // (harder to hit in the air), slower heavier dives (2.2 s), slightly longer reach, chase and leash.
+    combat: {
+      level: 5,
+      maxHp: 77,
+      atk: 39,
+      def: 3,
+      hit: 200,
+      flee: 95,
+      attackIntervalMs: 2200,
+      attackRange: 1.2,
+      chaseSpeed: 2.6,
+      leashTiles: 10,
+      respawnMs: MONSTER_RESPAWN_DELAY_MS,
     },
   },
 };

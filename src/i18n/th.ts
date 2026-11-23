@@ -263,11 +263,21 @@ export const th = {
     equip: 'สวมใส่',
     equipNeedsLevel: 'ต้องการ Lv {level}',
     unequip: 'ถอดอุปกรณ์',
+    use: 'ใช้งาน',
+    assignHotkey: 'ตั้งคีย์ลัด',
     effects: 'ค่าสถานะ / เอฟเฟกต์',
     keys: 'คลิกเพื่อเลือกช่อง  ·  I / Esc ปิด',
     close: 'ปิด',
   },
   items: {
+    consumable_red_healing_potion: {
+      name: 'ยาแดงฟื้นฟู',
+      description: 'ยาแดงสำหรับฟื้นฟูพลังชีวิต เมื่อใช้งานจะฟื้นฟู HP 50 หน่วย',
+    },
+    armor_worn_cloth: {
+      name: 'ชุดผ้าเก่า',
+      description: 'ชุดผ้าเก่าที่ผ่านการใช้งานมาอย่างหนัก แม้จะป้องกันได้เพียงเล็กน้อย แต่ก็ดีกว่าไม่มีอะไรเลย',
+    },
     weapon_rusty_dagger: {
       name: 'มีดสนิม',
       description: 'มีดเก่าที่เต็มไปด้วยสนิม แม้จะไม่คมเหมือนเดิม แต่ยังพอใช้ป้องกันตัวได้',
@@ -278,6 +288,8 @@ export const th = {
     requiredLevel: 'Lv {level}',
     physicalAtk: 'ATK กายภาพ {value}',
     magicAtk: 'ATK เวท {value}',
+    consumable: 'ไอเท็มใช้งาน',
+    restoreHp: 'ฟื้นฟู HP +{value}',
   },
   notifications: {
     obtained: 'ได้รับ',
@@ -285,11 +297,25 @@ export const th = {
     bagFull: 'กระเป๋าเต็ม',
     equipFailed: 'สวมใส่ไม่สำเร็จ',
     itemFailed: 'รับไอเท็มไม่สำเร็จ',
+    hpFull: 'HP เต็มแล้ว',
+    noItemLeft: 'ไม่มีไอเท็มนี้แล้ว',
   },
   equipmentTutorial: {
     openInventory: 'เปิดกระเป๋า (I)',
     selectItem: 'เลือกมีดสนิม',
     equipItem: 'กดปุ่มสวมใส่',
+  },
+  potionTutorial: {
+    openInventory: 'เปิดกระเป๋า (I)',
+    selectPotion: 'เลือกยาแดงฟื้นฟู',
+    explainUse: 'ปุ่มใช้งานอยู่ที่นี่',
+    assignHotkey: 'กดปุ่มตั้งคีย์ลัด',
+    chooseSlot: 'เลือกช่องคีย์ลัด',
+  },
+  hotbar: {
+    assignTitle: 'ตั้งคีย์ลัด',
+    assignHint: 'เลือกช่อง 1-8 สำหรับ {name}',
+    cancel: 'ยกเลิก',
   },
   statusTutorial: {
     openStatus: 'เปิดหน้าสถานะ (T)',
@@ -307,6 +333,16 @@ export const th = {
       name: 'ล่า Void Mite',
       objective: 'กลับไปพูดคุยกับ Mateus',
       objectiveHunt: 'กำจัด Void Mite ({count}/{total})',
+    },
+    tutorial_04_potion_training: {
+      name: 'ฝึกใช้ยา',
+      objective: 'ไปพบ Roland',
+      objectiveTutorial: 'เรียนรู้การใช้ยาแดงฟื้นฟู',
+      objectiveReturn: 'กลับไปคุยกับ Roland',
+    },
+    tutorial_05_mutant_wolf_hunt: {
+      name: 'ล่า Mutant Wolf',
+      objectiveHunt: 'กำจัด Mutant Wolf ({count}/{total})',
     },
     tutorial_01_find_mateus: {
       name: 'ตามหา Mateus',
@@ -337,7 +373,31 @@ export const th = {
     },
     mateus_void_mite_hunt_done: {
       l1: 'ทำได้ดีมาก เจ้านี่ก็เอาเรื่อง',
-      l2: 'พักกันซักหน่อยแล้วค่อยมาคุยกับข้าอีกรอบ',
+      l2: 'หลังจากนี้เจ้าจงไปหา Roland เจ้านั่นน่าจะอยู่บริเวณบ้านร้างลึกเข้าไปอีกหน่อย',
+      l3: 'แล้วเราค่อยเจอกันใหม่ ส่วนนี่ก็รางวัลของเจ้า',
+    },
+    roland_potion_intro: {
+      l1: 'อ้าว คนเร่ร่อนนี่ Mateus ส่งเจ้ามางั้นหรอ โอเคๆ',
+      l2: 'ข้าจะสอนวิธีใช้งานไอเท็มที่เจ้าเพิ่งจะได้รับมาจาก Mateus',
+    },
+    roland_potion_select: {
+      l1: 'วิธีการใช้งานยาแดงฟื้นฟูก็กดคลิ๊กเข้าไปก่อน และ ดูด้านขวาส่วนรายละเอียดไอเท็ม',
+    },
+    roland_potion_use: {
+      l1: 'กดใช้งานเพื่อดื่ม',
+    },
+    roland_potion_hotkey: {
+      l1: 'กดตั้งคีย์ลัดเพื่อให้ใช้งานง่ายๆ ปุ่ม 1-8 บนคีย์บอร์ด',
+    },
+    roland_wolf_hunt: {
+      l1: 'เป็นยังไงล่ะ ไม่ยากเลยใช่ไหม เจ้าพร้อมสำหรับบททดสอบต่อไปหรือยัง',
+      l2: 'บททดสอบอะไรอย่างงั้นหรือ เจ้าคงจะไม่รู้เรื่องราวอะไรเลยจริงๆสินะ',
+      l3: 'เอาเป็นว่าจงกำจัด Mutant Wolf มาให้ข้าหน่อย',
+      l4: 'ซัก 5 ตัวก็พอ แล้วข้าจะมอบของดี และจะเล่าอะไรให้ฟัง',
+    },
+    roland_wolf_hunt_done: {
+      l1: 'ไวเหมือนกันนี่ ถือว่าใช้ได้',
+      l2: 'แต่ดูเจ้าหอบนะ พักซักนิดก็แล้วกัน',
     },
   },
   death: {

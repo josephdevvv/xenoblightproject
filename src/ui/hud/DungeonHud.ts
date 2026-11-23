@@ -15,11 +15,21 @@ import type { IsometricMap } from '../../world/IsometricMap';
 import { typo, UI_COLORS } from '../UITheme';
 import { HUD_LAYERS, HUD_LAYOUT, HudSpace, hudTextureKey, REF_ELEMENTS, type HudLayerId, type ScreenRect } from './HudLayout';
 import { Minimap } from './Minimap';
+import { hotbarLayout } from './HotbarLayout';
+import { HotbarService } from '../../hotbar/HotbarService';
+import { InventoryService } from '../../inventory/InventoryService';
+import { itemCount } from '../../inventory/InventoryState';
+import { itemIconKey } from '../../items/ItemCatalog';
 
 const BAR = HUD_LAYOUT.bars;
 const TEXT = HUD_LAYOUT.dynamic_text;
-/** Pack layers not shown in game (the chat box was removed by request; the art stays in the pack). */
-const HIDDEN_LAYERS = new Set<string>(['04_chat']);
+/**
+ * Pack layers not shown in game (the art stays in the pack): the chat box was removed by request; the pack's
+ * 10-slot hotbar is replaced by the 8 hotbar slots drawn by the HUD (same size, frame and spacing).
+ */
+const HIDDEN_LAYERS = new Set<string>(['04_chat', '05_hotbar']);
+/** Hotbar slot colours, sampled from the pack's hotbar art. */
+const HOTBAR_COLORS = { frame: 0xe5e5eb, fill: 0x0f0f12, divider: 0x6c6c75 } as const;
 /** Lift for top-anchored text (see text()). */
 const HUD_TEXT_LIFT = 4;
 
@@ -34,6 +44,8 @@ export interface DungeonHudOptions {
   onInventory: () => void;
   /** Current HP (combat); max HP when absent. SP has no consumer yet and stays at max. */
   currentHp?: () => number;
+  /** A hotbar slot was clicked (0-based) - the same as its key 1-8. */
+  onHotbarSlot?: (slot: number) => void;
 }
 
 /**
@@ -89,6 +101,10 @@ export class DungeonHud {
   readonly inventoryButton: Phaser.GameObjects.Zone;
   /** Where notices below the minimap start: its right edge, under the map name. */
   readonly belowMinimap: { right: number; top: number };
+  /** Hotbar slots 1-8: click zones (UI hit testing, checks), icons and quantities. */
+  readonly hotbarZones: Phaser.GameObjects.Zone[];
+  private readonly hotbarIcons: Phaser.GameObjects.Image[];
+  private readonly hotbarCounts: Phaser.GameObjects.Text[];
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -128,6 +144,37 @@ export class DungeonHud {
     this.expBar = this.bar(this.expArea, BAR.exp.hex);
     this.expText = this.text(this.expArea.x + this.expArea.width / 2, this.expArea.y + this.expArea.height / 2, '', 'small', PALETTE.pale, false)
       .setOrigin(0.5);
+
+    // 3b. Hotbar: 8 slots above the EXP bar, centred, numbered 1-8 (top-row keys), icon + quantity.
+    const hotbarTop = this.space.frame('05_hotbar', REF_ELEMENTS.hotbarSlots[0]).y;
+    const H = hotbarLayout(scene.scale.width, hotbarTop);
+    const frames = scene.add.graphics().setDepth(depth + 1);
+    frames.fillStyle(HOTBAR_COLORS.divider, 1).fillRect(H.divider.x, H.divider.y, 1, H.divider.height);
+    for (const s of H.slots) {
+      frames.fillStyle(HOTBAR_COLORS.fill, 1).fillRect(s.x, s.y, s.width, s.height);
+      frames.fillStyle(HOTBAR_COLORS.frame, 1).fillRect(s.x, s.y, s.width, 1).fillRect(s.x, s.y + s.height - 1, s.width, 1).fillRect(s.x, s.y, 1, s.height).fillRect(s.x + s.width - 1, s.y, 1, s.height);
+    }
+    H.slots.forEach((s, i) => this.text(s.x + 3, s.y + 2, String(i + 1), 'small', PALETTE.gray, false));
+    this.hotbarIcons = H.slots.map((s) => scene.add.image(s.x + Math.floor(s.width / 2), s.y + Math.floor(s.height / 2) + 2, '__DEFAULT').setDepth(depth + 2).setVisible(false));
+    this.hotbarCounts = H.slots.map((s) =>
+      this.text(s.x + s.width - 3, s.y + s.height - 2, '', 'small', PALETTE.white, false)
+        .setOrigin(1, 1)
+        .setStroke(PALETTE.black, 3)
+        .setDepth(depth + 3),
+    );
+    this.hotbarZones = H.slots.map((s, i) => {
+      const zone = scene.add.zone(s.x, s.y, s.width, s.height).setOrigin(0, 0).setDepth(depth + 4).setInteractive();
+      zone.on('pointerup', (p: Phaser.Input.Pointer) => {
+        if (p.button === 0) this.options.onHotbarSlot?.(i);
+      });
+      return zone;
+    });
+    const refreshHotbar = (c: CharacterData): void => {
+      if (c === options.character) this.refreshHotbar();
+    };
+    const offs = [InventoryService.onChange(refreshHotbar), HotbarService.onChange(refreshHotbar)];
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => offs.forEach((off) => off()));
+    this.refreshHotbar();
 
     // 4. Quest tracker (setQuest) + AUTO (placeholder: no auto-play system yet).
     const Q = '02_quest_auto';
@@ -201,6 +248,21 @@ export class DungeonHud {
   /** Small red pip on the Passive Tree menu slot while passive points are unspent (the tutorial has its own spotlight). */
   setPassivePoints(unspent: boolean): void {
     this.passivePip.setVisible(unspent);
+  }
+
+  /** Hotbar icons and quantities from the character's hotbar and bag (an item with none left is shown dimmed). */
+  refreshHotbar(): void {
+    const c = this.options.character;
+    const state = HotbarService.state(c);
+    this.hotbarIcons.forEach((icon, i) => {
+      const e = state[i] ?? null;
+      const key = e?.type === 'item' ? itemIconKey(e.itemId) : null;
+      const shown = key !== null && this.scene.textures.exists(key);
+      icon.setVisible(shown);
+      const count = e?.type === 'item' ? itemCount(c.inventory, e.itemId) : null;
+      if (shown) icon.setTexture(key).setAlpha(count === 0 ? 0.35 : 1);
+      this.hotbarCounts[i].setText(count === null ? '' : String(count));
+    });
   }
 
   /** Quest tracker: the active quest's name and objective, or the placeholder text. */

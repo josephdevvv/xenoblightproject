@@ -3,6 +3,7 @@ import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
 import { validateCharacterName, type CharacterData } from '../data/CharacterData';
 import { parseCharacterProfile, type CharacterProfile } from '../data/CharacterProfileStore';
 import { STARTER_CLASS_ID } from '../data/StarterCharacters';
+import { createHotbar, sanitizeHotbar, type HotbarState } from '../hotbar/Hotbar';
 import { createInventory, sanitizeInventory, type InventoryState } from '../inventory/InventoryState';
 import { createPassiveProgress, sanitizePassiveProgress, type PassiveProgress } from '../passives/PassiveProgress';
 import { parseSavedStatus } from '../status/StatusRecord';
@@ -35,6 +36,8 @@ export interface GameSave {
   /** Quest records by quest id, as stored (QuestService checks each one when it loads them). */
   quests: Record<string, unknown>;
   inventory: InventoryState;
+  /** Hotbar slots 1-8 (an empty hotbar for files from before it existed). */
+  hotbar: HotbarState;
   /** Save point of this file (never a respawn point). */
   savedLocation: SavedLocation | null;
   savedAt: number | null;
@@ -62,6 +65,7 @@ export function serializeSave(character: CharacterData, savedLocation: SavedLoca
     passives: character.passives ?? createPassiveProgress(),
     quests: character.quests ?? {},
     inventory: character.inventory ?? createInventory(),
+    hotbar: character.hotbar ?? createHotbar(),
     location: savedLocation,
   };
   return JSON.stringify({ ...document, checksum: checksum(document) }, null, 2);
@@ -116,6 +120,8 @@ function parse(text: string): ParseResult {
   repaired.push(...parsedPassives.repaired.map((r) => `passives: ${r}`));
   const parsedInventory = sanitizeInventory(inventory);
   repaired.push(...parsedInventory.repaired.map((r) => `inventory: ${r}`));
+  const parsedHotbar = sanitizeHotbar(document.hotbar);
+  repaired.push(...parsedHotbar.dropped);
   const questRecords: Record<string, unknown> = {};
   for (const [id, record] of Object.entries(quests as Json)) {
     if (isObject(record)) questRecords[id] = record;
@@ -130,6 +136,7 @@ function parse(text: string): ParseResult {
       passives: parsedPassives.progress,
       quests: questRecords,
       inventory: parsedInventory.state,
+      hotbar: parsedHotbar.state,
       savedLocation: parseSavedLocation(location),
       savedAt: typeof document.savedAt === 'number' && Number.isFinite(document.savedAt) ? document.savedAt : null,
       repaired,

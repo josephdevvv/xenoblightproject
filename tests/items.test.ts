@@ -24,8 +24,8 @@ const ICON_SHA256 = '0277a61651942fb1c68aaee61df4fba2b0bd39db1ce5916368febd7d256
 const root = process.cwd();
 const dagger = (): ItemDefinition => itemDefinition(ID)!;
 
-test('the first item is exactly as specified, and the only one', () => {
-  assert.deepEqual([...ITEM_CATALOG.keys()], [ID]);
+test('the first item is exactly as specified; only it and the starter armor exist', () => {
+  assert.deepEqual([...ITEM_CATALOG.keys()], [ID, 'armor_worn_cloth', 'consumable_red_healing_potion']);
   const { icon, ...rest } = dagger();
   assert.deepEqual(rest, {
     id: ID,

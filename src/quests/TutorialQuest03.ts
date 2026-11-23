@@ -8,8 +8,9 @@ import type { NpcId } from '../npcs/NpcDefinition';
  *     --kill x5--> READY_TO_TURN_IN --turnIn--> TURN_IN_DIALOGUE --complete--> COMPLETED
  *
  * Offered when Tutorial Quest 02 is turned in (Status tutorial done). Only kills made while HUNTING count,
- * one per kill credit, capped at the target. The 200 EXP are paid with the `complete` step - a step that is
- * only ever accepted once (QuestRewards).
+ * one per kill credit, capped at the target. Turned in: Red Healing Potion x20 (grant id, given once) and then
+ * the 200 EXP with the `complete` step - a step that is only ever accepted once (QuestRewards). It sends the
+ * player on to Roland (Tutorial Quest 04).
  */
 export const TUTORIAL_QUEST_03 = {
   id: 'tutorial_03_void_mite_hunt',
@@ -19,6 +20,7 @@ export const TUTORIAL_QUEST_03 = {
   /** 0-based step of the accept dialogue that shows the Void Mite picture. */
   previewStep: 0,
   target: { monsterId: 'voidmite' as MonsterId, count: 5 },
+  reward: { grantId: 'quest:tutorial_03_void_mite_hunt', itemId: 'consumable_red_healing_potion', quantity: 20 },
 } as const;
 
 export const QUEST03_STATES = ['NOT_STARTED', 'OFFERED', 'ACCEPT_DIALOGUE', 'HUNTING', 'READY_TO_TURN_IN', 'TURN_IN_DIALOGUE', 'COMPLETED'] as const;

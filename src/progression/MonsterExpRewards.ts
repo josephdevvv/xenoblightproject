@@ -10,6 +10,8 @@ import type { MonsterId } from '../monsters/MonsterDefinition';
 export const MONSTER_EXP_REWARDS: Readonly<Record<MonsterId, number>> = {
   voidmite: 20,
   mutant_wolf: 32,
+  // proposed (not specified): the Mutant Wolf's 32 x 1.7, like its HP and ATK - change freely
+  dark_avian: 54,
 };
 
 /** EXP for one kill of a monster (whole number, never negative; unknown monsters give 0). */

@@ -1,7 +1,7 @@
 import type { CharacterData } from '../data/CharacterData';
 import { CharacterStatusService } from '../status/CharacterStatusService';
 import type { EquipmentSlotId } from './InventorySlots';
-import { createInventory, equipFromBag, grantOnce, unequipToBag, type EquipError, type GrantError, type InventoryState, type UnequipError } from './InventoryState';
+import { consumeOne, createInventory, equipFromBag, grantOnce, unequipToBag, type EquipError, type GrantError, type InventoryState, type UnequipError } from './InventoryState';
 
 export type ItemGrant = { grantId: string; itemId: string; quantity: number };
 
@@ -47,6 +47,14 @@ export const InventoryService = {
     if (!result.ok) return { error: result.error };
     commit(character, result.state);
     return { bagIndex: result.bagIndex };
+  },
+
+  /** Takes one of an item out of the bag (preferably from `bagIndex`). False = there was none, nothing changed. */
+  consumeOne(character: CharacterData, itemId: string, bagIndex = -1): boolean {
+    const result = consumeOne(this.state(character), itemId, bagIndex);
+    if (!result.ok) return false;
+    commit(character, result.state);
+    return true;
   },
 
   onChange(listener: ChangeListener): () => void {

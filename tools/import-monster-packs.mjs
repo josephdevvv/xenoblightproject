@@ -1,5 +1,6 @@
 // Imports the delivered monster packs (art-source/monsters/<id>/, exactly as supplied: per-direction
-// horizontal sheets + README + manifest) into game-ready files:
+// horizontal sheets + README + manifest, or - layout 'frames' - one PNG per frame in <action>/frames/<direction>/)
+// into game-ready files:
 //
 //   public/assets/monsters/<id>/<action>.png      one sheet per action: rows SE, SW, NE, NW; columns = frames
 //   src/monsters/art/<id>.generated.json          frame sizes / counts, ground anchors, VFX offsets, QA data
@@ -36,6 +37,21 @@ const PACKS = {
     actions: { idle: 'Idle', walk: 'Walk_Light_Run', attack: 'Attack_Pounce_Bite', hit: 'Hit_Reaction', death: 'Death_Prone' },
     frames: { idle: 1, walk: 6, attack: 6, hit: 4, death: 5, vfx: 3 },
     vfx: { folder: 'VFX_Bite_Impact', placement: 'mouth', contactFrame: 5 }, // 32x32 burst centred on the jaws
+  },
+  // Dark Avian / อีแร้งทมิฬ (flying), delivered as "Corrupted_Avian_Vulture_Complete_4Dir_Animation_Pack" (its own
+  // README keeps that name): one PNG per frame, no manifest (names given here, from the request).
+  // The 32x64 frames already draw the body in the upper half (the pack's "hover_offset32" frames): the root is
+  // the body's lower edge, and the game lifts the sprite 32 px (MonsterDefinition.flight) - the empty lower half
+  // of the cell lands on the ground. The attack clip is the pack's "Attack + Mouth VFX" (64x64: the same body
+  // frames as 03_attack plus the mouth effect); 07_stomp_impact_vfx is the impact drawn on the target.
+  dark_avian: {
+    source: 'art-source/monsters/dark_avian',
+    layout: 'frames',
+    name: 'Dark Avian',
+    nameTh: 'อีแร้งทมิฬ',
+    actions: { idle: '01_idle_4dir', walk: '02_flight_4dir', attack: '04_attack_mouth_vfx_4dir', hit: '05_hit_4dir', death: '06_death_4dir' },
+    frames: { idle: 1, walk: 4, attack: 6, hit: 4, death: 6, vfx: 3 },
+    vfx: { folder: '07_stomp_impact_vfx_4dir', placement: 'target' },
   },
 };
 
@@ -104,6 +120,17 @@ function writePng(file, { w, h, px }) {
 // Frame analysis
 // ------------------------------------------------------------------------------------------------
 function sheetFor(packRoot, folder, dirName) {
+  // layout 'frames': numbered single-frame PNGs, joined left to right in their order, pixels unchanged
+  const framesDir = path.join(packRoot, folder, 'frames', dirName);
+  if (fs.existsSync(framesDir)) {
+    const files = fs.readdirSync(framesDir).filter((n) => n.endsWith('.png')).sort();
+    const imgs = files.map((n) => readPng(path.join(framesDir, n)));
+    const fw = imgs[0].w, fh = imgs[0].h;
+    for (const [i, img] of imgs.entries()) if (img.w !== fw || img.h !== fh) throw new Error(`${framesDir}/${files[i]}: ${img.w}x${img.h}, expected ${fw}x${fh}`);
+    const out = { w: fw * imgs.length, h: fh, px: Buffer.alloc(fw * imgs.length * fh * 4) };
+    imgs.forEach((img, i) => { for (let y = 0; y < fh; y++) img.px.copy(out.px, (y * out.w + i * fw) * 4, y * fw * 4, (y + 1) * fw * 4); });
+    return out;
+  }
   const dir = path.join(packRoot, folder, dirName, 'sheet');
   const file = fs.readdirSync(dir).find((n) => n.endsWith('.png'));
   if (!file) throw new Error(`no sheet in ${dir}`);
@@ -187,7 +214,8 @@ function mouth(img, fx, cw, ch, dir, box, fy = 0) {
 // ------------------------------------------------------------------------------------------------
 for (const [id, pack] of Object.entries(PACKS)) {
   const src = path.join(ROOT, pack.source);
-  const manifest = JSON.parse(fs.readFileSync(path.join(src, fs.readdirSync(src).find((n) => n.endsWith('manifest.json'))), 'utf8'));
+  const manifestFile = fs.readdirSync(src).find((n) => n.endsWith('manifest.json'));
+  const manifest = manifestFile ? JSON.parse(fs.readFileSync(path.join(src, manifestFile), 'utf8')) : { name: pack.name, name_th: pack.nameTh };
   const meta = { id, name: manifest.name, nameTh: manifest.name_th ?? null, rows: DIRS.map(([d]) => d), actions: {}, vfx: null, qa: { specks: [], notes: [] } };
 
   // Body root: horizontal centre of the cell, one row below the lowest feet pixel of the idle frames.
@@ -248,7 +276,10 @@ for (const [id, pack] of Object.entries(PACKS)) {
     writePng(path.join(ROOT, 'public/assets/monsters', id, 'vfx_attack.png'), out);
     const offsets = {};
     const origins = {};
-    if (v.placement === 'cell') {
+    if (v.placement === 'target') {
+      // an impact burst drawn on the target's body at runtime: no attacker-relative placement
+      for (const [dir] of DIRS) { offsets[dir] = { x: 0, y: 0 }; origins[dir] = { x: cw / 2, y: ch / 2 }; }
+    } else if (v.placement === 'cell') {
       // drawn in the body's own cell: same origin as the body
       for (const [dir] of DIRS) { offsets[dir] = { x: 0, y: 0 }; origins[dir] = { ...root }; }
     } else {

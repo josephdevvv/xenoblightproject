@@ -64,7 +64,7 @@ test('export: versioned JSON with every persistent record and nothing from the r
     const c = played('Alpha');
     const text = serializeSave(c, LOCATION, 1234);
     const d = JSON.parse(text) as Record<string, unknown>;
-    assert.deepEqual(Object.keys(d).sort(), ['character', 'checksum', 'format', 'inventory', 'location', 'passives', 'quests', 'savedAt', 'status', 'version']);
+    assert.deepEqual(Object.keys(d).sort(), ['character', 'checksum', 'format', 'hotbar', 'inventory', 'location', 'passives', 'quests', 'savedAt', 'status', 'version']);
     assert.deepEqual([d.format, d.version, d.savedAt], [SAVE_FORMAT, SAVE_FILE_VERSION, 1234]);
     assert.deepEqual(Object.keys(d.status as object).sort(), ['base', 'exp', 'level', 'statPoints'], 'no bonus / derived values');
     assert.ok(text.length < 20_000);

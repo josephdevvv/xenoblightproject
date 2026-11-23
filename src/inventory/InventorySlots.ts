@@ -54,6 +54,8 @@ export interface InventorySource {
   canUnequip(): boolean;
   /** Calls `listener` after every change; returns the unsubscribe function. */
   onChange(listener: () => void): () => void;
+  /** The consumable in a bag slot (its item id), or null. Absent = no consumables. */
+  consumableAt?(bagIndex: number): string | null;
 }
 
 /** Every slot empty. */
@@ -66,13 +68,15 @@ export const EMPTY_INVENTORY: InventorySource = {
   onChange: () => () => undefined,
 };
 
-/** What can be done with the item in a slot (one thing at a time). */
-export type SlotAction = ({ kind: 'equip' } & EquipOption) | { kind: 'unequip' };
+/** What can be done with the item in a slot: equip / unequip, or use / assign a hotkey for a consumable. */
+export type SlotAction = ({ kind: 'equip' } & EquipOption) | { kind: 'unequip' } | { kind: 'consumable'; itemId: string };
 
-/** Bag item that can be worn -> equip; worn item -> unequip; anything else -> nothing. */
+/** Bag item that can be worn -> equip; worn item -> unequip; consumable -> use + hotkey; anything else -> nothing. */
 export function slotAction(source: InventorySource, slot: SlotRef | null): SlotAction | null {
   if (!slot || !source.itemAt(slot)) return null;
   if (slot.kind === 'equipment') return source.canUnequip() ? { kind: 'unequip' } : null;
+  const consumable = source.consumableAt?.(slot.index) ?? null;
+  if (consumable) return { kind: 'consumable', itemId: consumable };
   const option = source.equipOption(slot.index);
   return option ? { kind: 'equip', ...option } : null;
 }

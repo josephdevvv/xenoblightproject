@@ -5,7 +5,7 @@ import { DIALOGUES, DialogueSession } from '../src/dialogue/Dialogues';
 import { collectKeys, findMissingTranslations, getDictionary, initLanguage, setLanguage, translate } from '../src/i18n';
 import { labels } from '../src/i18n/labels';
 import { InventoryService } from '../src/inventory/InventoryService';
-import { bagIndexOf } from '../src/inventory/InventoryState';
+import { bagIndexOf, itemCount } from '../src/inventory/InventoryState';
 import { MONSTER_DEFINITIONS } from '../src/monsters/MonsterDefinition';
 import { MONSTER_EXP_REWARDS } from '../src/progression/MonsterExpRewards';
 import { expToNextLevel } from '../src/progression/ExpCurve';
@@ -146,21 +146,24 @@ test('the whole sequence: markers, 100 EXP once, Status tutorial on any stat, 5 
     assert.deepEqual([marker(c), isQuest03AtMateus(QuestService.quest03(c))], ['completed', true], 'green check mark, dotted path back');
     assert.equal(marker(saveAndLoad(c)), 'completed');
     const before = exp(c);
-    assert.equal(QuestRewards.quest03(c), null, 'not without talking to Mateus');
+    assert.deepEqual(QuestRewards.quest03(c), { ok: false, error: 'notReady' }, 'not without talking to Mateus');
 
     // 12: completion conversation: 200 EXP when it ends, once
     assert.ok(QuestService.advance03(c, 'turnIn'));
     assert.deepEqual(exp(c), before, 'nothing on the first line');
     const paid = QuestRewards.quest03(c);
-    assert.equal(paid?.exp, 200);
-    for (let i = 0; i < 5; i++) assert.equal(QuestRewards.quest03(c), null);
+    assert.ok(paid.ok && paid.exp === 200);
+    assert.equal(itemCount(c.inventory, 'consumable_red_healing_potion'), 20, '20 potions with it');
+    for (let i = 0; i < 5; i++) assert.deepEqual(QuestRewards.quest03(c), { ok: false, error: 'notReady' });
+    assert.equal(itemCount(c.inventory, 'consumable_red_healing_potion'), 20, 'never twice');
     assert.equal(QuestService.advance03(c, 'turnIn'), false, 'no second conversation');
     const after = saveAndLoad(c);
-    assert.equal(QuestRewards.quest03(after), null, 'loaded: never paid again');
-    assert.deepEqual([QuestService.quest03(after).state, marker(after), trackedQuest(after)], ['COMPLETED', null, null], 'no marker, no dotted path, no tracker');
+    assert.deepEqual(QuestRewards.quest03(after), { ok: false, error: 'notReady' }, 'loaded: never paid again');
+    assert.deepEqual([QuestService.quest03(after).state, marker(after)], ['COMPLETED', null], 'Mateus: no marker');
+    assert.deepEqual([npcQuestMarker(after, 'roland_01'), trackedQuest(after)], ['available', { questId: 'tutorial_04_potion_training', objectiveKey: 'objective' }], 'on to Roland');
     assert.equal(isQuest03AtMateus(QuestService.quest03(after)), false);
     assert.deepEqual(completed, ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt'], 'each completed once');
-    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt']);
+    assert.deepEqual(Object.keys(c.quests!).sort(), ['tutorial_01_find_mateus', 'tutorial_02_rusty_dagger', 'tutorial_03_void_mite_hunt', 'tutorial_04_potion_training', 'tutorial_05_mutant_wolf_hunt']);
     off();
     offDone();
   });
@@ -252,7 +255,7 @@ test('Void Mite quest rules: order, kills only while hunting, capped; restore re
 
 test('kill credit: monster EXP unchanged and separate from the quest; another character is independent', () => {
   withoutStorage(() => {
-    assert.deepEqual({ ...MONSTER_EXP_REWARDS }, { voidmite: 20, mutant_wolf: 32 }, 'monster EXP unchanged');
+    assert.deepEqual({ ...MONSTER_EXP_REWARDS }, { voidmite: 20, mutant_wolf: 32, dark_avian: 54 }, 'monster EXP unchanged (the vulture added)');
     const { c, off } = session('Hunter');
     daggerWorn(c);
     turnIn02(c);
@@ -301,8 +304,8 @@ const TEXTS: Record<string, { th: string[]; en: string[] }> = {
     ],
   },
   mateus_void_mite_hunt_done: {
-    th: ['ทำได้ดีมาก เจ้านี่ก็เอาเรื่อง', 'พักกันซักหน่อยแล้วค่อยมาคุยกับข้าอีกรอบ'],
-    en: ["Well done! You're more capable than I thought.", 'Get some rest, then come talk to me again.'],
+    th: ['ทำได้ดีมาก เจ้านี่ก็เอาเรื่อง', 'หลังจากนี้เจ้าจงไปหา Roland เจ้านั่นน่าจะอยู่บริเวณบ้านร้างลึกเข้าไปอีกหน่อย', 'แล้วเราค่อยเจอกันใหม่ ส่วนนี่ก็รางวัลของเจ้า'],
+    en: ["Well done! You're more capable than I thought.", 'Next, go find Roland. He should be somewhere near the abandoned houses farther ahead.', "We'll meet again later. Here's your reward."],
   },
 };
 

@@ -120,7 +120,8 @@ test('save files written before this change still load with their position', () 
     assert.ok(r.ok);
     assert.deepEqual(r.save.savedLocation, { mapId: MAP, x: 20.25, y: 107.5 });
     assert.equal(SAVE_FILE_VERSION, 1);
-    assert.deepEqual(Object.keys(JSON.parse(serializeSave(c, null)) as object).sort(), [...Object.keys(d), 'checksum'].sort(), 'same file format');
+    assert.deepEqual(Object.keys(JSON.parse(serializeSave(c, null)) as object).sort(), [...Object.keys(d), 'checksum', 'hotbar'].sort(), 'same file format (plus the hotbar, optional when reading)');
+    assert.deepEqual(r.save.hotbar, [null, null, null, null, null, null, null, null], 'a file without a hotbar gets an empty one');
   });
 });
 

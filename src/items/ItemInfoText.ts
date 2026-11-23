@@ -10,10 +10,11 @@ const PERCENT_STATS = new Set<string>(DERIVED_DISPLAY.filter((d) => d.percent).m
 export function itemInfo(id: string): ItemInfo | null {
   const def = itemDefinition(id);
   if (!def) return null;
-  const type = [t(`inventory.equipment.${def.equipmentSlot}`)];
+  const type = [def.equipmentSlot ? t(`inventory.equipment.${def.equipmentSlot}`) : t('itemInfo.consumable')];
   if (def.weaponType !== null) type.push(t(`itemInfo.weaponTypes.${def.weaponType}`));
-  type.push(t('itemInfo.requiredLevel', { level: def.requiredLevel }));
+  if (def.category === 'equipment') type.push(t('itemInfo.requiredLevel', { level: def.requiredLevel }));
   const effects: string[] = [];
+  if (def.use) effects.push(t('itemInfo.restoreHp', { value: def.use.restoreHp }));
   if (def.bonuses.physicalAtk !== 0) effects.push(t('itemInfo.physicalAtk', { value: signed(def.bonuses.physicalAtk) }));
   if (def.bonuses.magicAtk !== 0) effects.push(t('itemInfo.magicAtk', { value: signed(def.bonuses.magicAtk) }));
   for (const [key, value] of Object.entries(def.additionalStats) as [keyof DerivedStats, number][]) {

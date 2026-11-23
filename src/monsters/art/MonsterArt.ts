@@ -1,4 +1,5 @@
 import { ATTACK_IMPACT_FRAME } from '../../combat/AttackTiming';
+import darkAvian from './dark_avian.generated.json';
 import mutantWolf from './mutant_wolf.generated.json';
 import voidMite from './void_mite.generated.json';
 
@@ -92,6 +93,22 @@ export const MONSTER_ART = {
     },
     impactFrame: ATTACK_IMPACT_FRAME,
     vfxFrameRate: 14,
+    hitTintFrames: [1, 2],
+  },
+  // Flying: 4 flight frames (wing beats), the 6-frame attack with the pack's mouth effect (it starts on
+  // frame 4, the global hit frame), the 3-frame impact burst drawn on the target.
+  dark_avian: {
+    meta: darkAvian as MonsterArtMeta,
+    basePath: 'assets/monsters/dark_avian/',
+    timing: {
+      idle: { frameRate: 1, repeat: -1 },
+      walk: { frameRate: 8, repeat: -1 },
+      attack: { frameRate: 10, repeat: 0 },
+      hit: { frameRate: 12, repeat: 0 },
+      death: { frameRate: 8, repeat: 0 },
+    },
+    impactFrame: ATTACK_IMPACT_FRAME,
+    vfxFrameRate: 12,
     hitTintFrames: [1, 2],
   },
 } as const satisfies Record<string, MonsterArt>;

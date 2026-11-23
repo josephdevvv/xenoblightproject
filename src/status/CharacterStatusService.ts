@@ -4,7 +4,9 @@ import { computeDerivedStats, type DerivedStats } from './DerivedStats';
 import { applyDerivedBonus, combineDerivedBonuses, type DerivedBonus } from './DerivedBonuses';
 import { passiveDerivedBonus, sanitizePassiveProgress, syncLevelRewards } from '../passives/PassiveProgress';
 import type { PassiveProgress } from '../passives/PassiveProgress';
-import { createInventory, equipmentDerivedBonus, type InventoryState } from '../inventory/InventoryState';
+import { equipmentDerivedBonus, type InventoryState } from '../inventory/InventoryState';
+import { startingInventory } from '../items/StartingEquipment';
+import { createHotbar, type HotbarState } from '../hotbar/Hotbar';
 import { QuestService } from '../quests/QuestService';
 import type { StatAllocationDraft } from './StatAllocation';
 import { addExp } from '../progression/LevelProgression';
@@ -22,6 +24,8 @@ export interface SavedProgress {
   passives: PassiveProgress;
   quests: Readonly<Record<string, unknown>>;
   inventory: InventoryState;
+  /** Absent = an empty hotbar. */
+  hotbar?: HotbarState;
 }
 
 type Listener = (character: CharacterData) => void;
@@ -35,11 +39,12 @@ const listeners = new Set<Listener>();
  * browser: the only way to keep it is an exported save file (src/save).
  */
 export const CharacterStatusService = {
-  /** A fresh character by the starting rules: level 1, nothing owned, the first quest waiting. */
+  /** A fresh character by the starting rules: level 1, the starting equipment worn, the first quest waiting. */
   startNew(character: CharacterData): void {
     character.status = createInitialStatus();
     character.passives = sanitizePassiveProgress(null, character.status.level).progress;
-    character.inventory = createInventory();
+    character.inventory = startingInventory();
+    character.hotbar = createHotbar();
     QuestService.begin(character);
   },
 
@@ -49,6 +54,7 @@ export const CharacterStatusService = {
     normalizeExp(character.status);
     character.passives = sanitizePassiveProgress(saved.passives, character.status.level).progress;
     character.inventory = saved.inventory;
+    character.hotbar = saved.hotbar ?? createHotbar();
     QuestService.restore(character, saved.quests);
   },
 

@@ -21,7 +21,17 @@ export interface DialogueHooks {
   onInterrupted?: () => void;
   /** A picture shown above the window during a step (0-based), e.g. the creature a quest is about. */
   picture?: (step: number) => DialoguePicture | null;
+  /**
+   * false = a tutorial guide line: no dimming layer, so the controls a tutorial spotlight points at stay usable
+   * (the spotlight decides what can be clicked). The window itself still advances on a click inside it.
+   */
+  modal?: boolean;
+  /** 'top' = at the top of the screen (guide lines over a window whose lower part is in use). Default 'bottom'. */
+  position?: 'bottom' | 'top';
 }
+
+/** Top edge of the window when it is shown at the top of the screen. */
+const TOP_Y = 6;
 
 /** A frame of a loaded texture, drawn at a whole-number scale (nearest neighbour). */
 export interface DialoguePicture {
@@ -49,19 +59,23 @@ export class DialogueWindow {
   private readonly blink: Phaser.Tweens.Tween;
   private readonly textWidth: number;
   private session: DialogueSession | null = null;
+  private lines: readonly string[] | null = null;
   private onFinished: (() => void) | null = null;
   private hooks: DialogueHooks = {};
   /** A left press that began on the window and has not been released, moved off or used yet. */
   private pressed = false;
   private readonly pictureFrame: Phaser.GameObjects.Graphics;
   private readonly pictureImage: Phaser.GameObjects.Image;
-  private readonly panelTop: number;
+  private panelTop: number;
+  /** Bottom position of the panel; open() moves everything by the difference for 'top'. */
+  private readonly baseY: number;
 
   constructor(scene: Phaser.Scene, depth: number) {
     const { width: sw, height: sh } = scene.scale;
     const x = Math.round((sw - PANEL.width) / 2);
     const y = sh - PANEL.bottom - PANEL.height;
     this.textWidth = PANEL.width - PAD_X * 2 - NEXT.width;
+    this.baseY = y;
 
     this.blocker = scene.add.rectangle(0, 0, sw, sh, 0x000000, 0.25).setOrigin(0, 0).setDepth(depth);
     this.panel = scene.add.graphics({ x, y }).setDepth(depth + 1);
@@ -102,6 +116,21 @@ export class DialogueWindow {
     return this.session !== null;
   }
 
+  /** Open and dimming everything else (an ordinary conversation, not a tutorial guide line). */
+  get isModal(): boolean {
+    return this.session !== null && this.hooks.modal !== false;
+  }
+
+  /** The conversation open now was opened with these lines (for tutorials that show guide lines). */
+  isShowing(lines: readonly string[]): boolean {
+    return this.session !== null && this.lines === lines;
+  }
+
+  /** Closes the window without finishing the conversation (onFinished and onInterrupted do not run). */
+  dismiss(): void {
+    if (this.session) this.close();
+  }
+
   /** A picture is shown above the window now (for checks). */
   get pictureShown(): boolean {
     return this.pictureImage.visible;
@@ -115,12 +144,22 @@ export class DialogueWindow {
   /** Opens a conversation; `onFinished` runs once, after the last step was confirmed and the window closed. */
   open(speaker: string, lines: readonly string[], onFinished: () => void, hooks: DialogueHooks = {}): void {
     this.session = new DialogueSession(lines);
+    this.lines = lines;
     this.onFinished = onFinished;
     this.hooks = hooks;
+    this.placeAt(hooks.position === 'top' ? TOP_Y : this.baseY);
     this.nameText.setText(speaker);
     this.drawPanel();
     this.setVisible(true);
     this.showLine();
+  }
+
+  /** Moves the window so its top edge is at `y` (text, arrow and click area move with it). */
+  private placeAt(y: number): void {
+    const dy = y - this.panel.y;
+    if (dy === 0) return;
+    for (const o of [this.panel, this.nameText, this.lineText, this.next]) o.y += dy;
+    this.panelTop = y;
   }
 
   private advance(): void {
@@ -142,6 +181,7 @@ export class DialogueWindow {
 
   private close(): void {
     this.session = null;
+    this.lines = null;
     this.onFinished = null;
     this.hooks = {};
     this.setVisible(false);
@@ -201,10 +241,13 @@ export class DialogueWindow {
   private setVisible(visible: boolean): void {
     for (const o of [this.blocker, this.panel, this.nameText, this.lineText, this.next]) o.setVisible(visible);
     if (!visible) this.showPicture(null);
+    const modal = visible && this.hooks.modal !== false;
+    this.blocker.setVisible(modal);
     this.pressed = false;
     this.drawNext(false, false);
     if (visible) {
-      this.blocker.setInteractive();
+      if (modal) this.blocker.setInteractive();
+      else if (this.blocker.input) this.blocker.disableInteractive();
       this.panel.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, 0, PANEL.width, PANEL.height), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
       this.blink.resume();
     } else {

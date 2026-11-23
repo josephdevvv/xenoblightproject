@@ -26,12 +26,16 @@ import {
   type Quest02Progress,
 } from './TutorialQuest02';
 import { applyQuest03, createQuest03, restoreQuest03, TUTORIAL_QUEST_03, type Quest03Event, type Quest03Progress } from './TutorialQuest03';
+import { applyQuest04, createQuest04, isItemUseBlocked, restoreQuest04, TUTORIAL_QUEST_04, type Quest04Event, type Quest04Progress } from './TutorialQuest04';
+import { applyQuest05, createQuest05, restoreQuest05, TUTORIAL_QUEST_05, type Quest05Event, type Quest05Progress } from './TutorialQuest05';
 
 /** A character's quests by quest id. Entries of quests this build does not know are kept as stored. */
 export interface QuestLog {
   tutorial_01_find_mateus: Quest01Progress;
   tutorial_02_rusty_dagger: Quest02Progress;
   tutorial_03_void_mite_hunt: Quest03Progress;
+  tutorial_04_potion_training: Quest04Progress;
+  tutorial_05_mutant_wolf_hunt: Quest05Progress;
   [otherQuestId: string]: unknown;
 }
 
@@ -49,7 +53,13 @@ const completedListeners = new Set<CompletedListener>();
 export const QuestService = {
   /** A new character's quests. */
   begin(character: CharacterData): void {
-    character.quests = { tutorial_01_find_mateus: createQuest01(true), tutorial_02_rusty_dagger: createQuest02(), tutorial_03_void_mite_hunt: createQuest03() };
+    character.quests = {
+      tutorial_01_find_mateus: createQuest01(true),
+      tutorial_02_rusty_dagger: createQuest02(),
+      tutorial_03_void_mite_hunt: createQuest03(),
+      tutorial_04_potion_training: createQuest04(),
+      tutorial_05_mutant_wolf_hunt: createQuest05(),
+    };
   },
 
   /** The quests of a save file (after the status and the inventory). Each record is checked; quests this build does not know are kept. */
@@ -58,7 +68,14 @@ export const QuestService = {
     const spent = character.status ? pointsSpent(character.status) : 0;
     const quest02 = restoreQuest02(stored[TUTORIAL_QUEST_02.id], hasGrant(character.inventory, TUTORIAL_QUEST_02.reward.grantId), spent);
     const quest03 = restoreQuest03(stored[TUTORIAL_QUEST_03.id]);
-    character.quests = { ...stored, tutorial_01_find_mateus: quest, tutorial_02_rusty_dagger: quest02, tutorial_03_void_mite_hunt: quest03 };
+    character.quests = {
+      ...stored,
+      tutorial_01_find_mateus: quest,
+      tutorial_02_rusty_dagger: quest02,
+      tutorial_03_void_mite_hunt: quest03,
+      tutorial_04_potion_training: restoreQuest04(stored[TUTORIAL_QUEST_04.id]),
+      tutorial_05_mutant_wolf_hunt: restoreQuest05(stored[TUTORIAL_QUEST_05.id]),
+    };
   },
 
   quest01(character: CharacterData): Quest01Progress {
@@ -121,6 +138,47 @@ export const QuestService = {
     return true;
   },
 
+  quest04(character: CharacterData): Quest04Progress {
+    return character.quests?.tutorial_04_potion_training ?? createQuest04();
+  },
+
+  /** Applies a step of Tutorial Quest 04 (Roland's potion training). False when it is not valid now. */
+  advance04(character: CharacterData, event: Quest04Event): boolean {
+    if (!character.quests) return false;
+    const next = applyQuest04(this.quest04(character), event);
+    if (!next) return false;
+    commit(character, { tutorial_04_potion_training: next });
+    if (next.state === 'COMPLETED') {
+      for (const l of completedListeners) l(character, TUTORIAL_QUEST_04.id);
+      this.advance05(character, 'start');
+    }
+    return true;
+  },
+
+  /** The potion was put on the hotbar: ends the potion training's Inventory steps (after the Use explanation). */
+  hotkeyAssigned(character: CharacterData, itemId: string): boolean {
+    return itemId === TUTORIAL_QUEST_04.potionItemId && this.advance04(character, 'hotkeyAssigned');
+  },
+
+  /** Using items is not allowed now (a tutorial step only explains it). */
+  isItemUseBlocked(character: CharacterData): boolean {
+    return isItemUseBlocked(this.quest04(character));
+  },
+
+  quest05(character: CharacterData): Quest05Progress {
+    return character.quests?.tutorial_05_mutant_wolf_hunt ?? createQuest05();
+  },
+
+  /** Applies a step of Tutorial Quest 05 (Mutant Wolf hunt). False when it is not valid now. */
+  advance05(character: CharacterData, event: Quest05Event): boolean {
+    if (!character.quests) return false;
+    const next = applyQuest05(this.quest05(character), event);
+    if (!next) return false;
+    commit(character, { tutorial_05_mutant_wolf_hunt: next });
+    if (next.state === 'COMPLETED') for (const l of completedListeners) l(character, TUTORIAL_QUEST_05.id);
+    return true;
+  },
+
   /** Tutorial Quest 03 can be offered: Tutorial Quest 02 is turned in, Status tutorial included. */
   canStart03(character: CharacterData): boolean {
     return isQuest02TurnedIn(this.quest02(character));
@@ -128,13 +186,16 @@ export const QuestService = {
 
   /** A monster the player got the kill credit for (CombatSystem: once per kill). True when it counted for a quest. */
   recordKill(character: CharacterData, monsterId: MonsterId): boolean {
-    return monsterId === TUTORIAL_QUEST_03.target.monsterId && this.advance03(character, 'kill');
+    if (monsterId === TUTORIAL_QUEST_03.target.monsterId && this.advance03(character, 'kill')) return true;
+    return monsterId === TUTORIAL_QUEST_05.target.monsterId && this.advance05(character, 'kill');
   },
 
   /** Every quest step that follows from what the character has done. Safe to call at any time. */
   sync(character: CharacterData): void {
     this.sync02(character);
     if (this.canStart03(character)) this.advance03(character, 'offer');
+    if (this.quest03(character).state === 'COMPLETED') this.advance04(character, 'offer');
+    if (this.quest04(character).state === 'COMPLETED') this.advance05(character, 'start');
   },
 
   /** The Passive Tree tutorial's node is unlocked. */
@@ -170,7 +231,10 @@ export const QuestService = {
   },
 };
 
-function commit(character: CharacterData, change: Partial<Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger' | 'tutorial_03_void_mite_hunt'>>): void {
+function commit(
+  character: CharacterData,
+  change: Partial<Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger' | 'tutorial_03_void_mite_hunt' | 'tutorial_04_potion_training' | 'tutorial_05_mutant_wolf_hunt'>>,
+): void {
   character.quests = { ...character.quests!, ...change };
   for (const l of changeListeners) l(character);
 }

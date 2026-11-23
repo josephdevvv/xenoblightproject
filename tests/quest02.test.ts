@@ -32,6 +32,8 @@ import { NOTIFICATION_TIMING, NotificationQueue } from '../src/ui/notifications/
 import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
 const DAGGER = 'weapon_rusty_dagger';
+/** The starter armor every new character wears (StartingEquipment). */
+const ARMOR = 'armor_worn_cloth';
 const { reward } = TUTORIAL_QUEST_02;
 const EVENTS: Quest02Event[] = ['start', 'talk', 'cancelTalk', 'grantReward', 'finishDialogue', 'complete', 'turnIn', 'cancelTurnIn', 'grantExp', 'finishTurnIn', 'statAllocated'];
 const at = (state: Quest02State): Quest02Progress => ({ state });
@@ -151,7 +153,7 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     assert.ok(QuestService.advance02(c, 'talk'));
     assert.equal(InventoryService.grantOnce(c, reward), null);
     assert.ok(QuestService.advance02(c, 'grantReward'));
-    assert.deepEqual(items(c.inventory!), [DAGGER]);
+    assert.deepEqual(items(c.inventory!), [DAGGER, ARMOR]);
     assert.equal(c.inventory!.equipment.weapon, null, 'not equipped by itself');
     assert.equal(playerCombatStats(CharacterStatusService.derived(c)).atk, atk, 'no bonus while it lies in the bag');
     assert.deepEqual(gained, [['Alpha', DAGGER, 1]]);
@@ -162,7 +164,7 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     // reload, then equip
     const c2 = saveAndLoad(c);
     assert.equal(QuestService.quest02(c2).state, 'EQUIPMENT_TUTORIAL');
-    assert.deepEqual(items(c2.inventory!), [DAGGER]);
+    assert.deepEqual(items(c2.inventory!), [DAGGER, ARMOR]);
     assert.equal(InventoryService.grantOnce(c2, reward), 'alreadyGranted');
     const index = bagIndexOf(c2.inventory, DAGGER);
     assert.equal(InventoryService.equip(c2, index, 'hat'), 'wrongSlot');
@@ -172,7 +174,7 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     QuestService.sync02(c2);
     assert.equal(QuestService.quest02(c2).state, 'COMPLETED');
     assert.deepEqual(done, ['Alpha:tutorial_01_find_mateus', 'Alpha:tutorial_02_rusty_dagger']);
-    assert.deepEqual(items(c2.inventory!), [DAGGER]);
+    assert.deepEqual(items(c2.inventory!), [DAGGER, ARMOR]);
 
     const c3 = saveAndLoad(c2);
     assert.equal(QuestService.quest02(c3).state, 'COMPLETED');
@@ -185,7 +187,7 @@ test('whole quest: one dagger, worn, saved, completed once, no EXP, quest 01 unt
     assert.equal(JSON.stringify(QuestService.quest01(c3)), before.quest01);
     assert.equal(TUTORIAL_QUEST_EXP_BUDGET.allocations[TUTORIAL_QUEST_02.id], 100, 'paid only when turned in (questFlow tests)');
     // another character - also of the same name - is independent
-    assert.deepEqual(items(newCharacter('Alpha').inventory!), []);
+    assert.deepEqual(items(newCharacter('Alpha').inventory!), [ARMOR], 'only the starter armor');
     off();
     offGained();
   });
@@ -198,13 +200,13 @@ test('reward: repeated, or saved and loaded at any point - never a second dagger
     const c = afterPassiveTutorial('Alpha');
     QuestService.advance02(c, 'talk');
     for (let i = 0; i < 5; i++) InventoryService.grantOnce(c, reward);
-    assert.deepEqual(items(c.inventory!), [DAGGER]);
+    assert.deepEqual(items(c.inventory!), [DAGGER, ARMOR]);
     // saved between giving the item and the next quest step
     const reloaded = saveAndLoad(c);
     assert.equal(InventoryService.grantOnce(reloaded, reward), 'alreadyGranted');
     assert.equal(QuestService.quest02(reloaded).state, 'EQUIPMENT_TUTORIAL');
     assert.equal(QuestService.advance02(reloaded, 'talk'), false, 'no second conversation');
-    assert.deepEqual(items(reloaded.inventory!), [DAGGER]);
+    assert.deepEqual(items(reloaded.inventory!), [DAGGER, ARMOR]);
   });
 });
 
@@ -341,7 +343,7 @@ test('inventory window data: icon, name, type and effects of the registered item
     assert.equal(changes, 2);
     off();
   });
-  assert.equal(ITEM_CATALOG.size, 1, 'no additional items');
+  assert.deepEqual([...ITEM_CATALOG.keys()], [DAGGER, ARMOR, 'consumable_red_healing_potion'], 'no additional items');
 });
 
 test('equipment tutorial: the step always follows what is open, selected and worn', () => {

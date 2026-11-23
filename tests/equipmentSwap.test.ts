@@ -159,12 +159,13 @@ test('service: Rusty Dagger A <-> B, +4 exactly once, saved, survives a reload',
     assert.deepEqual(reloaded.inventory, c.inventory);
     assert.deepEqual(CharacterStatusService.derived(reloaded), worn);
     for (let i = 0; i < 101; i++) assert.equal(InventoryService.equip(reloaded, 1, 'weapon'), null);
-    assert.deepEqual([reloaded.inventory!.equipment.weapon?.instanceId, Object.keys(instances(reloaded.inventory!)).sort()], [first, [first, second].sort()]);
+    const armor = c.inventory!.equipment.armor!.instanceId;
+    assert.deepEqual([reloaded.inventory!.equipment.weapon?.instanceId, Object.keys(instances(reloaded.inventory!)).sort()], [first, [first, second, armor].sort()], 'the starter armor is untouched');
     assert.deepEqual(CharacterStatusService.derived(reloaded), worn);
     // taking off still works, the other one stays where it is
     assert.deepEqual(InventoryService.unequip(reloaded, 'weapon'), { bagIndex: 0 });
     assert.deepEqual(CharacterStatusService.derived(reloaded), base);
-    assert.equal(Object.keys(instances(reloaded.inventory!)).length, 2);
+    assert.equal(Object.keys(instances(reloaded.inventory!)).length, 3);
   });
 });
 

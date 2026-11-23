@@ -88,7 +88,7 @@ export function equipFromBag(s: InventoryState, bagIndex: number, slot: Equipmen
   if (!stack) return { ok: false, error: 'emptySlot' };
   const def = lookup(stack.itemId);
   if (!def) return { ok: false, error: 'unknownItem' };
-  if (def.category !== 'equipment' || def.equipmentSlot !== slot || stack.quantity !== 1) return { ok: false, error: 'wrongSlot' };
+  if (def.category !== 'equipment' || def.equipmentSlot === null || def.equipmentSlot !== slot || stack.quantity !== 1) return { ok: false, error: 'wrongSlot' };
   if (level < def.requiredLevel) return { ok: false, error: 'levelTooLow' };
   const worn = s.equipment[slot];
   const item = stackToInstance(stack);
@@ -105,11 +105,31 @@ export function equipFromBag(s: InventoryState, bagIndex: number, slot: Equipmen
 export function equipOption(s: InventoryState, bagIndex: number, level: number, lookup: Lookup = itemDefinition): EquipOption | null {
   const stack = s.bag[bagIndex] ?? null;
   const def = stack ? lookup(stack.itemId) : undefined;
-  if (!def || def.category !== 'equipment') return null;
+  if (!def || def.category !== 'equipment' || def.equipmentSlot === null) return null;
   const option = { slot: def.equipmentSlot, requiredLevel: def.requiredLevel };
   const result = equipFromBag(s, bagIndex, def.equipmentSlot, level, lookup);
   if (result.ok) return { ...option, problem: null };
   return result.error === 'levelTooLow' ? { ...option, problem: result.error } : null;
+}
+
+/** How many of an item lie in the bag (all its stacks). */
+export function itemCount(s: InventoryState | undefined, itemId: string): number {
+  return s ? s.bag.reduce((n, stack) => n + (stack?.itemId === itemId ? stack.quantity : 0), 0) : 0;
+}
+
+export type ConsumeResult = { ok: true; state: InventoryState } | { ok: false; error: 'none' };
+
+/**
+ * Takes ONE of an item out of the bag: from `bagIndex` when that slot holds it, otherwise from its first stack.
+ * An emptied stack frees its slot. Nothing else changes; without the item there is no new state.
+ */
+export function consumeOne(s: InventoryState, itemId: string, bagIndex = -1): ConsumeResult {
+  const index = s.bag[bagIndex]?.itemId === itemId ? bagIndex : bagIndexOf(s, itemId);
+  const stack = index >= 0 ? s.bag[index] : null;
+  if (!stack || stack.quantity < 1) return { ok: false, error: 'none' };
+  const bag = [...s.bag];
+  bag[index] = stack.quantity > 1 ? { ...stack, quantity: stack.quantity - 1 } : null;
+  return { ok: true, state: { ...s, bag } };
 }
 
 export type UnequipError = 'emptySlot' | 'bagFull';

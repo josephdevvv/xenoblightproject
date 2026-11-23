@@ -56,6 +56,9 @@ export class MonsterEntity {
   private attackCooldownMs = 0;
   private stuckMs = 0;
   private respawnInMs = 0;
+  /** Flying monsters: bobbing clock and the shadow on the ground point. */
+  private flightClock = 0;
+  private readonly shadow: Phaser.GameObjects.Ellipse | null;
   private lifeCount = 1;
 
   constructor(
@@ -80,7 +83,16 @@ export class MonsterEntity {
     this.animator = new MonsterAnimator(scene, definition.art, facing);
     this.label = createNameLabel(scene, definition.displayName, NAME_LABEL_COLORS.monster);
     this.hpBar = scene.add.graphics().setDepth(DEPTH.NamePlate).setVisible(false);
+    this.shadow = definition.flight ? scene.add.ellipse(0, 0, 18, 7, 0x000000, 0.32) : null;
     this.syncSprite();
+  }
+
+  /** How far the body is drawn above the ground point now (0 for monsters that walk). */
+  private lift(): number {
+    const f = this.definition.flight;
+    if (!f) return 0;
+    if (!this.isAlive()) return f.heightPx; // the death clip falls from the flying height by itself
+    return f.heightPx + Math.round(Math.sin((this.flightClock / f.bobPeriodMs) * Math.PI * 2) * f.bobPx);
   }
 
   /** The animated body sprite (bounds, picking, depth). */
@@ -164,6 +176,10 @@ export class MonsterEntity {
    * @param canStand whether this monster may stand at a point (collision + other monsters + buildings)
    */
   update(deltaMs: number, canStand: (p: Point) => boolean, ctx: MonsterCombatContext): void {
+    if (this.definition.flight && this.isAlive()) {
+      this.flightClock = (this.flightClock + deltaMs) % this.definition.flight.bobPeriodMs;
+      this.animator.sprite.y = Math.round(this.world.y) - this.lift();
+    }
     switch (this.mode) {
       case 'gone':
         this.respawnInMs -= deltaMs;
@@ -171,6 +187,8 @@ export class MonsterEntity {
         if (this.respawnInMs <= 0 && (!ctx.player || Math.hypot(ctx.player.x - this.home.x, ctx.player.y - this.home.y) > 2)) this.respawn();
         return;
       case 'dying':
+        // the respawn delay counts from the death itself; the death clip and fade always play out first
+        this.respawnInMs -= deltaMs;
         return;
       case 'chase':
         this.updateChase(deltaMs, ctx);
@@ -188,6 +206,7 @@ export class MonsterEntity {
     this.animator.destroy();
     this.label.destroy();
     this.hpBar.destroy();
+    this.shadow?.destroy();
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -306,19 +325,20 @@ export class MonsterEntity {
 
   private die(): void {
     this.mode = 'dying';
+    this.respawnInMs = this.definition.combat.respawnMs;
     this.hpBar.setVisible(false);
     this.animator.die(() => {
       const scene = this.sprite.scene;
       scene.time.delayedCall(CORPSE_MS, () => {
         scene.tweens.add({
-          targets: [this.sprite, this.label],
+          targets: [this.sprite, this.label, ...(this.shadow ? [this.shadow] : [])],
           alpha: 0,
           duration: FADE_MS,
           onComplete: () => {
             this.sprite.setVisible(false);
             this.label.setVisible(false);
+            this.shadow?.setVisible(false);
             this.mode = 'gone';
-            this.respawnInMs = this.definition.combat.respawnMs;
           },
         });
       });
@@ -336,6 +356,7 @@ export class MonsterEntity {
     this.animator.reset();
     this.sprite.setAlpha(1).setVisible(true);
     this.label.setAlpha(1).setVisible(true);
+    this.shadow?.setAlpha(1).setVisible(true);
     this.drawHpBar();
     this.syncSprite();
   }
@@ -357,7 +378,8 @@ export class MonsterEntity {
     const y = Math.round(world.y);
     // Same depth rule as characters: screen Y of the feet, corrected against nearby structure walls.
     const depth = this.map.resolveDepth(this.footprint(), world.y, this.animator.sprite.getBounds());
-    this.animator.setRoot(x, y, depth);
+    this.animator.setRoot(x, y - this.lift(), depth);
+    this.shadow?.setPosition(x, y).setDepth(depth - 1);
     placeNameLabel(this.label, x, y);
     this.hpBar.setPosition(x, nameLabelTop(y) + Math.round(this.label.height) + 1);
   }

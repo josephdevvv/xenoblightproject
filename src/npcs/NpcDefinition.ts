@@ -2,6 +2,7 @@ import type { TileCoord } from '../core/types';
 import cityGuard from './art/city_guard_01.generated.json';
 import cityGuardJack from './art/city_guard_jack.generated.json';
 import cityGuardSonny from './art/city_guard_sonny.generated.json';
+import roland from './art/roland_01.generated.json';
 
 /**
  * Non-player characters. Data only: a stable id (used later by quests / dialogue), a display name, where it
@@ -9,7 +10,13 @@ import cityGuardSonny from './art/city_guard_sonny.generated.json';
  * nothing about them is stored here.
  */
 
-export type NpcId = 'city_guard_01' | 'city_guard_jack' | 'city_guard_sonny';
+export type NpcId = 'city_guard_01' | 'city_guard_jack' | 'city_guard_sonny' | 'roland_01';
+
+/**
+ * Every NPC is drawn 10 % larger than its sheet (nearest neighbour - the game renders pixel art), scaled about
+ * its ground anchor, so the feet stay on the tile. Sheets are unchanged; players and monsters are not scaled.
+ */
+export const NPC_DISPLAY_SCALE = 1.1;
 
 export interface NpcSheetMeta {
   id: string;
@@ -75,6 +82,19 @@ export const NPC_DEFINITIONS: Readonly<Record<NpcId, NpcDefinition>> = {
     facing: 'SW',
     art: { meta: cityGuardSonny as NpcSheetMeta, url: 'assets/npcs/city_guard_sonny/DoorGuard02IdleAnimation.png' },
     head: { x: 31, top: 8 },
+    idle: { stillMs: 15000, frameMs: 150 },
+  },
+  // Roland, INSIDE the abandoned stone house of Zone 2 (footprint cols 8-11, rows 76-78; walk-in building,
+  // doorway on its street side at (12, 77)): on the floor tile (8, 77) by the back wall. Standing frame 1;
+  // frames 2-25 played once at 150 ms, then 15 s still.
+  roland_01: {
+    id: 'roland_01',
+    name: 'Roland',
+    mapId: 'ashen_crossroads',
+    tile: { col: 8, row: 77 },
+    facing: 'SW',
+    art: { meta: roland as NpcSheetMeta, url: 'assets/npcs/roland_01/NPCRolandIdleAnimation.png' },
+    head: { x: 32, top: 8 },
     idle: { stillMs: 15000, frameMs: 150 },
   },
 };

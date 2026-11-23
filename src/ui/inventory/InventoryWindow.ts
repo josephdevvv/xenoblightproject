@@ -10,6 +10,7 @@ import { EquipmentPanel } from './EquipmentPanel';
 import { InventoryGridPanel } from './InventoryGridPanel';
 import { inventoryLayout, type InventoryLayout } from './InventoryLayout';
 import { drawOutline, drawPanelFrame, INV_COLORS } from './inventoryTheme';
+import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
 import { ItemDetailPanel } from './ItemDetailPanel';
 
 /**
@@ -41,6 +42,10 @@ export class InventoryWindow {
   private actionPauseUntil = 0;
   /** Equipping / taking off did not work (message for the player). */
   onProblem: ((action: SlotAction['kind'], problem: UnequipProblem | 'failed') => void) | null = null;
+  /** USE on a consumable (GameUIScene: the game decides whether it may be used). */
+  onUse: ((itemId: string, bagIndex: number) => void) | null = null;
+  /** ASSIGN HOTKEY on a consumable (opens the assignment window). */
+  onAssign: ((itemId: string) => void) | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -79,7 +84,14 @@ export class InventoryWindow {
     const onClick = (slot: SlotRef): void => this.selection.select(slot);
     this.equipment = new EquipmentPanel(scene, this.root, L, source, this.selection, onClick);
     this.grid = new InventoryGridPanel(scene, this.root, L, source, this.selection, onClick);
-    this.detail = new ItemDetailPanel(scene, this.root, L, () => this.doAction());
+    this.detail = new ItemDetailPanel(
+      scene,
+      this.root,
+      L,
+      () => this.doAction(),
+      () => this.doConsumable('use'),
+      () => this.doConsumable('assign'),
+    );
     this.closeButton = new FrameButton(scene, this.root, L.close, INV_COLORS.redText, () => this.close());
 
     this.selection.onChange(() => this.showSelected());
@@ -101,6 +113,28 @@ export class InventoryWindow {
   /** The click zone of EQUIP while it is offered (tutorial spotlight target). */
   get equipZone(): Phaser.GameObjects.Zone | null {
     return this.detail.actionZone('equip');
+  }
+
+  /** USE / ASSIGN HOTKEY while a consumable is selected (tutorial spotlight targets). */
+  get useZone(): Phaser.GameObjects.Zone | null {
+    return this.detail.actionZone('use');
+  }
+
+  get assignZone(): Phaser.GameObjects.Zone | null {
+    return this.detail.actionZone('assign');
+  }
+
+  /** The item description panel on the screen (tutorial spotlight target), while the window is open. */
+  detailArea(): ScreenRect | null {
+    if (!this.open) return null;
+    const [wx, wy] = this.layout.window;
+    const [x, y, width, height] = this.layout.panels.detail;
+    return throughCamera({ x: wx + x, y: wy + y, width, height }, this.scene.cameras.main);
+  }
+
+  /** Shows the selection again (e.g. after the item's quantity changed elsewhere). */
+  refreshSelection(): void {
+    if (this.open) this.showSelected();
   }
 
   show(): void {
@@ -149,6 +183,17 @@ export class InventoryWindow {
       this.selection.select({ kind: 'bag', index: result.bagIndex });
     }
     this.actionPauseUntil = now + ACTION_PAUSE_MS;
+  }
+
+  /** USE / ASSIGN HOTKEY for the selected consumable (with the same short pause as EQUIP). */
+  private doConsumable(kind: 'use' | 'assign'): void {
+    const slot = this.selection.current;
+    const action = slotAction(this.source, slot);
+    const now = this.scene.time.now;
+    if (!slot || slot.kind !== 'bag' || action?.kind !== 'consumable' || now < this.actionPauseUntil) return;
+    if (kind === 'use') this.onUse?.(action.itemId, slot.index);
+    else this.onAssign?.(action.itemId);
+    this.actionPauseUntil = now + (kind === 'use' ? ACTION_PAUSE_MS / 2 : ACTION_PAUSE_MS);
   }
 
   private refresh(): void {

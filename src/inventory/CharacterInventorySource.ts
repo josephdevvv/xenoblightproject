@@ -2,6 +2,7 @@ import type { CharacterData } from '../data/CharacterData';
 import { itemInfo } from '../items/ItemInfoText';
 import type { InventorySource } from './InventorySlots';
 import { InventoryService } from './InventoryService';
+import { itemDefinition } from '../items/ItemCatalog';
 import { equipOption } from './InventoryState';
 
 /** A character's items as the Inventory window shows them. `canUnequip`: items may be taken off now. */
@@ -16,6 +17,10 @@ export function characterInventorySource(character: CharacterData, canUnequip: (
     equip: (bagIndex, slot) => InventoryService.equip(character, bagIndex, slot) === null,
     unequip: (slot) => (canUnequip() ? InventoryService.unequip(character, slot) : { error: 'notAllowed' }),
     canUnequip,
+    consumableAt: (bagIndex) => {
+      const stack = InventoryService.state(character).bag[bagIndex];
+      return stack && itemDefinition(stack.itemId)?.category === 'consumable' ? stack.itemId : null;
+    },
     onChange: (listener) =>
       InventoryService.onChange((c) => {
         if (c === character) listener();

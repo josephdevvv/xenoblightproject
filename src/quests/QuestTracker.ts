@@ -3,6 +3,8 @@ import { QuestService } from './QuestService';
 import { isQuest01Active, TUTORIAL_QUEST_01 } from './TutorialQuest01';
 import { isQuest02AtMateus, TUTORIAL_QUEST_02 } from './TutorialQuest02';
 import { isQuest03AtMateus, isQuest03Tracking, TUTORIAL_QUEST_03 } from './TutorialQuest03';
+import { TUTORIAL_QUEST_04 } from './TutorialQuest04';
+import { isQuest05Tracking, TUTORIAL_QUEST_05 } from './TutorialQuest05';
 
 /** What the HUD quest tracker shows: quest name key, objective key under it, its parameters. */
 export interface TrackedQuest {
@@ -21,5 +23,11 @@ export function trackedQuest(character: CharacterData): TrackedQuest | null {
   if (quest02.state === 'STATUS_TUTORIAL') return { questId: TUTORIAL_QUEST_02.id, objectiveKey: 'objectiveStatus' };
   if (isQuest03Tracking(quest03)) return { questId: TUTORIAL_QUEST_03.id, objectiveKey: 'objectiveHunt', params: { count: quest03.kills, total: TUTORIAL_QUEST_03.target.count } };
   if (isQuest03AtMateus(quest03)) return { questId: TUTORIAL_QUEST_03.id, objectiveKey: 'objective' };
+  const quest04 = QuestService.quest04(character).state;
+  if (quest04 === 'OFFERED' || quest04 === 'INTRO_DIALOGUE') return { questId: TUTORIAL_QUEST_04.id, objectiveKey: 'objective' };
+  if (quest04 === 'POTION_TUTORIAL') return { questId: TUTORIAL_QUEST_04.id, objectiveKey: 'objectiveTutorial' };
+  if (quest04 === 'HOTKEY_ASSIGNED' || quest04 === 'FINAL_DIALOGUE') return { questId: TUTORIAL_QUEST_04.id, objectiveKey: 'objectiveReturn' };
+  const quest05 = QuestService.quest05(character);
+  if (isQuest05Tracking(quest05)) return { questId: TUTORIAL_QUEST_05.id, objectiveKey: 'objectiveHunt', params: { count: quest05.kills, total: TUTORIAL_QUEST_05.target.count } };
   return null;
 }

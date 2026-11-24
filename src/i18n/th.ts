@@ -315,6 +315,7 @@ export const th = {
     obtained: 'ได้รับ',
     itemLine: '{name} x{quantity}',
     bagFull: 'กระเป๋าเต็ม',
+    noTarget: 'ไม่มีมอนสเตอร์ในระยะ',
     equipFailed: 'สวมใส่ไม่สำเร็จ',
     itemFailed: 'รับไอเท็มไม่สำเร็จ',
     hpFull: 'HP เต็มแล้ว',
@@ -618,6 +619,74 @@ export const th = {
   death: {
     title: 'ตาย...',
     respawn: 'เกิดใหม่ที่จุดเกิด',
+  },
+  orientation: {
+    rotate: 'กรุณาหมุนหน้าจอเป็นแนวนอนเพื่อเล่นเกม',
+  },
+  /**
+   * Touch (mobile) wording: in touch mode translate() uses `touch.<key>` instead of `<key>` where one exists here -
+   * the mouse and keyboard words (click, the keys in brackets, Q / W) become the touch controls'.
+   */
+  touch: {
+    hud: {
+      menuStatus: 'สถานะ',
+      menuPassive: 'ผังพาสซีฟ',
+      menuInventory: 'กระเป๋า',
+      menuSkills: 'สกิล',
+      menuAutoPlay: 'ออโต้เพลย์',
+    },
+    passive: {
+      keys: 'แตะโหนดเพื่อเลือก',
+      tutorial: {
+        open: 'ได้แต้มพาสซีฟใหม่! เปิดผังพาสซีฟ',
+      },
+    },
+    inventory: {
+      keys: 'แตะเพื่อเลือกช่อง',
+    },
+    equipmentTutorial: {
+      openInventory: 'เปิดกระเป๋า',
+    },
+    autoPlay: {
+      hpPotion: 'ยา HP',
+      spRecovery: 'ยา SP',
+      start: 'เริ่มออโต้',
+      stop: 'หยุดออโต้',
+    },
+    skillWindow: {
+      keys: 'แตะเพื่อเลือกสกิล',
+    },
+    hints: {
+      clickToMove: 'ใช้จอยสติ๊กเพื่อเดิน แตะ NPC เพื่อคุย',
+    },
+    navigateTutorial: {
+      click: 'แตะ "พาไป" เพื่อเดินไปหา Roland',
+    },
+    levelTutorial: {
+      openInventory: 'เปิดกระเป๋า',
+      assign: 'กดตั้งคีย์ลัด (ยาจะไปอยู่ที่ปุ่มยา SP)',
+      info: 'แตะที่บทพูดของ Roland เพื่อไปต่อ',
+    },
+    scrollTutorial: {
+      openInventory: 'เปิดกระเป๋า',
+      openSkills: 'เปิดหน้าต่างสกิล',
+    },
+    potionTutorial: {
+      openInventory: 'เปิดกระเป๋า',
+      assignHotkey: 'กดปุ่มตั้งคีย์ลัด (ยาจะไปอยู่ที่ปุ่มยา HP)',
+      qSlot: 'ยาแดงอยู่ที่ปุ่มยา HP แล้ว',
+    },
+    statusTutorial: {
+      openStatus: 'เปิดหน้าสถานะ',
+    },
+    dialogues: {
+      roland_potion_use: {
+        l1: 'แตะใช้งานเพื่อดื่ม',
+      },
+      roland_potion_hotkey: {
+        l1: 'กดตั้งคีย์ลัดเพื่อให้ใช้งานง่ายๆ ยาจะไปอยู่ที่ปุ่มยา HP ข้างปุ่มโจมตี',
+      },
+    },
   },
 };
 

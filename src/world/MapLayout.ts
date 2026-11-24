@@ -13,8 +13,10 @@ const FLOOR_GROUND: Record<FloorType, GroundType> = { wood: 'floor', stone: 'sto
 export interface ObjectInstance extends TileCoord {
   type: ObjectTextureId;
   spec: MapObjectSpec;
-  /** Tile-space footprint box. */
+  /** Tile-space footprint box (reserved: nothing else is placed on it). */
   box: TileBox;
+  /** The box it depth-sorts by: its walls' base when the spec has `ground` collision, else the footprint. */
+  depthBox: TileBox;
   /** Ground point the sprite stands on (footprint centre, tile space). */
   centre: Point;
 }
@@ -40,9 +42,12 @@ export class MapLayout {
   readonly footprints: TileBox[] = [];
 
   private readonly blocked: boolean[][];
+  /** Footprints of solid objects (whole lot, walkable or not): no other object may be placed there. */
+  private readonly reserved: boolean[][];
   private readonly owner: StructureIndex[][];
-  /** Coarse grid of solid pieces (cell = 4 x 4 tiles) for fast collision queries. */
-  private readonly pieceGrid = new Map<number, PieceSpec[]>();
+  /** Coarse grid of solid boxes - wall pieces and objects' ground collision (cell = 4 x 4 tiles) - for fast queries. */
+  private readonly pieceGrid = new Map<number, { box: TileBox }[]>();
+  private readonly groundBoxes: { box: TileBox }[] = [];
 
   constructor(readonly definition: MapDefinition) {
     const d = definition;
@@ -50,6 +55,7 @@ export class MapLayout {
     this.rows = d.rows;
     this.ground = Array.from({ length: this.rows }, () => Array<GroundType>(this.cols).fill('ground'));
     this.blocked = Array.from({ length: this.rows }, () => Array<boolean>(this.cols).fill(false));
+    this.reserved = Array.from({ length: this.rows }, () => Array<boolean>(this.cols).fill(false));
     this.owner = Array.from({ length: this.rows }, () => Array<StructureIndex>(this.cols).fill(-1));
 
     for (const r of d.paths) {
@@ -90,8 +96,7 @@ export class MapLayout {
       this.blocked[t.row][t.col] = true;
     }
 
-    for (const p of this.pieces) {
-      if (!p.solid) continue;
+    for (const p of [...this.pieces.filter((piece) => piece.solid), ...this.groundBoxes]) {
       for (const key of this.cellsOf(p.box)) {
         const list = this.pieceGrid.get(key);
         if (list) list.push(p);
@@ -145,6 +150,7 @@ export class MapLayout {
     return !this.collidesWithPiece(box);
   }
 
+  /** Thin walls, posts and objects' ground collision (box overlap). */
   collidesWithPiece(box: TileBox): boolean {
     for (const key of this.cellsOf(box)) {
       const list = this.pieceGrid.get(key);
@@ -174,18 +180,28 @@ export class MapLayout {
         if (this.owner[r][c] !== structure) {
           throw new Error(`Map "${this.definition.id}": object ${type} at (${col}, ${row}) overlaps a structure.`);
         }
-        if (this.blocked[r][c]) throw new Error(`Map "${this.definition.id}": object ${type} at (${col}, ${row}) overlaps another object.`);
+        if (this.reserved[r][c]) throw new Error(`Map "${this.definition.id}": object ${type} at (${col}, ${row}) overlaps another object.`);
       }
     }
+    const local = (b: { x: number; y: number; w: number; h: number }): TileBox => ({ minX: col + b.x, minY: row + b.y, maxX: col + b.x + b.w, maxY: row + b.y + b.h });
+    const box: TileBox = { minX: col, minY: row, maxX: col + spec.w, maxY: row + spec.h };
     if (spec.category === 'blocking') {
-      for (let r = row; r < row + spec.h; r++) for (let c = col; c < col + spec.w; c++) this.blocked[r][c] = true;
+      for (let r = row; r < row + spec.h; r++) {
+        for (let c = col; c < col + spec.w; c++) {
+          this.reserved[r][c] = true;
+          if (!spec.ground) this.blocked[r][c] = true;
+        }
+      }
+      // a building on a walkable lot: only its walls' base and the solid extras collide
+      if (spec.ground) for (const b of [spec.ground.walls, ...(spec.ground.extra ?? [])]) this.groundBoxes.push({ box: local(b) });
     }
     this.objects.push({
       type,
       col,
       row,
       spec,
-      box: { minX: col, minY: row, maxX: col + spec.w, maxY: row + spec.h },
+      box,
+      depthBox: spec.ground ? local(spec.ground.walls) : box,
       centre: { x: col + spec.w / 2, y: row + spec.h / 2 },
     });
   }
@@ -196,7 +212,7 @@ export class MapLayout {
       const a = s.area;
       for (let row = a.row; row < a.row + a.h; row++) {
         for (let col = a.col; col < a.col + a.w; col++) {
-          if (!this.isInside(col, row) || this.blocked[row][col] || this.owner[row][col] !== -1) continue;
+          if (!this.isInside(col, row) || this.blocked[row][col] || this.reserved[row][col] || this.owner[row][col] !== -1) continue;
           if (taken.has(row * this.cols + col)) continue;
           if (this.tileNoise(col, row, 11 + si) >= s.density) continue;
           const pick = s.types[Math.floor(this.tileNoise(col, row, 23 + si) * s.types.length)];

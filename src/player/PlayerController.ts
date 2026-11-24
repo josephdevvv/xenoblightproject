@@ -49,6 +49,8 @@ export class PlayerController {
   /** Click-to-move waypoints (tile space); empty when not following a path. */
   private path: Point[] = [];
   private stuckMs = 0;
+  /** Mobile joystick: a ground unit direction while held (it wins over a path while it lasts). */
+  private steering: Point | null = null;
   actions: PlayerActionAnimations = NO_ACTION_ANIMATIONS;
 
   constructor(
@@ -61,9 +63,12 @@ export class PlayerController {
     this.syncView();
   }
 
-  /** Movement is by mouse only (click-to-move along a found path); there are no keyboard movement keys. */
+  /**
+   * Desktop: by mouse only (click-to-move along a found path; no keyboard movement keys). Mobile: the virtual joystick
+   * steers directly (with the same collision and speed) and wins over a path while it is held.
+   */
   update(deltaMs: number): void {
-    const moved = this.path.length > 0 && this.followPath(deltaMs);
+    const moved = this.steering ? this.steerStep(deltaMs) : this.path.length > 0 && this.followPath(deltaMs);
     this.state = moved ? 'walk' : 'idle';
 
     this.syncView();
@@ -79,6 +84,22 @@ export class PlayerController {
     this.path = path;
     this.stuckMs = 0;
     return true;
+  }
+
+  /** Mobile joystick: walk in a ground (tile-space) unit direction until it is let go (null). */
+  steer(direction: Point | null): void {
+    this.steering = direction && (direction.x !== 0 || direction.y !== 0) ? { x: direction.x, y: direction.y } : null;
+  }
+
+  isSteering(): boolean {
+    return this.steering !== null;
+  }
+
+  private steerStep(deltaMs: number): boolean {
+    const dir = this.steering!;
+    const d = directionFromGroundVector(dir.x, dir.y);
+    if (d) this.facing = d;
+    return this.movement.step(dir, deltaMs / 1000);
   }
 
   stopPath(): void {
@@ -105,6 +126,7 @@ export class PlayerController {
   /** Stops at once where the player stands: no path, standing frame of the current facing (death). */
   halt(): void {
     this.stopPath();
+    this.steering = null;
     this.state = 'idle';
     this.syncView();
   }
@@ -112,6 +134,7 @@ export class PlayerController {
   /** Puts the player on a point at once (respawn). */
   teleport(p: Point): void {
     this.stopPath();
+    this.steering = null;
     this.movement.position.x = p.x;
     this.movement.position.y = p.y;
     this.state = 'idle';

@@ -17,16 +17,18 @@ export interface HandmadeArt {
   /** Footprint centre (ground contact) in the image, world px. */
   anchorX: number;
   anchorY: number;
+  /** Render scale (default 1): drawn smaller than the file (Dawnkeep buildings, sized by their doors). */
+  scale?: number;
   /** Drawn mirrored (the same file for the other wall direction; anchorX is already mirrored). */
   flipX?: boolean;
 }
 
 const BASE = 'assets/environment/city_wall/';
 
-type RegistryEntry = { file: string; width: number; height: number; anchorX: number; anchorY: number };
+type RegistryEntry = { file: string; width: number; height: number; anchorX: number; anchorY: number; scale?: number };
 const WALLS = registry as Record<string, RegistryEntry>;
 
-const art = (id: string, base: string, a: RegistryEntry): HandmadeArt => ({ key: `art_${id}`, url: base + a.file, width: a.width, height: a.height, anchorX: a.anchorX, anchorY: a.anchorY });
+const art = (id: string, base: string, a: RegistryEntry): HandmadeArt => ({ key: `art_${id}`, url: base + a.file, width: a.width, height: a.height, anchorX: a.anchorX, anchorY: a.anchorY, scale: a.scale });
 /** The x-wall pieces drawn mirrored run along y: same file and texture, anchor mirrored. */
 const mirrored = (id: string): HandmadeArt => ({ ...art(id, BASE, WALLS[id]), anchorX: WALLS[id].width - WALLS[id].anchorX, flipX: true });
 

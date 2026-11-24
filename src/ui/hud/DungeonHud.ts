@@ -15,7 +15,7 @@ import type { IsometricMap } from '../../world/IsometricMap';
 import { typo, UI_COLORS } from '../UITheme';
 import { HUD_LAYERS, HUD_LAYOUT, HudSpace, hudTextureKey, REF_ELEMENTS, type HudLayerId, type ScreenRect } from './HudLayout';
 import { Minimap } from './Minimap';
-import { hotbarLayout } from './HotbarLayout';
+import { hotbarLayout, touchAutoButtonRect } from './HotbarLayout';
 import { HotbarService } from '../../hotbar/HotbarService';
 import { InventoryService } from '../../inventory/InventoryService';
 import { itemCount } from '../../inventory/InventoryState';
@@ -83,6 +83,11 @@ export interface DungeonHudOptions {
   onHotbarSlot?: (slot: number) => void;
   /** A click on the Q (HP) / W (SP) potion slot. */
   onPotionSlot?: (key: PotionSlotKey) => void;
+  /**
+   * Mobile (touch mode): the hotbar row and the Q / W slots are hidden (the touch controls take their place) and the
+   * AUTO button stands right under the map name. Everything else is the desktop HUD.
+   */
+  touch?: boolean;
 }
 
 /**
@@ -177,6 +182,8 @@ export class DungeonHud {
   readonly potionZones: Readonly<Record<PotionSlotKey, Phaser.GameObjects.Zone>>;
   private readonly potionIcons: Readonly<Record<PotionSlotKey, Phaser.GameObjects.Image>>;
   private readonly potionCounts: Readonly<Record<PotionSlotKey, Phaser.GameObjects.Text>>;
+  /** Every object of the hotbar row and the Q / W slots (hidden together on mobile). */
+  private readonly hotbarParts: Phaser.GameObjects.GameObject[] = [];
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -231,6 +238,7 @@ export class DungeonHud {
     const hotbarTop = this.space.frame('05_hotbar', REF_ELEMENTS.hotbarSlots[0]).y;
     const H = hotbarLayout(scene.scale.width, hotbarTop);
     const frames = scene.add.graphics().setDepth(depth + 1);
+    const partsFrom = this.scene.children.list.length - 1;
     frames.fillStyle(HOTBAR_COLORS.divider, 1).fillRect(H.divider.x, H.divider.y, 1, H.divider.height);
     frames.fillRect(H.potionDivider.x, H.potionDivider.y, 1, H.potionDivider.height);
     for (const s of [...H.slots, ...H.potionSlots]) {
@@ -296,7 +304,7 @@ export class DungeonHud {
     this.autoBase = scene.add.image(cx - half, cy - half, autoBaseKey('normal')).setOrigin(0, 0).setDepth(depth + 1);
     this.autoArrows = scene.add.image(cx - half, cy - half, autoArrowKey('normal', 0)).setOrigin(0, 0).setDepth(depth + 2);
     this.autoLabel = this.text(cx, cy, 'AUTO', 'small', AUTO_TEXT_COLORS.normal, false).setOrigin(0.5, 0.5).setStroke(PALETTE.black, 2).setDepth(depth + 3);
-    this.text(A.x, A.y, 'X', 'small', PALETTE.gray, false).setDepth(depth + 3);
+    const autoKey = this.text(A.x, A.y, 'X', 'small', PALETTE.gray, false).setDepth(depth + 3);
     this.autoButton = scene.add.zone(A.x, A.y, A.width, A.height).setOrigin(0, 0).setDepth(depth + 4).setInteractive({ useHandCursor: true });
     this.autoButton.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (p.button === 0) this.options.onAutoPlay?.();
@@ -310,6 +318,10 @@ export class DungeonHud {
       this.drawAutoButton();
     });
     this.drawAutoButton();
+    // everything the hotbar row added (slot frames, keys, icons, cooldown sweeps, quantities, click zones, Q / W) -
+    // except the AUTO button, which stays (on mobile it moves under the map name)
+    const autoParts = new Set<Phaser.GameObjects.GameObject>([this.autoBase, this.autoArrows, this.autoLabel, autoKey, this.autoButton]);
+    this.hotbarParts.push(...scene.children.list.slice(partsFrom).filter((o) => !autoParts.has(o)));
     const refreshHotbar = (c: CharacterData): void => {
       if (c === options.character) this.refreshHotbar();
     };
@@ -342,7 +354,23 @@ export class DungeonHud {
     this.coordText = this.text(coordBox.x + coordBox.width / 2, coord.y, '', 'small', PALETTE.pale).setOrigin(0.5, 0);
     const mapName = this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, '', 'small', PALETTE.silver).setOrigin(1, 0);
     const mapFrame = this.space.frame(M, REF_ELEMENTS.minimap);
-    this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: Math.ceil(mapName.y + mapName.height) + 2 };
+    const belowMapName = Math.ceil(mapName.y + mapName.height) + 2;
+    if (options.touch) {
+      // mobile: no hotbar row (the touch controls replace it); AUTO right under the map name, the notices below it
+      for (const o of this.hotbarParts) {
+        (o as Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Visible).setVisible(false);
+        o.disableInteractive();
+      }
+      autoKey.setVisible(false);
+      const T = touchAutoButtonRect(mapFrame.x + mapFrame.width, belowMapName);
+      const tx = T.x + Math.floor(T.width / 2);
+      const ty = T.y + Math.floor(T.height / 2);
+      this.autoBase.setPosition(tx - half, ty - half);
+      this.autoArrows.setPosition(tx - half, ty - half);
+      this.autoLabel.setPosition(tx, ty);
+      this.autoButton.setPosition(T.x, T.y);
+      this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: T.y + T.height + 4 };
+    } else this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: belowMapName };
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
     // Menu bar, 6 slots left to right: Status, Passive Tree, Skills, Inventory, (placeholder), Settings
     this.drawMenuSlots(M);
@@ -503,6 +531,7 @@ export class DungeonHud {
 
   /** Hotbar icons and quantities from the character's hotbar and bag (an item with none left is shown dimmed). */
   refreshHotbar(): void {
+    if (this.options.touch) return; // mobile: the touch controls show the slots
     const c = this.options.character;
     const state = HotbarService.state(c);
     this.hotbarIcons.forEach((icon, i) => {
@@ -537,6 +566,7 @@ export class DungeonHud {
    * Auto Play casts alike). `cooldown` = null when the skill is ready.
    */
   updateCooldowns(cooldown: (skillId: string) => { remainingMs: number; totalMs: number } | null): void {
+    if (this.options.touch) return; // mobile: the touch controls sweep their own buttons
     const state = HotbarService.state(this.options.character);
     let handsDirty = false;
     this.cooldownViews.forEach((cd, i) => {

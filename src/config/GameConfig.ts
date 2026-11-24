@@ -10,7 +10,8 @@ import { MainMenuScene } from '../scenes/MainMenuScene';
 import { MonsterPreviewScene } from '../scenes/MonsterPreviewScene';
 import { SystemScene } from '../scenes/SystemScene';
 
-export function createGameConfig(): Phaser.Types.Core.GameConfig {
+/** `touch`: the mobile version (DeviceMode) - several fingers at once (joystick + action buttons). */
+export function createGameConfig(options: { touch?: boolean } = {}): Phaser.Types.Core.GameConfig {
   return {
     // AUTO = WebGL when available, otherwise Phaser's Canvas renderer.
     type: Phaser.AUTO,
@@ -26,6 +27,8 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
+    // Mobile: the joystick and the action buttons are held at the same time (desktop keeps the one mouse pointer).
+    input: { activePointers: options.touch ? 4 : 1 },
     // Needed for the HTML <input> used by the character name field.
     dom: {
       createContainer: true,

@@ -51,6 +51,7 @@ import { monsterSheetKey } from '../monsters/art/MonsterArt';
 import { InventoryService } from '../inventory/InventoryService';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
 import { NPC_CURSOR, NpcCursor } from '../ui/world/NpcCursor';
+import { SkillNameBox } from '../ui/world/SkillNameBox';
 import { PortalEntity } from '../world/PortalEntity';
 import { arrivalGuard, arrivalPoint, onPortalTile, PORTALS, PortalService, stepWarps, updateWarpGuard, warpAllowed, type PortalId, type WarpGuard } from '../world/Portals';
 import { GATE_ANSWERS, gateTalkOf, type GateTalk } from '../dialogue/GateTalks';
@@ -77,6 +78,9 @@ import { LoadingScreen } from '../ui/LoadingScreen';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import type { IsometricMap } from '../world/IsometricMap';
 import { DEFAULT_MAP_ID, startMapId } from '../world/loading/MapRegistry';
+import { isTouchMode } from '../platform/DeviceMode';
+import { chooseTouchTarget, TOUCH_TARGET_RANGE } from '../combat/TouchTargeting';
+import type { TargetInfo } from '../ui/touch/TargetHudLayout';
 import { placeSavedLocation, type SavedLocation } from '../save/SavedLocation';
 import { respawnTile } from '../world/SpawnPoints';
 
@@ -139,6 +143,8 @@ export class GameScene extends Phaser.Scene {
   /** The player stood on the portal's tile last frame (a warp needs a step ONTO it). */
   private onPortal = false;
   npcCursor!: NpcCursor;
+  /** The skill name over the player's head when a skill goes off. */
+  private skillNameBox: SkillNameBox | null = null;
   /** Dotted path on the ground to the active quest's NPC. */
   questTrail!: PathTrail;
   questTrailView!: PathTrailView;
@@ -170,6 +176,10 @@ export class GameScene extends Phaser.Scene {
   private arrival: Point | null = null;
   /** Right after arriving through a portal: no warping back at once (see WARP_GUARD). */
   private warpGuard: WarpGuard | null = null;
+  /** Mobile (touch mode): the joystick direction held now, and the monster selected by itself (TouchTargeting). */
+  private readonly touch = isTouchMode();
+  private steerDir: Point | null = null;
+  private touchSelection: MonsterEntity | null = null;
 
   constructor() {
     super(SCENES.Game);
@@ -186,6 +196,8 @@ export class GameScene extends Phaser.Scene {
     this.potionGuardUntil = 0;
     this.skillTargeting = null;
     this.leaving = false;
+    this.steerDir = null;
+    this.touchSelection = null;
     const character = this.resolveCharacter();
     this.character = character;
 
@@ -254,6 +266,7 @@ export class GameScene extends Phaser.Scene {
     // Combat decides first (target approach / attacks), then the player moves - only while alive.
     const alive = this.death.life.isAlive();
     this.combat.update(delta);
+    if (this.touch) this.updateTouch(alive);
     this.updateAutoPlay(alive);
     if (alive && !this.isTalking()) this.player.update(delta);
     if (alive) this.npcInteraction.update();
@@ -300,6 +313,8 @@ export class GameScene extends Phaser.Scene {
     this.atmosphere.update(delta);
     this.culler.update();
     this.hud.update(this.player.view, alive ? this.playerVitals() : null);
+    const root = this.player.view.getRenderRoot();
+    this.skillNameBox?.update(root.x, root.y);
   }
 
   /** HP / SP for the player's nameplate bars (live combat values). */
@@ -489,6 +504,7 @@ export class GameScene extends Phaser.Scene {
     // HUD
     this.hud = new GameHud(this, character);
     this.hud.update(this.player.view, this.playerVitals());
+    this.skillNameBox = new SkillNameBox(this);
   }
 
   /**
@@ -531,6 +547,62 @@ export class GameScene extends Phaser.Scene {
     const r = PLAYER_MOVEMENT.radius;
     const standable = this.map.isAreaFree({ minX: tile.x - r, minY: tile.y - r, maxX: tile.x + r, maxY: tile.y + r });
     if (moving && standable) this.clickMarker.show(world.x, world.y);
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Mobile (touch mode): joystick, automatic target selection, the sword button
+  // -------------------------------------------------------------------------------------------
+
+  /**
+   * The virtual joystick (GameUIScene): walk that way while it is held - only while the player may move. The first
+   * push replaces a walk, a target and an NPC approach (like a click on the ground on desktop).
+   */
+  steer(direction: Point | null): void {
+    if (!this.ready) return;
+    const next = direction && this.death.life.isAlive() && this.canPerform('move') && !this.isTalking() ? direction : null;
+    if (next && !this.steerDir) {
+      this.npcInteraction.cancel();
+      this.navigation.cancel();
+      this.combat.clearTarget();
+      this.player.stopPath();
+    }
+    this.steerDir = next;
+    this.player.steer(next);
+  }
+
+  /** Per frame: the joystick lets go when the player may no longer move; the nearest monster is selected. */
+  private updateTouch(alive: boolean): void {
+    if (this.steerDir && (!alive || this.isTalking() || !this.canPerform('move'))) this.steer(null);
+    // holding the joystick is playing by hand: Auto Play waits (as after a click)
+    if (this.steerDir) this.autoPlay.notifyManual();
+    const me = this.player.getTilePosition();
+    const candidates = this.monsters.getMonsters().map((m) => ({ ref: m, position: m.position, alive: m.isAlive() }));
+    const next = alive ? chooseTouchTarget(this.touchSelection, this.combat.getTarget(), candidates, me, TOUCH_TARGET_RANGE) : null;
+    const old = this.touchSelection;
+    if (old && old !== next && old !== this.combat.getTarget()) old.setTargeted(false);
+    this.touchSelection = next;
+    next?.setTargeted(true);
+  }
+
+  /** The selected monster for the target HUD (name and HP), or null. */
+  touchTarget(): TargetInfo | null {
+    const m = this.touchSelection;
+    return m && m.isAlive() ? { name: m.definition.displayName, hp: m.getHp(), maxHp: m.definition.combat.maxHp } : null;
+  }
+
+  /** The sword button: the selected monster is attacked by the normal rules (walk into range, swing until it dies). */
+  touchAttack(): boolean {
+    if (!this.ready || !this.death.life.isAlive() || !this.canPerform('attack') || this.isTalking()) return false;
+    const m = this.touchSelection;
+    if (!m || !m.isAlive()) {
+      this.uiScene()?.notifications?.showText(t('notifications.noTarget'));
+      return false;
+    }
+    this.npcInteraction.cancel();
+    this.navigation.cancel();
+    this.autoPlay.notifyManual();
+    this.combat.attack(m);
+    return true;
   }
 
   /** Save point for a save file: where the player stands now. null while there is no world or the player is not alive. */
@@ -1146,6 +1218,18 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (needsTarget(def)) {
+      // mobile: no cursor to aim with - the skill goes off on the selected monster (none in range: said so)
+      if (this.touch) {
+        const m = this.touchSelection;
+        if (!m || !m.isAlive()) notify('notifications.noTarget');
+        else if (this.canPerform('attack')) {
+          this.npcInteraction.cancel();
+          this.navigation.cancel();
+          this.autoPlay.notifyManual();
+          this.castAttackSkill(id, m);
+        }
+        return;
+      }
       // target-required: no cast yet - the skill cursor asks for the target, the click casts it
       if (this.canPerform('attack')) this.beginSkillTargeting(id);
       return;
@@ -1172,6 +1256,7 @@ export class GameScene extends Phaser.Scene {
     const def = SKILL_DEFINITIONS[id];
     if (!this.skillReady(id) || !this.combat.spendSp(def.spCost)) return false;
     if (def.cooldownMs > 0) this.skillReadyAt.set(id, this.time.now + def.cooldownMs);
+    this.skillNameBox?.show(labels.skillName(id)); // the skill went off: its name over the head (current language)
     return true;
   }
 

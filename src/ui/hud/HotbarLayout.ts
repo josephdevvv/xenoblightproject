@@ -25,6 +25,11 @@ export interface HotbarLayout {
   potionDivider: { x: number; y: number; height: number };
 }
 
+/** Mobile: the AUTO button right-aligned with the minimap, just below the map name (the hotbar row is hidden). */
+export function touchAutoButtonRect(minimapRight: number, belowMapName: number): ScreenRect {
+  return { x: minimapRight - AUTO_BUTTON.width, y: belowMapName, width: AUTO_BUTTON.width, height: HOTBAR_SLOT.height };
+}
+
 /** Width of the whole row (8 slots, Q / W, Auto Play). */
 export function hotbarRowWidth(): number {
   const { width, gap, middleGap } = HOTBAR_SLOT;

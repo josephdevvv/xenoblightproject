@@ -6,12 +6,15 @@ import type { TileCoord } from '../src/core/types';
 import { DEFAULT_MAP_ID, MAP_REGISTRY, startMapId } from '../src/world/loading/MapRegistry';
 import { MapLayout } from '../src/world/MapLayout';
 import { ASHEN_CROSSROADS } from '../src/world/maps/AshenCrossroads';
-import { DAWNKEEP, DAWNKEEP_ARRIVAL, DAWNKEEP_BUILDINGS, DAWNKEEP_GATE, DAWNKEEP_SIZE, fitWallRun } from '../src/world/maps/Dawnkeep';
+import { DAWNKEEP, DAWNKEEP_ARRIVAL, DAWNKEEP_BUILDINGS, DAWNKEEP_GATE, DAWNKEEP_SIZE, fitWallRun, TOWN_BLOCKS } from '../src/world/maps/Dawnkeep';
 import { DAWNKEEP_ART, DAWNKEEP_ART_BASE } from '../src/world/objects/DawnkeepArt';
 import { HANDMADE_OBJECT_ART } from '../src/world/objects/HandmadeArt';
 import { MAP_OBJECTS } from '../src/world/objects/MapObjectCatalog';
-import { ARRIVAL_OFFSET_PX, arrivalGuard, arrivalPoint, onPortalTile, PORTAL_ART, PORTALS, PortalService, stepWarps, tileCentre, updateWarpGuard, WARP_GUARD, warpAllowed } from '../src/world/Portals';
+import { STRUCTURE_BLUEPRINTS } from '../src/world/structures/StructureBlueprints';
+import { PORTAL_TRIGGER_RADIUS, PORTAL_VISUAL_OFFSET_PX, portalVisualCentre, ARRIVAL_OFFSET_PX, arrivalGuard, arrivalPoint, onPortalTile, PORTAL_ART, PORTALS, PortalService, stepWarps, tileCentre, updateWarpGuard, WARP_GUARD, warpAllowed } from '../src/world/Portals';
 import { readPng } from './helpers/png';
+import { SKILL_NAME_BOX, skillNameBoxAlpha, skillNameBoxLayout } from '../src/ui/world/SkillNameBox';
+import { initLanguage, setLanguage, translate } from '../src/i18n';
 import { newCharacter, withoutStorage } from './helpers/session';
 
 const PLAYER_RADIUS = 0.22;
@@ -111,7 +114,7 @@ test('Dawnkeep: the outer wall encloses the town - the only way out is the main 
 });
 
 test('Dawnkeep: a ruined town (~80% of the houses damaged) around an intact citadel; the church quarter has its church', () => {
-  assert.equal(DAWNKEEP_BUILDINGS.town, 52);
+  assert.equal(DAWNKEEP_BUILDINGS.town, 85);
   const ruinedShare = DAWNKEEP_BUILDINGS.townRuined / (DAWNKEEP_BUILDINGS.town + DAWNKEEP_BUILDINGS.castle);
   assert.ok(ruinedShare >= 0.75 && ruinedShare <= 0.85, `ruined share ${ruinedShare.toFixed(2)}`);
   const castle = zone('castle').area;
@@ -134,6 +137,85 @@ test('Dawnkeep: a ruined town (~80% of the houses damaged) around an intact cita
   let walk = 0;
   for (let r = 7; r < 89; r++) for (let c = 7; c < 89; c++) if (reached[r][c]) walk++;
   assert.ok(walk / (82 * 82) > 0.6, `walkable share inside the walls ${(walk / (82 * 82)).toFixed(2)}`);
+});
+
+test('ground collision: a house on a walkable lot blocks only its walls\' base (and baked-in boulders); the lot is walkable; it depth-sorts by its walls', () => {
+  const free = (x: number, y: number): boolean => map.isAreaFree({ minX: x - PLAYER_RADIUS, minY: y - PLAYER_RADIUS, maxX: x + PLAYER_RADIUS, maxY: y + PLAYER_RADIUS });
+  for (const id of ['dk_ruin_burned', 'dk_ruin_cottage', 'dk_house_intact'] as const) {
+    const g = MAP_OBJECTS[id].ground!;
+    assert.ok(g, `${id} has ground collision`);
+    const o = map.objects.find((p) => p.type === id && !inRect(zone('castle').area, p.col, p.row))!;
+    assert.deepEqual(o.depthBox, { minX: o.col + g.walls.x, minY: o.row + g.walls.y, maxX: o.col + g.walls.x + g.walls.w, maxY: o.row + g.walls.y + g.walls.h }, `${id} sorts by its walls`);
+    assert.ok(!free(o.col + g.walls.x + g.walls.w / 2, o.row + g.walls.y + g.walls.h / 2), `${id}: its walls block`);
+    for (let r = o.row; r < o.row + MAP_OBJECTS[id].h; r++) for (let c = o.col; c < o.col + MAP_OBJECTS[id].w; c++) assert.ok(!map.isTileBlocked(c, r), `${id}: no whole-tile block on its lot`);
+  }
+  // the burned house's slab: walkable along its front (door side) and its left side, its boulders solid
+  const burned = map.objects.find((p) => p.type === 'dk_ruin_burned')!;
+  for (const y of [2.5, 3]) assert.ok(free(burned.col + 5.3, burned.row + y), 'the slab in front of the door');
+  for (const x of [1.8, 2.6, 3.4]) assert.ok(free(burned.col + x, burned.row + 5.4), 'the slab along the left wall');
+  assert.ok(!free(burned.col + 0.65, burned.row + 4.55), 'a boulder');
+  // the cottage's front yard is open ground up to its door
+  const cottage = map.objects.find((p) => p.type === 'dk_ruin_cottage')!;
+  for (const y of [3.2, 4, 4.6]) assert.ok(free(cottage.col + 1.5, cottage.row + y), 'the front yard');
+  // props and other buildings never stand on a lot (it stays reserved)
+  assert.throws(() => new MapLayout({ ...DAWNKEEP, objects: [...DAWNKEEP.objects, { type: 'crate', col: burned.col + 5, row: burned.row + 5 }] }), /overlaps another object/);
+});
+
+test('market stall: the canopy stands above the player head; the base keeps its ground position; only its base collides', () => {
+  const a = DAWNKEEP_ART.dk_market_stall;
+  const png = readPng(path.join('public', DAWNKEEP_ART_BASE, a.file));
+  assert.deepEqual([png.width, png.height], [a.width, a.height]);
+  assert.equal(a.height - a.anchorY, 96 - 63, 'the base is where it was (only rows were added above it)');
+  // the front post (x 63-66): its top and its foot
+  const opaque = (x: number, y: number) => png.data[(y * png.width + x) * 4 + 3] > 0;
+  const column = Array.from({ length: png.height }, (_, y) => y).filter((y) => opaque(64, y));
+  const postTall = column[column.length - 1] - column[0] + 1;
+  assert.ok(postTall >= 1.15 * 54, `the front post (canopy corner) is ${postTall} px tall - above the 54-px player`);
+  const g = MAP_OBJECTS.dk_market_stall;
+  assert.ok(g.ground && !g.tall, 'collides with its base only; never fades');
+  const stall = map.objects.find((o) => o.type === 'dk_market_stall')!;
+  const r = (v: number) => Math.round(v * 100) / 100;
+  const depth = { minX: r(stall.depthBox.minX - stall.col), minY: r(stall.depthBox.minY - stall.row), maxX: r(stall.depthBox.maxX - stall.col), maxY: r(stall.depthBox.maxY - stall.row) };
+  assert.deepEqual(depth, { minX: 0.42, minY: -0.09, maxX: 1.83, maxY: 1.21 }, 'depth-sorts by its base');
+  const free = (x: number, y: number): boolean => map.isAreaFree({ minX: x - PLAYER_RADIUS, minY: y - PLAYER_RADIUS, maxX: x + PLAYER_RADIUS, maxY: y + PLAYER_RADIUS });
+  assert.ok(!free(stall.col + 1.1, stall.row + 0.6), 'its base blocks');
+  assert.ok(free(stall.col + 0.1, stall.row + 0.1) || free(stall.col + 1.95, stall.row + 0.1), 'the empty corner of its footprint is open');
+});
+
+test('town layout: blocks between streets; every house\'s door opens onto a street (and is reachable); one free tile between neighbours', () => {
+  const road = (c: number, r: number): boolean => map.ground[r][c] === 'cobble_broken' || map.ground[r][c] === 'path';
+  let houses = 0;
+  for (const b of TOWN_BLOCKS) {
+    for (let r = b.row; r < b.row + b.h; r++) for (let c = b.col; c < b.col + b.w; c++) assert.ok(!road(c, r), `block (${b.col}, ${b.row}) holds no street`);
+    assert.ok(road(b.col + b.w, b.row + 2) && road(b.col + 2, b.row + b.h), `block (${b.col}, ${b.row}): streets on its +x and +y sides`);
+    const inside = DAWNKEEP.objects.filter((o) => o.type in DAWNKEEP_ART && 'entrance' in DAWNKEEP_ART[o.type as keyof typeof DAWNKEEP_ART] && inRect(b, o.col, o.row));
+    for (const o of inside) {
+      const e = (DAWNKEEP_ART[o.type as keyof typeof DAWNKEEP_ART] as { entrance?: { face: 'x' | 'y'; at: number } }).entrance!;
+      const { w, h } = MAP_OBJECTS[o.type];
+      const front = e.face === 'x' ? { col: o.col + w, row: o.row + e.at } : { col: o.col + e.at, row: o.row + h };
+      assert.ok(road(front.col, front.row), `${o.type} at (${o.col}, ${o.row}): its door opens onto a street`);
+      assert.ok(reached[front.row][front.col], `${o.type} at (${o.col}, ${o.row}): the street in front of its door is reachable`);
+      houses++;
+    }
+    // neighbours in a block keep a free tile between their footprints
+    const boxes = [...inside.map((o) => ({ col: o.col, row: o.row, w: MAP_OBJECTS[o.type].w, h: MAP_OBJECTS[o.type].h })), ...DAWNKEEP.structures.filter((s) => inRect(b, s.col, s.row)).map((s) => ({ col: s.col, row: s.row, w: STRUCTURE_BLUEPRINTS[s.type].width, h: STRUCTURE_BLUEPRINTS[s.type].height }))];
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i];
+        const c = boxes[j];
+        const touching = a.col <= c.col + c.w && c.col <= a.col + a.w && a.row <= c.row + c.h && c.row <= a.row + a.h;
+        assert.ok(!touching, `block (${b.col}, ${b.row}): buildings at (${a.col}, ${a.row}) and (${c.col}, ${c.row}) keep a tile apart`);
+      }
+    }
+  }
+  assert.ok(houses >= 60, `${houses} houses front the streets`);
+  // town blocks never cut into the plaza, the gate square, the castle or the church quarter
+  for (const b of TOWN_BLOCKS) for (const id of ['plaza', 'castle', 'church', 'gate'] as const) {
+    const a = zone(id).area;
+    const overlap = a.col < b.col + b.w && b.col < a.col + a.w && a.row < b.row + b.h && b.row < a.row + a.h;
+    if (id === 'gate') assert.ok(!overlap || b.col >= 60 || b.col + b.w <= 36, `block (${b.col}, ${b.row}) leaves the gate square open`);
+    else assert.ok(!overlap, `block (${b.col}, ${b.row}) stays out of the ${id}`);
+  }
 });
 
 test('Dawnkeep art: every sprite is on disk at its size, transparent, loaded with the map; mirrored walls share their file', () => {
@@ -223,7 +305,9 @@ test('step-on warp: walking onto an open portal warps at once - not during Auto 
   assert.equal(stepWarps({ ...base, state: 'LOCKED' }), false, 'a locked (hidden) portal');
   assert.equal(stepWarps({ ...base, allowed: false }), false, 'the arrival guard');
   assert.equal(stepWarps({ ...base, isOn: false }), false);
-  assert.ok(onPortalTile({ x: 47.9, y: 91.1 }, { col: 47, row: 91 }) && !onPortalTile({ x: 48.01, y: 91.5 }, { col: 47, row: 91 }));
+  const exit = { col: 47, row: 91 };
+  assert.ok(onPortalTile(portalVisualCentre(exit), exit) && onPortalTile({ x: 47.5, y: 91.5 }, exit), 'the drawn spot and its tile centre');
+  assert.ok(!onPortalTile({ x: 47.5, y: 92.5 }, exit) && !onPortalTile({ x: 47.5, y: 90.2 }, exit), 'not from a tile away');
   const game = fs.readFileSync(path.join(process.cwd(), 'src/scenes/GameScene.ts'), 'utf8');
   assert.ok(game.includes('autoPlay: AutoPlayService.isOn(this.character)'), 'GameScene asks Auto Play');
   assert.ok(game.includes('this.combat.moveTo(this.portal.position);'), 'a click on the portal only walks onto it');
@@ -247,4 +331,88 @@ test('arrivals: the destination tile, 15 px to the right on screen, on safe grou
   assert.deepEqual([sheet.width, sheet.height, PORTAL_ART.frames], [64 * 12, 64, 12]);
   assert.equal(PORTALS.dawnkeep_exit.art, PORTAL_ART, 'both portals use the animation');
   assert.equal(PORTALS.dawnkeep_gate.art, PORTAL_ART);
+});
+
+test('portal visuals: every portal is drawn 28 px to the right (same height); the trigger is centred there and reachable', () => {
+  const ashen = new MapLayout(ASHEN_CROSSROADS);
+  assert.equal(PORTAL_VISUAL_OFFSET_PX, 28);
+  for (const p of Object.values(PORTALS)) {
+    const c = portalVisualCentre(p.tile);
+    const dx = c.x - (p.tile.col + 0.5);
+    const dy = c.y - (p.tile.row + 0.5);
+    assert.ok(Math.abs((dx - dy) * 32 - 28) < 1e-9 && Math.abs((dx + dy) * 16) < 1e-9, `${p.id}: +28 px on screen x, 0 on y`);
+    const m = p.mapId === 'dawnkeep' ? map : ashen;
+    assert.ok(standable(m, p.tile.col, p.tile.row), `${p.id}: its tile stays walkable`);
+    assert.ok(Math.hypot(c.x - (p.tile.col + 0.5), c.y - (p.tile.row + 0.5)) <= PORTAL_TRIGGER_RADIUS, `${p.id}: walking onto its tile triggers it`);
+  }
+  const entity = fs.readFileSync(path.join(process.cwd(), 'src/world/PortalEntity.ts'), 'utf8');
+  assert.ok(entity.includes('const c = portalVisualCentre(definition.tile);'), 'sprite, animation and arrow placed from the drawn spot');
+});
+
+test('skill name box: centred above the head, above the name / bars, whole pixels; shown briefly then fades; fired when a skill goes off', () => {
+  const L = skillNameBoxLayout(400.4, 300, 51);
+  assert.equal(L.width, 51 + SKILL_NAME_BOX.padX * 2);
+  assert.ok(Math.abs(L.x + L.width / 2 - 400.4) <= 1, 'centred');
+  assert.ok(L.y + L.height <= 300 - 54, 'above the head (the name and bars are under the feet)');
+  for (const v of Object.values(L)) assert.ok(Number.isInteger(v));
+  assert.equal(skillNameBoxAlpha(0), 1);
+  assert.equal(skillNameBoxAlpha(SKILL_NAME_BOX.showMs - 1), 1);
+  assert.ok(skillNameBoxAlpha(SKILL_NAME_BOX.showMs + SKILL_NAME_BOX.fadeMs / 2) > 0 && skillNameBoxAlpha(SKILL_NAME_BOX.showMs + SKILL_NAME_BOX.fadeMs / 2) < 1);
+  assert.equal(skillNameBoxAlpha(SKILL_NAME_BOX.showMs + SKILL_NAME_BOX.fadeMs), 0);
+  const game = fs.readFileSync(path.join(process.cwd(), 'src/scenes/GameScene.ts'), 'utf8');
+  const activate = game.slice(game.indexOf('private activateSkill('), game.indexOf('private castSelfSkill('));
+  assert.ok(activate.includes('this.skillNameBox?.show(labels.skillName(id));'), 'when the skill really goes off (SP paid), both kinds');
+  initLanguage(null);
+  setLanguage('th');
+  const th = translate('skills.drifter_lv1.name');
+  setLanguage('en');
+  const en = translate('skills.drifter_lv1.name');
+  setLanguage('th');
+  assert.ok(th && en && !th.startsWith('skills.') && !en.startsWith('skills.'), `names in both languages: ${th} / ${en}`);
+});
+
+test('building scale: judged by the door - render-scaled to about 1.15x the 54-px player; footprints and anchors fitted to the scaled art', () => {
+  const PLAYER_HEIGHT = 54;
+  for (const id of ['dk_ruin_burned', 'dk_ruin_cottage', 'dk_ruin_shell', 'dk_house_intact', 'dk_keep', 'dk_church'] as const) {
+    const a = DAWNKEEP_ART[id];
+    const png = readPng(path.join(process.cwd(), 'public', DAWNKEEP_ART_BASE, a.file));
+    let top = png.height;
+    let bottom = -1;
+    let left = png.width;
+    let right = -1;
+    for (let y = 0; y < png.height; y++) {
+      for (let x = 0; x < png.width; x++) {
+        if (png.data[(y * png.width + x) * 4 + 3] <= 20) continue;
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+      }
+    }
+    const k = (a as { scale?: number }).scale ?? 1;
+    assert.ok(k <= 1, `${id}: only ever drawn smaller than its file`);
+    assert.ok((bottom - top + 1) * k >= 4 * PLAYER_HEIGHT, `${id}: ${Math.round((bottom - top + 1) * k)} px tall on screen - far bigger than the 54-px player`);
+    const door = (a as { door?: number }).door!;
+    const ratio = (door * k) / PLAYER_HEIGHT;
+    if (id === 'dk_church' || id === 'dk_ruin_burned') assert.ok(ratio >= 0.9 && ratio <= 1.25, `${id}: door ${ratio.toFixed(2)}x (canvas-limited)`);
+    else assert.ok(ratio >= 1.1 && ratio <= 1.2, `${id}: door ${Math.round(door * k)} px on screen = ${ratio.toFixed(2)}x the player (target ~1.15x)`);
+    const { w, h } = MAP_OBJECTS[id];
+    const diamond = (w + h) * 32;
+    assert.ok(Math.abs((right - left + 1) * k - diamond) <= 0.1 * diamond + 16, `${id}: footprint ${w} x ${h} (${diamond} px) fits its ${Math.round((right - left + 1) * k)}-px-wide scaled art`);
+    assert.ok(Math.abs(a.anchorY + ((w + h) * 8) / k - bottom) <= 4, `${id}: the anchor is the footprint centre (its lowest corner meets the scaled art's lowest pixel)`);
+  }
+  // the sprites are redrawn at native density, never stretched: no 2 x 2 duplicated-pixel pattern over a whole house
+  const png = readPng(path.join(process.cwd(), 'public', DAWNKEEP_ART_BASE, DAWNKEEP_ART.dk_house_intact.file));
+  let same = 0;
+  let pairs = 0;
+  for (let y = 60; y < 300; y += 2) {
+    for (let x = 40; x < 280; x += 2) {
+      const i = (y * png.width + x) * 4;
+      const j = i + 4;
+      if (png.data[i + 3] < 200 || png.data[j + 3] < 200) continue;
+      pairs++;
+      if (png.data[i] === png.data[j] && png.data[i + 1] === png.data[j + 1] && png.data[i + 2] === png.data[j + 2]) same++;
+    }
+  }
+  assert.ok(same / pairs < 0.9, 'single-pixel detail, not an enlarged copy');
 });

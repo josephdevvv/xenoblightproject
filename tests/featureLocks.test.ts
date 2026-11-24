@@ -111,5 +111,5 @@ test('banners: stacked under each other (never overlapping), 3 s then a fade out
   assert.match(src, /this\.banners = this\.banners\.filter\(\(x\) => x !== b\);\s*this\.layout\(\);/, 'the ones below glide up once it is gone');
   assert.match(src, /y: top, duration: BANNER_TIMING\.shiftMs/);
   const ui = read('src/scenes/GameUIScene.ts');
-  assert.match(ui, /this\.banners\.setPersistent\('hint\.clickToMove', 'hints\.clickToMove', 'mouse', /, 'the left-click hint is the persistent top banner');
+  assert.match(ui, /this\.banners\.setPersistent\('hint\.clickToMove', 'hints\.clickToMove', this\.touch \? 'joystick' : 'mouse', /, 'the left-click hint (joystick hint on mobile) is the persistent top banner');
 });

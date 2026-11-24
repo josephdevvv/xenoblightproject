@@ -28,6 +28,8 @@ export type TranslationParams = Record<string, string | number>;
 const DICTIONARIES: Readonly<Record<Language, Messages>> = { th, en };
 
 let current: Language = DEFAULT_LANGUAGE;
+/** Touch (mobile) wording: `touch.<key>` overrides `<key>` where it exists (set once at startup in touch mode). */
+let touchWording = false;
 let storage: SettingsStorage | null | undefined;
 const listeners = new Set<(language: Language) => void>();
 const reported = new Set<string>();
@@ -60,6 +62,11 @@ export function onLanguageChange(listener: (language: Language) => void): () => 
   return () => listeners.delete(listener);
 }
 
+/** Mobile: the touch controls' words (tap, the HP / SP buttons) instead of the mouse and keyboard's - see th.ts `touch`. */
+export function setTouchWording(on: boolean): void {
+  touchWording = on;
+}
+
 /** Translate a typed key. */
 export function t(key: TranslationKey, params?: TranslationParams): string {
   return translate(key, params);
@@ -70,7 +77,7 @@ export function t(key: TranslationKey, params?: TranslationParams): string {
  * t(); unknown keys are reported instead of failing.
  */
 export function translate(key: string, params?: TranslationParams): string {
-  let text = lookup(DICTIONARIES[current], key);
+  let text = (touchWording && lookup(DICTIONARIES[current], `touch.${key}`)) || lookup(DICTIONARIES[current], key);
   if (text === undefined) {
     report(`missing "${key}" in ${current}`);
     text = lookup(DICTIONARIES[DEFAULT_LANGUAGE], key) ?? key;

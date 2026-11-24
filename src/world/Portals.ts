@@ -98,9 +98,24 @@ export function arrivalPoint(t: { col: number; row: number }): Point {
   return { x: t.col + 0.5 + ARRIVAL_OFFSET_TILES, y: t.row + 0.5 - ARRIVAL_OFFSET_TILES };
 }
 
-/** Standing on a portal's tile (the player's centre, tile space). */
+/**
+ * Every portal is drawn 28 px to the right of its tile centre (screen x only; +x = +col and -row in tile space) -
+ * its whole stack: the animated sprite and the arrow above it. The step-on trigger is centred on that drawn spot.
+ */
+export const PORTAL_VISUAL_OFFSET_PX = 28;
+const VISUAL_OFFSET_TILES = PORTAL_VISUAL_OFFSET_PX / 64;
+/** Reach of the step-on trigger around the drawn portal (tiles): its own tile centre is inside it. */
+export const PORTAL_TRIGGER_RADIUS = 0.7;
+
+/** Where a portal is drawn (tile space): its tile centre shifted right on screen by PORTAL_VISUAL_OFFSET_PX. */
+export function portalVisualCentre(tile: { col: number; row: number }): Point {
+  return { x: tile.col + 0.5 + VISUAL_OFFSET_TILES, y: tile.row + 0.5 - VISUAL_OFFSET_TILES };
+}
+
+/** Standing on the portal: within the trigger's reach of where it is drawn (the player's centre, tile space). */
 export function onPortalTile(p: Point, tile: { col: number; row: number }): boolean {
-  return Math.floor(p.x) === tile.col && Math.floor(p.y) === tile.row;
+  const c = portalVisualCentre(tile);
+  return Math.hypot(p.x - c.x, p.y - c.y) <= PORTAL_TRIGGER_RADIUS;
 }
 
 /**

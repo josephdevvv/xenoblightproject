@@ -307,6 +307,7 @@ export const en: Messages = {
     obtained: 'Obtained',
     itemLine: '{name} x{quantity}',
     bagFull: 'Inventory full',
+    noTarget: 'No monster in range',
     equipFailed: 'The item could not be equipped',
     itemFailed: 'The item could not be received',
     hpFull: 'HP is already full',
@@ -610,5 +611,70 @@ export const en: Messages = {
   death: {
     title: 'Dead...',
     respawn: 'Respawn',
+  },
+  orientation: {
+    rotate: 'Please rotate your device to landscape to play.',
+  },
+  /** Touch (mobile) wording - see th.ts. */
+  touch: {
+    hud: {
+      menuStatus: 'Status',
+      menuPassive: 'Passive Tree',
+      menuInventory: 'Inventory',
+      menuSkills: 'Skills',
+      menuAutoPlay: 'Auto Play',
+    },
+    passive: {
+      keys: 'Tap a node to select it',
+      tutorial: {
+        open: 'New passive point! Open the Passive Tree.',
+      },
+    },
+    inventory: {
+      keys: 'Tap to select a slot',
+    },
+    equipmentTutorial: {
+      openInventory: 'Open the Inventory',
+    },
+    autoPlay: {
+      hpPotion: 'HP Potion',
+      spRecovery: 'SP Potion',
+      start: 'Start Auto',
+      stop: 'Stop Auto',
+    },
+    skillWindow: {
+      keys: 'Tap a skill to select it',
+    },
+    hints: {
+      clickToMove: 'Use the joystick to move. Tap NPCs to talk.',
+    },
+    navigateTutorial: {
+      click: 'Tap Navigate to walk to Roland',
+    },
+    levelTutorial: {
+      openInventory: 'Open the Inventory',
+      assign: 'Press Assign Hotkey (the potion goes on the SP button)',
+      info: "Tap Roland's line to continue",
+    },
+    scrollTutorial: {
+      openInventory: 'Open the Inventory',
+      openSkills: 'Open the Skill window',
+    },
+    potionTutorial: {
+      openInventory: 'Open the Inventory',
+      assignHotkey: 'Press Assign Hotkey (the potion goes on the HP button)',
+      qSlot: 'The potion is on the HP button now',
+    },
+    statusTutorial: {
+      openStatus: 'Open Status',
+    },
+    dialogues: {
+      roland_potion_use: {
+        l1: 'Tap Use to drink the potion.',
+      },
+      roland_potion_hotkey: {
+        l1: 'Tap Assign Hotkey to make it easier to use. The potion goes on the HP button next to the attack button.',
+      },
+    },
   },
 };

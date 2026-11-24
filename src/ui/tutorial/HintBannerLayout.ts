@@ -29,6 +29,7 @@ export const BANNER_TIMING = {
  *   lock       a padlock (locked feature)
  *   quest      a gold page with "!" (quest accepted)
  *   done       a gold check mark (quest completed)
+ *   joystick   a ring with a gold knob (mobile move hint)
  */
 export const BANNER_ICONS = {
   mouse: [
@@ -69,6 +70,18 @@ export const BANNER_ICONS = {
     '.#lll#lll#.',
     '.#lllllll#.',
     '.#########.',
+  ],
+  /** Mobile: the joystick (move hint in touch mode). */
+  joystick: [
+    '...#####...',
+    '.##.....##.',
+    '.#..lll..#.',
+    '#..lllll..#',
+    '#..lllll..#',
+    '#..lllll..#',
+    '.#..lll..#.',
+    '.##.....##.',
+    '...#####...',
   ],
   done: [
     '..........l',

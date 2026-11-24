@@ -48,6 +48,14 @@ import { QuestAcceptWatcher } from '../quests/QuestNotices';
 import { PortalService } from '../world/Portals';
 import { GoldService } from '../economy/GoldService';
 import { HintService, showClickToMoveHint, showNavigateHint } from '../tutorial/TutorialHints';
+import { isTouchMode } from '../platform/DeviceMode';
+import { TouchControls } from '../ui/touch/TouchControls';
+import { TargetHud } from '../ui/touch/TargetHud';
+
+/** Mobile: the potion buttons' names in notices (desktop: the keys Q / W). */
+const TOUCH_POTION_LABEL = { hp: 'HP', sp: 'SP' } as const;
+/** Mobile touch controls: above the HUD (0-4), below the banners' windows (10+); the target HUD with them. */
+const TOUCH_DEPTH = 3;
 
 /** How long the potion training points at the Q slot after the potion was put there, before Roland goes on. */
 const POTION_FLASH_MS = 1100;
@@ -98,6 +106,10 @@ export class GameUIScene extends Phaser.Scene {
   private autoWindow: AutoPlayWindow | null = null;
   /** Roland's scroll tutorial guide line shown last (lines 11-13 of the Dark Avian quest). */
   private scrollGuide: keyof typeof TUTORIAL_QUEST_06.guideDialogueIds | null = null;
+  /** Mobile (touch mode only): the joystick, action wheel and potion buttons, and the target HUD. */
+  private readonly touch = isTouchMode();
+  private touchControls: TouchControls | null = null;
+  private targetHud: TargetHud | null = null;
 
   constructor() {
     super(SCENES.GameUI);
@@ -123,6 +135,8 @@ export class GameUIScene extends Phaser.Scene {
     this.autoInfoIndex = 0;
     this.autoGuide = null;
     this.scrollGuide = null;
+    this.touchControls = null;
+    this.targetHud = null;
     const character = this.resolveCharacter(data.characterId);
     this.character = character;
     const game = this.gameScene();
@@ -148,9 +162,11 @@ export class GameUIScene extends Phaser.Scene {
         currentSp,
         onHotbarSlot: (slot) => this.canUseHotbar() && this.useHotbarSlot(slot),
         onPotionSlot: (key) => this.canUseHotbar() && this.usePotionSlot(key),
+        touch: this.touch,
       },
       0,
     );
+    if (this.touch) this.createTouchControls(character);
     this.statusWindow = new StatusWindow(this, character, 10, currentHp, currentSp);
     // T toggles the Status window, as its HUD button does: not while typing, with Settings open on top, or
     // while a tutorial spotlight shuts other controls out - except the Status tutorial's own spotlight.
@@ -192,7 +208,7 @@ export class GameUIScene extends Phaser.Scene {
       }
       const key = HotbarService.assignPotion(character, itemId);
       if (!key) return;
-      this.itemNotifications?.showText(t('notifications.potionAssigned', { name: labels.itemName(itemId), key: POTION_KEY_LABEL[key] }));
+      this.itemNotifications?.showText(t('notifications.potionAssigned', { name: labels.itemName(itemId), key: (this.touch ? TOUCH_POTION_LABEL : POTION_KEY_LABEL)[key] }));
       // the potion training: point at Q for a moment, then Roland's last part opens by itself
       if (QuestService.hotkeyAssigned(character, itemId)) {
         this.inventoryWindow?.close();
@@ -378,6 +394,41 @@ export class GameUIScene extends Phaser.Scene {
       this.itemNotifications = null;
       this.skillWindow = null;
       this.autoWindow = null;
+      this.touchControls = null;
+      this.targetHud = null;
+    });
+  }
+
+  /**
+   * Mobile: the joystick (bottom-left), the sword + hotkey wheel and the potion buttons (bottom-right) and the
+   * target HUD (top-centre). They use the very same actions as the desktop keys and clicks.
+   */
+  private createTouchControls(character: CharacterData): void {
+    const controls = new TouchControls(
+      this,
+      character,
+      {
+        onSteer: (direction) => this.gameScene()?.steer(direction),
+        onAttack: () => {
+          if (this.canOpenWindows() && !this.spotlightOverlay?.isActive) this.gameScene()?.touchAttack();
+        },
+        onSlot: (slot) => this.canUseHotbar() && this.useHotbarSlot(slot),
+        onPotion: (key) => this.canUseHotbar() && this.usePotionSlot(key),
+      },
+      TOUCH_DEPTH,
+    );
+    this.touchControls = controls;
+    this.targetHud = new TargetHud(this, TOUCH_DEPTH);
+    // the finger may be lifted while the game is paused (device turned) or in the background: let go of the joystick
+    const release = (): void => controls.release();
+    this.game.events.on(Phaser.Core.Events.PAUSE, release);
+    this.game.events.on(Phaser.Core.Events.BLUR, release);
+    this.game.events.on(Phaser.Core.Events.HIDDEN, release);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off(Phaser.Core.Events.PAUSE, release);
+      this.game.events.off(Phaser.Core.Events.BLUR, release);
+      this.game.events.off(Phaser.Core.Events.HIDDEN, release);
+      controls.release();
     });
   }
 
@@ -385,7 +436,8 @@ export class GameUIScene extends Phaser.Scene {
   private updateHints(): void {
     const c = this.character;
     if (!c || !this.banners) return;
-    this.banners.setPersistent('hint.clickToMove', 'hints.clickToMove', 'mouse', showClickToMoveHint(QuestService.quest01(c).state, HintService.isDone(c, 'click_to_move')));
+    // mobile: the same hint in touch words (joystick to move, tap NPCs) with the joystick icon
+    this.banners.setPersistent('hint.clickToMove', 'hints.clickToMove', this.touch ? 'joystick' : 'mouse', showClickToMoveHint(QuestService.quest01(c).state, HintService.isDone(c, 'click_to_move')));
     this.banners.update();
   }
 
@@ -409,6 +461,8 @@ export class GameUIScene extends Phaser.Scene {
     const game = this.gameScene();
     if (!this.hud || !game?.player) return;
     this.hud.updateCooldowns((id) => game.skillCooldown(id));
+    this.touchControls?.update((id) => game.skillCooldown(id));
+    this.targetHud?.set(this.isPlayerAlive() ? game.touchTarget() : null);
     // the AUTO button is gray while it cannot be used (dead, a conversation, the leave dialog)
     const c = this.character;
     this.hud.setAutoPlayEnabled(!!c && FeatureService.isUnlocked(c, 'autoCombat') && this.canOpenWindows() && this.isPlayerAlive());
@@ -666,7 +720,8 @@ export class GameUIScene extends Phaser.Scene {
     const { character, inventoryWindow: w, assignWindow: a } = this;
     if (!character || !w || !a || this.dialogueWindow?.isModal) return null;
     const flash = this.potionFlash;
-    if (flash) return { id: 'potion.qSlot', rect: () => rectOfObject(this, this.hud?.potionZones[flash]), label: t('potionTutorial.qSlot') };
+    // mobile: the HP potion button (the Q slot is hidden)
+    if (flash) return { id: 'potion.qSlot', rect: () => rectOfObject(this, (this.touchControls ?? this.hud)?.potionZones[flash]), label: t('potionTutorial.qSlot') };
     const step = this.currentPotionStep();
     if (!step) return null;
     let rect: SpotlightTarget['rect'];

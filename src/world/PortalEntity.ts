@@ -2,13 +2,13 @@ import Phaser from 'phaser';
 import type { Point } from '../core/types';
 import { QuestMarker } from '../ui/world/QuestMarker';
 import type { IsometricMap } from './IsometricMap';
-import { portalArrowShown, portalVisible, tileCentre, type PortalDefinition, type PortalState } from './Portals';
+import { portalArrowShown, portalVisible, portalVisualCentre, tileCentre, type PortalDefinition, type PortalState } from './Portals';
 
 /** The art's foot (the middle of the stone ring) as a share of its height: it stands on the tile centre. */
 const FOOT_Y = 0.82;
 
 /**
- * A portal on the map: its 64 x 64 looping animation (1x, crisp) standing on its tile, sorted with the scenery like an NPC,
+ * A portal on the map: its 64 x 64 looping animation (1x, crisp) standing on its tile (drawn 28 px to the right - Portals), sorted with the scenery like an NPC,
  * hidden while locked. While it waits to be gone through, the quest marker arrow floats above it (the same
  * arrow NPCs show). Not blocking: walking onto its tile warps (GameScene); a click on it walks onto it.
  */
@@ -22,7 +22,8 @@ export class PortalEntity {
     map: IsometricMap,
     readonly definition: PortalDefinition,
   ) {
-    const c = tileCentre(definition.tile);
+    // drawn at its visual centre (28 px right of the tile centre, the same screen height): sprite, arrow, depth
+    const c = portalVisualCentre(definition.tile);
     const world = map.tileToWorld(c.x, c.y);
     const x = Math.round(world.x);
     const y = Math.round(world.y);
@@ -39,7 +40,7 @@ export class PortalEntity {
     this.arrow = new QuestMarker(scene, { x, y: Math.round(y - definition.art.size * FOOT_Y) + 4 });
   }
 
-  /** Where it stands (tile space, tile centre). */
+  /** Its tile centre (tile space): where a click or Navigate walks to - inside the step-on trigger. */
   get position(): Point {
     return tileCentre(this.definition.tile);
   }

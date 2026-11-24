@@ -17,8 +17,8 @@ import { STRUCTURE_BLUEPRINTS } from '../structures/StructureBlueprints';
  *                   knight statues and banners; its gate faces the plaza's north road
  *   plaza zone      the centre (cols 36-59, rows 37-59): a wide flagstone square, a well, broken market stalls
  *   church zone     the right corner: the church with its bell tower in a flagstone courtyard, a walled graveyard
- *   residential     the left and bottom quarters (and a strip north of the plaza): narrow lanes, fenced lots and
- *                   ruined houses - most of the destruction
+ *   residential     the west, south, east and north quarters: a grid of streets and town blocks (TOWN_BLOCKS), each
+ *                   house's door facing its street, yards and ruins behind - most of the destruction
  * Outside the gate a short apron holds the way back to Ashen (portal dawnkeep_exit).
  */
 export const DAWNKEEP_SIZE = 96;
@@ -51,28 +51,32 @@ const ROADS: MapRect[] = [
   rect(46, 79, 3, 6, 'path'),
   // the plaza
   rect(36, 37, 24, 23, 'plaza'),
-  // north road from the plaza to the castle gate
-  rect(46, 20, 3, 17, 'cobble_broken'),
+  // north road from the plaza to the castle gate (on to the north wall, a street of the north quarter)
+  rect(46, 7, 3, 30, 'cobble_broken'),
   rect(33, 20, 13, 3, 'path'),
   rect(31, 20, 2, 3, 'path'),
   // the castle courtyard and its approach to the keep
   rect(12, 12, 19, 19, 'plaza'),
   rect(19, 20, 12, 3, 'path'),
-  // the church: road from the plaza, the courtyard
-  rect(60, 41, 15, 3, 'cobble_broken'),
-  rect(72, 27, 3, 14, 'cobble_broken'),
+  // the church: road from the plaza (on east as a street), up the street to the courtyard
+  rect(60, 41, 29, 3, 'cobble_broken'),
   rect(64, 12, 13, 15, 'plaza'),
-  // residential lanes (west)
-  rect(8, 52, 28, 2, 'cobble_broken'),
-  rect(21, 34, 2, 55, 'cobble_broken'),
-  rect(8, 71, 38, 2, 'cobble_broken'),
-  // residential lanes (east and south)
-  rect(49, 71, 40, 2, 'cobble_broken'),
-  rect(66, 44, 2, 45, 'cobble_broken'),
-  rect(60, 52, 29, 2, 'cobble_broken'),
-  // the strip north of the plaza
-  rect(34, 17, 12, 2, 'cobble_broken'),
-  rect(49, 17, 22, 2, 'cobble_broken'),
+  // the town's street grid (see TOWN_BLOCKS): streets running along rows (houses with +x doors face them) ...
+  rect(19, 33, 2, 56, 'cobble_broken'),
+  rect(33, 7, 3, 82, 'cobble_broken'),
+  rect(60, 7, 2, 82, 'cobble_broken'),
+  rect(74, 27, 2, 62, 'cobble_broken'),
+  rect(87, 28, 2, 61, 'cobble_broken'),
+  // ... and streets running along cols (houses with +y doors face them)
+  rect(7, 33, 29, 2, 'cobble_broken'),
+  rect(49, 20, 13, 2, 'cobble_broken'),
+  rect(60, 28, 29, 2, 'cobble_broken'),
+  rect(33, 35, 29, 2, 'cobble_broken'),
+  rect(7, 47, 29, 2, 'cobble_broken'),
+  rect(7, 60, 82, 2, 'cobble_broken'),
+  rect(7, 74, 82, 2, 'cobble_broken'),
+  rect(7, 87, 29, 2, 'cobble_broken'),
+  rect(60, 87, 29, 2, 'cobble_broken'),
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -175,73 +179,87 @@ wallLine('y', 31, 25, 6, CASTLE);
 type House = { type: ObjectType | StructureType; col: number; row: number };
 const h = (type: House['type'], col: number, row: number): House => ({ type, col, row });
 
-/** The citadel: the keep facing its gate, barracks, statues, banners. Everything intact. */
-const CASTLE_BUILDINGS: House[] = [h('dk_keep', 16, 20), h('dk_house_intact', 13, 13), h('dk_house_intact', 24, 13), h('dk_house_intact', 13, 26), h('dk_house_intact', 24, 26), h('dk_house_intact', 27, 15)];
+/** The citadel: the keep facing its gate, four barracks houses around the courtyard. Everything intact. */
+const CASTLE_BUILDINGS: House[] = [h('dk_keep', 13, 19), h('dk_house_intact', 13, 12), h('dk_house_intact', 24, 12), h('dk_house_intact', 13, 25), h('dk_house_intact', 24, 25)];
 
-/** The town: 52 buildings, 46 of them ruined (burned, roof torn open, roofless, caved in). */
-const TOWN_BUILDINGS: House[] = [
-  // west, north of the west lane
-  h('dk_ruin_burned', 9, 35),
-  h('courtyard', 9, 40),
-  h('dk_ruin_shell', 16, 41),
-  h('dk_ruin_cottage', 15, 47),
-  h('collapsed_hall', 24, 35),
-  h('timber_house', 29, 41),
-  h('dk_ruin_shell', 30, 47),
-  // west, between the west lane and the south lane
-  h('stone_hall', 9, 55),
-  h('dk_ruin_burned', 16, 55),
-  h('dk_house_intact', 9, 66),
-  h('dk_ruin_shell', 14, 66),
-  h('dk_ruin_shell', 24, 55),
-  h('collapsed_house', 34, 55),
-  h('stone_house_b', 24, 61),
-  h('dk_ruin_burned', 30, 61),
-  h('dk_house_intact', 41, 62),
-  h('dk_ruin_cottage', 36, 66),
-  // south-west, near the wall
-  h('dk_ruin_cottage', 9, 74),
-  h('courtyard', 14, 79),
-  h('dk_ruin_shell', 24, 74),
-  h('stone_house', 30, 74),
-  h('dk_ruin_burned', 24, 80),
-  h('dk_ruin_cottage', 36, 80),
-  // east of the avenue
-  h('dk_ruin_burned', 50, 61),
-  h('dk_ruin_shell', 61, 61),
-  h('dk_house_intact', 56, 66),
-  h('stone_hall', 69, 55),
-  h('dk_ruin_shell', 81, 55),
-  h('dk_ruin_cottage', 69, 62),
-  h('collapsed_hall', 76, 62),
-  h('dk_ruin_burned', 82, 66),
-  h('dk_ruin_cottage', 61, 45),
-  h('dk_ruin_burned', 69, 45),
-  h('dk_ruin_shell', 81, 45),
-  // south-east, near the wall
-  h('dk_ruin_shell', 50, 74),
-  h('stone_house_b', 55, 74),
-  h('dk_ruin_cottage', 56, 80),
-  h('dk_ruin_burned', 69, 74),
-  h('collapsed_hall', 74, 74),
-  h('dk_house_intact', 75, 80),
-  h('dk_ruin_shell', 81, 80),
-  // north of the plaza
-  h('dk_ruin_shell', 35, 25),
-  h('dk_house_intact', 41, 31),
-  h('dk_ruin_burned', 50, 24),
-  h('collapsed_hall', 60, 24),
-  h('dk_ruin_cottage', 52, 31),
-  h('collapsed_house', 62, 31),
-  h('dk_ruin_cottage', 36, 9),
-  h('dk_ruin_burned', 50, 9),
-  h('dk_ruin_shell', 56, 10),
-  h('collapsed_house', 38, 13),
-  h('dk_house_intact', 57, 14),
+/**
+ * A town block: the ground between four streets (min corner, size in tiles). Every door in the art faces +x or +y
+ * (towards the viewer), so a block's houses stand on its +x edge (burned / intact houses, door to the street running
+ * along rows) and on its +y edge (cottages / shells, door and front yard to the street running along cols); the back
+ * corner is a yard - a ruined blueprint house, debris or a fenced plot. One tile of free ground between neighbours.
+ */
+interface TownBlock {
+  col: number;
+  row: number;
+  w: number;
+  h: number;
+  /** The ruin standing in the back yard (none: a fenced plot). */
+  ruin?: StructureType;
+  /** The house on the +x street is still standing. */
+  intact?: boolean;
+}
+const block = (col: number, row: number, w: number, h: number, ruin?: StructureType, intact = false): TownBlock => ({ col, row, w, h, ruin, intact });
+
+/** Streets: cols 19-20, 33-35, 46-48 (avenue / north road), 60-61, 74-75, 87-88; rows 33-34, 47-48, 60-61, 74-75, 87-88 (west), 20-22 / 35-36 (north), 28-29 / 41-43 (east). */
+export const TOWN_BLOCKS: readonly TownBlock[] = [
+  // west quarter
+  block(7, 35, 12, 12, 'courtyard'),
+  block(21, 35, 12, 12, 'collapsed_hall', true),
+  block(7, 49, 12, 11, 'stone_house'),
+  block(21, 49, 12, 11),
+  block(7, 62, 12, 12, 'timber_house', true),
+  block(21, 62, 12, 12, 'collapsed_house'),
+  block(7, 76, 12, 11),
+  block(21, 76, 12, 11, 'stone_hall', true),
+  // south quarter (the gate square, cols 36-59 below row 75, stays open)
+  block(36, 62, 10, 12, 'collapsed_house'),
+  block(49, 62, 11, 12, 'collapsed_hall'),
+  block(62, 62, 12, 12, 'courtyard', true),
+  block(76, 62, 11, 12, undefined, true),
+  block(62, 76, 12, 11, 'stone_house_b'),
+  block(76, 76, 11, 11, 'collapsed_house'),
+  // east quarter
+  block(62, 30, 12, 11, 'timber_house'),
+  block(76, 30, 11, 11, undefined, true),
+  block(62, 44, 12, 16, 'stone_hall', true),
+  block(76, 44, 11, 16, 'collapsed_hall'),
+  // north quarter
+  block(36, 7, 10, 13),
+  block(49, 7, 11, 13, 'collapsed_house', true),
+  block(36, 23, 10, 12, 'collapsed_house'),
+  block(49, 22, 11, 13, 'timber_house'),
 ];
 
-/** The church quarter: the church in its courtyard, a walled graveyard beside it. */
-const CHURCH: House[] = [h('dk_church', 69, 16)];
+/** The houses of a block (see TownBlock): its +x street side, its +y street side, the ruin in the yard. */
+function blockHouses(b: TownBlock, index: number): House[] {
+  const out: House[] = [];
+  const at = (type: House['type'], x: number, y: number): void => {
+    out.push(h(type, b.col + x, b.row + y));
+  };
+  const [first, corner] = index % 2 ? (['dk_ruin_shell', 'dk_ruin_cottage'] as const) : (['dk_ruin_cottage', 'dk_ruin_shell'] as const);
+  if (b.h >= 12) {
+    // +x street: the burned house on its slab (or an intact house) at the top, a second house on tall blocks
+    if (b.intact) at('dk_house_intact', b.w - 4, 1);
+    else at('dk_ruin_burned', b.w - 6, 0);
+    if (b.h >= 16) at('stone_house', b.w - 4, 7);
+    // +y street: a cottage / shell on the left and one on the corner (an intact house on narrow blocks)
+    at(first, 0, b.h - 5);
+    if (b.w >= 11) at(corner, b.w - 5, b.h - 5);
+    else at('dk_house_intact', b.w - 4, b.h - 4);
+  } else {
+    // short blocks (11 rows): a small house at the top of the +x street, the burned house on the corner
+    at(b.intact ? 'dk_house_intact' : 'stone_house', b.w - 4, 0);
+    at(first, 0, b.h - 5);
+    if (b.w >= 12) at('dk_ruin_burned', b.w - 6, b.h - 6);
+    else at(corner, b.w - 5, b.h - 5);
+  }
+  if (b.ruin) at(b.ruin, 0, 0);
+  return out;
+}
+
+const TOWN_BUILDINGS: House[] = TOWN_BLOCKS.flatMap(blockHouses);
+
+const CHURCH: House[] = [h('dk_church', 69, 15)];
 
 const structures: StructurePlacement[] = [];
 for (const b of [...CASTLE_BUILDINGS, ...TOWN_BUILDINGS, ...CHURCH]) {
@@ -372,33 +390,22 @@ prop('rubble_heap', 66, 17);
 prop('brazier', 71, 26);
 prop('brazier', 75, 26);
 
-// residential debris: rubble, beams, carts, barrels and fenced lots around the ruins
-const DEBRIS: ObjectType[] = ['rubble_heap', 'beam_pile', 'barrels', 'crate', 'rubble_heap', 'cart_broken', 'barrel', 'rubble_mound', 'beam_pile', 'crate_stack', 'dead_tree', 'rock'];
-let k = 0;
-for (const b of TOWN_BUILDINGS) {
-  // two pieces of debris beside each ruin, one beside an intact house; tried around the footprint
-  const size = b.type in STRUCTURE_BLUEPRINTS ? STRUCTURE_BLUEPRINTS[b.type as StructureType] : { width: MAP_OBJECTS[b.type as ObjectType].w, height: MAP_OBJECTS[b.type as ObjectType].h };
-  const spots: [number, number][] = [
-    [b.col + size.width, b.row],
-    [b.col - 2, b.row + size.height - 1],
-    [b.col, b.row + size.height],
-    [b.col + size.width, b.row + size.height - 1],
-    [b.col - 1, b.row - 1],
-  ];
-  const wanted = b.type === 'dk_house_intact' ? 1 : 2;
-  let placed = 0;
-  for (const [c, r] of spots) {
-    if (placed >= wanted) break;
-    const before = objects.length;
-    prop(DEBRIS[k++ % DEBRIS.length], c, r);
-    if (objects.length > before) placed++;
+// the yards: debris along the back of every block, a fence round the plots without a ruin
+const DEBRIS: ObjectType[] = ['rubble_heap', 'beam_pile', 'barrels', 'crate', 'rubble_mound', 'cart_broken', 'barrel', 'beam_pile', 'crate_stack', 'dead_tree', 'rock', 'rubble_heap'];
+TOWN_BLOCKS.forEach((b, i) => {
+  const yardW = b.w - (b.intact ? 5 : 7);
+  const yardH = b.h - 6;
+  if (b.ruin) {
+    const { width, height } = STRUCTURE_BLUEPRINTS[b.ruin];
+    prop(DEBRIS[i % DEBRIS.length], b.col + Math.min(width + 1, yardW - 1), b.row + 1);
+    prop(DEBRIS[(i + 5) % DEBRIS.length], b.col + 1, b.row + Math.min(height + 1, yardH));
+    return;
   }
-}
-// fenced lots along the west and south-east lanes
-for (const c of [10, 12, 15, 17, 25, 27, 32]) prop('fence_x', c, 70);
-for (const c of [51, 53, 58, 60, 70, 72, 78, 80, 84]) prop('fence_x', c, 70);
-for (const r of [57, 59, 64, 68]) prop('fence_y', 20, r);
-for (const r of [56, 58, 63, 67]) prop('fence_y', 65, r);
+  for (let x = 0; x < yardW; x++) prop('fence_x', b.col + x, b.row);
+  for (let y = 1; y < yardH; y++) prop('fence_y', b.col, b.row + y);
+  prop(DEBRIS[i % DEBRIS.length], b.col + 2, b.row + 2);
+  prop(DEBRIS[(i + 3) % DEBRIS.length], b.col + yardW - 2, b.row + yardH - 2);
+});
 // outside the walls: dead trees and rocks; the gate apron is closed off at both ends
 for (let r = 91; r < N; r++) {
   prop(r % 2 ? 'rock' : 'dead_tree', 39, r);
@@ -446,10 +453,10 @@ export const DAWNKEEP: MapDefinition = {
     { id: 'plaza', name: 'Wide plaza', area: rect(36, 37, 24, 23), probe: { col: 47, row: 52 } },
     { id: 'castle', name: 'Castle (citadel)', area: rect(10, 10, 23, 23), probe: { col: 25, row: 21 } },
     { id: 'church', name: 'Church and bell tower', area: rect(62, 8, 27, 20), probe: { col: 70, row: 22 } },
-    { id: 'residential_west', name: 'Residential quarter (west)', area: rect(7, 33, 29, 56), probe: { col: 21, row: 60 } },
-    { id: 'residential_south', name: 'Residential quarter (south, both sides of the avenue)', area: rect(36, 60, 53, 29), probe: { col: 66, row: 78 } },
-    { id: 'residential_east', name: 'Residential quarter (east)', area: rect(60, 33, 29, 27), probe: { col: 66, row: 48 } },
-    { id: 'residential_north', name: 'Residential strip (north)', area: rect(33, 7, 29, 26), probe: { col: 55, row: 18 } },
+    { id: 'residential_west', name: 'Residential quarter (west)', area: rect(7, 33, 29, 56), probe: { col: 19, row: 55 } },
+    { id: 'residential_south', name: 'Residential quarter (south, both sides of the avenue)', area: rect(36, 60, 53, 29), probe: { col: 66, row: 74 } },
+    { id: 'residential_east', name: 'Residential quarter (east)', area: rect(62, 28, 27, 32), probe: { col: 75, row: 48 } },
+    { id: 'residential_north', name: 'Residential quarter (north)', area: rect(36, 7, 26, 30), probe: { col: 55, row: 20 } },
   ],
   spawn: DAWNKEEP_ARRIVAL,
 };

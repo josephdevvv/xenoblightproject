@@ -48,6 +48,7 @@ export class MonsterEntity {
   readonly home: Point;
   /** Name + green HP bar under the ground root (shared nameplate style). */
   private readonly hpBar: NameplateBars;
+  private targeted = false;
   private readonly movement: PlayerMovement;
   private readonly behavior: WanderBehavior | null;
   private mode: MonsterMode = 'wander';
@@ -141,9 +142,16 @@ export class MonsterEntity {
     return { minX: at.x - r, minY: at.y - r, maxX: at.x + r, maxY: at.y + r };
   }
 
-  /** Marks the player's target (name highlighted). */
+  /** Marks the player's target (name highlighted). Repainted only when it changes. */
   setTargeted(on: boolean): void {
+    if (on === this.targeted) return;
+    this.targeted = on;
     this.label.setColor(on ? '#ffd27a' : NAME_LABEL_COLORS.monster);
+  }
+
+  /** The name is highlighted as the target. */
+  get isTargeted(): boolean {
+    return this.targeted;
   }
 
   /**

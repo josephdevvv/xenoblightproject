@@ -17,6 +17,8 @@ export interface ObstacleDefinition {
   smokeOffsetY?: number;
   /** Drawn mirrored (the city wall along the other axis). */
   flipX?: boolean;
+  /** Render scale of the sprite (default 1). The origin is a fraction, so the anchor stays on the footprint centre. */
+  scale?: number;
   /** Faint accent glow behind the prop. */
   glow?: { offsetY: number; scale: number; alpha: number };
 }
@@ -42,6 +44,7 @@ export const OBSTACLES: Readonly<Record<ObstacleType, ObstacleDefinition>> = Obj
         originY: art.anchorY / art.height,
         blocksMovement: spec.category === 'blocking',
         flipX: handmade?.flipX,
+        scale: handmade?.scale,
         spec,
         ...EXTRAS[id],
       },

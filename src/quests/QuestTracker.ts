@@ -6,6 +6,8 @@ import { isQuest03AtMateus, isQuest03Tracking, TUTORIAL_QUEST_03 } from './Tutor
 import { TUTORIAL_QUEST_04 } from './TutorialQuest04';
 import { isQuest05Tracking, TUTORIAL_QUEST_05 } from './TutorialQuest05';
 import { isQuest06Tracking, TUTORIAL_QUEST_06 } from './TutorialQuest06';
+import { isQuest07AtRoland, isQuest07ToSonny, TUTORIAL_QUEST_07 } from './TutorialQuest07';
+import { PortalService } from '../world/Portals';
 
 /** What the HUD quest tracker shows: quest name key, objective key under it, its parameters. */
 export interface TrackedQuest {
@@ -35,5 +37,16 @@ export function trackedQuest(character: CharacterData): TrackedQuest | null {
   if (quest06.state === 'SCROLL_TUTORIAL') return { questId: TUTORIAL_QUEST_06.id, objectiveKey: 'objectiveTutorial' };
   if (quest06.state === 'SKILL_ASSIGNED' || quest06.state === 'FINAL_DIALOGUE') return { questId: TUTORIAL_QUEST_06.id, objectiveKey: 'objectiveReturn' };
   if (isQuest06Tracking(quest06)) return { questId: TUTORIAL_QUEST_06.id, objectiveKey: 'objectiveHunt', params: { count: quest06.kills, total: TUTORIAL_QUEST_06.target.count } };
+  const quest07 = QuestService.quest07(character);
+  if (quest07.state === 'OFFERED') return { questId: TUTORIAL_QUEST_07.id, objectiveKey: 'objective' };
+  if (isQuest07AtRoland(quest07, character.status.level)) return { questId: TUTORIAL_QUEST_07.id, objectiveKey: 'objectiveReturn' };
+  // completed: the breadcrumb to the north gate (Sonny's own quest is not part of this build)
+  if (isQuest07ToSonny(quest07)) {
+    const portal = PortalService.state(character, 'dawnkeep_gate');
+    if (portal === 'LOCKED') return { questId: TUTORIAL_QUEST_07.id, objectiveKey: 'objectiveSonny' };
+    if (portal === 'UNLOCKED') return { questId: TUTORIAL_QUEST_07.id, objectiveKey: 'objectivePortal' };
+  }
+  // the level now, live (the tracker refreshes on every status change)
+  if (quest07.state === 'ACTIVE') return { questId: TUTORIAL_QUEST_07.id, objectiveKey: 'objectiveLevel', params: { level: Math.min(character.status.level, TUTORIAL_QUEST_07.targetLevel), target: TUTORIAL_QUEST_07.targetLevel } };
   return null;
 }

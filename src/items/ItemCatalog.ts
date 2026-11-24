@@ -65,7 +65,7 @@ const DEFINITIONS: readonly ItemDefinition[] = [
     bonuses: { physicalAtk: 0, magicAtk: 0 },
     additionalStats: {},
     specialEffects: [],
-    stackable: true,
+    stackable: false, // one per slot (like equipment)
     icon: { url: 'assets/items/scrolls/scroll_power_thrust_32x32.png', width: 32, height: 32 },
     teaches: 'drifter_lv1',
   },
@@ -79,7 +79,7 @@ const DEFINITIONS: readonly ItemDefinition[] = [
     bonuses: { physicalAtk: 0, magicAtk: 0 },
     additionalStats: {},
     specialEffects: [],
-    stackable: true,
+    stackable: false, // one per slot (like equipment)
     icon: { url: 'assets/items/scrolls/scroll_heal_32x32.png', width: 32, height: 32 },
     teaches: 'drifter_heal',
   },

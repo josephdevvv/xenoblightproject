@@ -1,7 +1,7 @@
 /**
  * EXP curve - editable progression data.
  *
- * Levels 1-9 use the early-game table (first map: Level 1 -> Level 10 takes 2,080 EXP). Level 10 is the
+ * Levels 1-9 use the early-game table (first map: Level 1 -> Level 10 takes 3,800 EXP). Level 10 is the
  * FIRST MAP target, not a cap: from Level 10 on, the curve that existed before this table is kept
  * unchanged (25 x L^1.5) until a designed curve replaces it. The overall maximum level is
  * STATUS_RULES.maxLevel (99).
@@ -16,8 +16,8 @@ export const EARLY_EXP_TO_NEXT: Readonly<Record<number, number>> = {
   5: 220,
   6: 260,
   7: 310,
-  8: 360,
-  9: 420,
+  8: 1_000,
+  9: 1_500,
 };
 
 /** First map progression target (design goal: reached in ~15-20 min with Tutorial Quests - not verified). */
@@ -33,7 +33,7 @@ export function expToNextLevel(level: number): number {
   return EARLY_EXP_TO_NEXT[level] ?? legacyExpToNextLevel(level);
 }
 
-/** Total EXP from the start of `from` to the start of `to` (e.g. 1 -> 10 = 2,080). */
+/** Total EXP from the start of `from` to the start of `to` (e.g. 1 -> 10 = 3,800). */
 export function totalExpBetween(from: number, to: number): number {
   let total = 0;
   for (let l = from; l < to; l++) total += expToNextLevel(l);

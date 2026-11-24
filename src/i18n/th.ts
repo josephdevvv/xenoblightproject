@@ -124,6 +124,7 @@ export const th = {
   maps: {
     /** Proper name kept in English until an official Thai name exists (see i18n README notes). */
     ashen_crossroads: 'Ashen Crossroads',
+    dawnkeep: 'Dawnkeep',
   },
   hud: {
     level: 'Lv {level}',
@@ -132,6 +133,7 @@ export const th = {
     exp: 'EXP {percent}%',
     noActiveQuest: 'ไม่มีเควสที่กำลังทำ',
     auto: 'ออโต้',
+    navigate: 'พาไป',
     menuStatus: 'สถานะ (T)',
     menuSettings: 'ตั้งค่า',
     menuPassive: 'ผังพาสซีฟ (P)',
@@ -164,10 +166,10 @@ export const th = {
     },
     stats: {
       str: { label: 'STR', description: 'โจมตีประชิด' },
-      dex: { label: 'DEX', description: 'โจมตีระยะไกล, HIT' },
+      dex: { label: 'DEX', description: 'โจมตีระยะไกล, HIT, ASPD' },
       int: { label: 'INT', description: 'MATK, SP สูงสุด' },
       vit: { label: 'VIT', description: 'HP สูงสุด, DEF, MDEF' },
-      agi: { label: 'AGI', description: 'ความเร็วโจมตี, FLEE' },
+      agi: { label: 'AGI', description: 'FLEE, ความเร็วโจมตี (ASPD)' },
       luk: { label: 'LUK', description: 'คริติคอล, ดรอปวัตถุดิบ' },
     },
     derived: {
@@ -180,7 +182,8 @@ export const th = {
       mdef: 'MDEF',
       hit: 'HIT',
       flee: 'FLEE',
-      attackSpeedBonus: 'ความเร็วโจมตี (โบนัส)',
+      aspd: 'ASPD',
+      aspdPercent: 'ASPD',
       critRate: 'อัตราคริติคอล',
       critDamage: 'ความแรงคริติคอล',
       materialFindBonus: 'ดรอปวัตถุดิบ (สัมพัทธ์)',
@@ -390,6 +393,32 @@ export const th = {
     select: 'เลือกสกิลเพื่อดูรายละเอียด',
     keys: 'คลิกเพื่อเลือกสกิล  ·  K / Esc ปิด',
   },
+  dialogueChoices: {
+    fromRoland: 'ข้ามาตามคำแนะนำของ Roland',
+    justWalking: 'เดินเล่นเฉยๆ',
+  },
+  features: {
+    locked: 'ต้องผ่าน Tutorial ก่อนถึงจะกดใช้ได้',
+  },
+  notices: {
+    questAccepted: 'ได้รับภารกิจ: {name}',
+    questCompleted: 'สำเร็จภารกิจ: {name}',
+  },
+  hints: {
+    clickToMove: 'กดคลิกซ้าย เพื่อเดินและคุยกับ NPC',
+  },
+  navigateTutorial: {
+    click: 'กด "พาไป" เพื่อเดินไปหา Roland',
+  },
+  levelTutorial: {
+    openInventory: 'เปิดกระเป๋า (I)',
+    selectSp: 'เลือกยาฟ้าฟื้นฟู',
+    assign: 'กดตั้งคีย์ลัด (ยาจะไปอยู่ที่ปุ่ม W)',
+    closeInventory: 'ปิดกระเป๋า',
+    openAuto: 'เปิดออโต้',
+    info: 'คลิกที่บทพูดของ Roland เพื่อไปต่อ',
+    start: 'กดเริ่มออโต้',
+  },
   scrollTutorial: {
     openInventory: 'เปิดกระเป๋า (I)',
     selectScroll: 'เลือกคัมภีร์ทิ่มสุดแรง',
@@ -434,6 +463,14 @@ export const th = {
       objective: 'ไปพบ Roland',
       objectiveTutorial: 'เรียนรู้การใช้ยาแดงฟื้นฟู',
       objectiveReturn: 'กลับไปคุยกับ Roland',
+    },
+    tutorial_07_reach_level_10: {
+      name: 'เก็บเลเวลถึง 10',
+      objective: 'กลับไปคุยกับ Roland',
+      objectiveLevel: 'เก็บเลเวลให้ถึง 10 (Lv {level}/{target})',
+      objectiveReturn: 'กลับไปหา Roland',
+      objectiveSonny: 'เดินขึ้นเหนือไปคุยกับ Sonny ที่ประตู',
+      objectivePortal: 'เข้าไปในประตูมิติ',
     },
     tutorial_06_dark_avian_hunt: {
       name: 'ล่า Dark Avian',
@@ -521,6 +558,58 @@ export const th = {
     },
     roland_avian_hotkey: {
       l1: 'กดไปที่สกิลแล้วตั้งค่าคีย์ลัดเข้าไปเพื่อใช้งานง่ายๆได้เลย',
+    },
+    roland_avian_done: {
+      l1: 'เรียบร้อยดีสินะ เอาเป็นว่านี่คือรางวัลของเจ้า',
+      l2: 'คัมภีร์ฟื้นฟูนี้จะทำให้เจ้าอยู่รอดกับการต่อสู้ได้ดีขึ้น',
+      l3: 'ต่อไปเจ้าจะต้องเก็บเกี่ยวประสบการณ์ตรงนี้ก่อนที่จะเข้าเมืองไปทำความเข้าใจโลกใบใหม่นี้',
+      l4: 'เก็บเลเวลจากการล่ามอนสเตอร์แถวนี้นี่แหละ จนถึงเลเวล 10',
+      l5: 'ข้าจะมีทริคเล็กๆน้อยบอกเจ้าด้วย เอาไว้ให้การล่าของเจ้าสบายมากขึ้น',
+      l6: 'เอาล่ะแล้วค่อยกลับมาตอนเจ้าถึงเลเวล 10 ก็แล้วกันนะ',
+    },
+    roland_level10_done: {
+      l1: 'นี่สิ ผลของการฝึกฝน ใช่ไหมครับ',
+      l2: 'เอาล่ะ เจ้าพร้อมแล้วล่ะถ้าทำได้ถึงขนาดนี้',
+      l3: 'เดินขึ้นเหนือไปอีกสิ จะเจอยามเฝ้าหน้าประตู ให้คุยกับ Sonny นะ',
+      l4: 'อย่าหลงไปคุยกับ Jack เชียวล่ะ มันพูดไม่รู้เรื่อง',
+    },
+    sonny_gate: {
+      l1: 'ที่นี่คือประตูเมือง Dawnkeep ป้อมปราการแรกแห่งอาณาจักร Rosencrown',
+      l2: 'เจ้ามีธุระอะไรกันถึงได้มาที่นี่',
+    },
+    sonny_from_roland: {
+      l1: 'อ่อ เจ้าคนเร่ร่อนที่ Mateus ไปเจอมาหรือเนี่ย โอเคๆ',
+      l2: 'ข้าจะเปิดทางให้เจ้าเข้าไปในเมือง จงเตรียมพร้อมที่จะเรียนรู้สิ่งต่างๆด้วยล่ะ',
+    },
+    sonny_just_walking: {
+      l1: 'อะไรของเจ้าเนี่ย ตัวก็เหม็น สกปรกมาก เจ้าคนเร่ร่อน!',
+      l2: 'ไปคุยกับ Jack ไป ถ้าจะมากวนประสาท',
+    },
+    jack_gate: {
+      l1: 'เจ้าคือใคร มาทำไมในสถานที่แห่งนี้',
+    },
+    jack_from_roland: {
+      l1: 'ใครคือ Roland ข้าไม่เห็นจะรู้จัก',
+      l2: 'กลับไปทางที่เจ้ามาเถอะ ไอ้ตัวเหม็น',
+    },
+    jack_just_walking: {
+      l1: 'เดินเล่น? เดินเล่นอะไรในสถานที่แห่งนี้',
+      l2: 'กลับไปทางที่เจ้ามาเถอะ ไอ้ตัวเหม็น',
+    },
+    roland_auto_monsters: {
+      l1: 'เลือกมอนสเตอร์ที่อยากล่าตรงนี้ เลือกได้หลายชนิด',
+    },
+    roland_auto_skills: {
+      l1: 'สกิลโจมตีบนแถบคีย์ลัดเรียงอยู่ตรงนี้ ลากเพื่อจัดลำดับ ซ้ายสุดใช้ก่อน',
+    },
+    roland_auto_options: {
+      l1: 'ตั้งให้ตอบโต้เมื่อถูกโจมตี หรือสวนกลับตัวที่กำลังตีเจ้าอยู่',
+    },
+    roland_auto_range: {
+      l1: 'กำหนดระยะล่า จะเป็นทั้งแผนที่หรือแค่รอบตัวเจ้าก็ได้',
+    },
+    roland_auto_recovery: {
+      l1: 'ตั้งให้ใช้ยาและสกิลฟื้นฟูเองเมื่อ HP หรือ SP ลดลงถึงเกณฑ์',
     },
     roland_avian_go: {
       l1: 'เอาล่ะ ไปลุยได้เลย',

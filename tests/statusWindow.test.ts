@@ -116,5 +116,5 @@ test('shown values include equipment: the window reads the same derived stats as
   c.inventory = worn.state;
   assert.deepEqual(CharacterStatusService.derived(c), { ...plain, meleeAtk: plain.meleeAtk + 4 });
   // the preview of pending points has the same bonus
-  assert.equal(CharacterStatusService.previewDerived(c, { ...c.status.base, str: 2 }).meleeAtk, plain.meleeAtk + 4 + 2);
+  assert.equal(CharacterStatusService.previewDerived(c, { ...c.status.base, str: 2 }).meleeAtk, plain.meleeAtk + 4 + 0.5);
 });

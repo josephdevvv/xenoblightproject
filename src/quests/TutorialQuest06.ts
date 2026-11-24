@@ -7,7 +7,8 @@ import type { NpcId } from '../npcs/NpcDefinition';
  *   NOT_STARTED --offer--> OFFERED (Mutant Wolf hunt turned in) --talk--> INTRO_DIALOGUE (lines 1-10)
  *   --scrollGiven--> SCROLL_TUTORIAL (lines 11-13: learn Power Thrust, open Skills, put it on the hotbar)
  *   --skillAssigned--> SKILL_ASSIGNED --finalTalk--> FINAL_DIALOGUE (line 14) --startHunt--> HUNTING
- *   --kill x10--> READY_TO_TURN_IN --complete--> COMPLETED (150 EXP, talking to Roland - no new dialogue)
+ *   --kill x10--> READY_TO_TURN_IN --turnIn--> TURN_IN_DIALOGUE (6 lines; clicking through line 1 pays 150 EXP + the
+ *   Heal Skill Scroll, once) --complete--> COMPLETED (which offers Quest 07; its acceptance ends the same talk)
  *
  * The Power Thrust scroll is given once by its grant id when line 10 is clicked through. SCROLL_TUTORIAL's
  * steps come from what is really open, selected and learned (scrollTutorialStep).
@@ -20,12 +21,15 @@ export const TUTORIAL_QUEST_06 = {
   previewStep: 8,
   guideDialogueIds: { learn: 'roland_avian_scroll', openSkills: 'roland_avian_skills', assign: 'roland_avian_hotkey' },
   finalDialogueId: 'roland_avian_go',
+  turnInDialogueId: 'roland_avian_done',
+  /** Paid with the 150 EXP when line 1 of the turn-in talk is clicked through. */
+  healScroll: { grantId: 'quest:tutorial_06_dark_avian_hunt:heal_scroll', itemId: 'scroll_heal', quantity: 1 },
   reward: { grantId: 'quest:tutorial_06_dark_avian_hunt', itemId: 'scroll_power_thrust', quantity: 1 },
   skillId: 'drifter_lv1',
   target: { monsterId: 'dark_avian' as MonsterId, count: 10 },
 } as const;
 
-export const QUEST06_STATES = ['NOT_STARTED', 'OFFERED', 'INTRO_DIALOGUE', 'SCROLL_TUTORIAL', 'SKILL_ASSIGNED', 'FINAL_DIALOGUE', 'HUNTING', 'READY_TO_TURN_IN', 'COMPLETED'] as const;
+export const QUEST06_STATES = ['NOT_STARTED', 'OFFERED', 'INTRO_DIALOGUE', 'SCROLL_TUTORIAL', 'SKILL_ASSIGNED', 'FINAL_DIALOGUE', 'HUNTING', 'READY_TO_TURN_IN', 'TURN_IN_DIALOGUE', 'COMPLETED'] as const;
 export type Quest06State = (typeof QUEST06_STATES)[number];
 
 export interface Quest06Progress {
@@ -34,7 +38,7 @@ export interface Quest06Progress {
   kills: number;
 }
 
-export type Quest06Event = 'offer' | 'talk' | 'cancelTalk' | 'scrollGiven' | 'skillAssigned' | 'finalTalk' | 'cancelFinal' | 'startHunt' | 'kill' | 'complete';
+export type Quest06Event = 'offer' | 'talk' | 'cancelTalk' | 'scrollGiven' | 'skillAssigned' | 'finalTalk' | 'cancelFinal' | 'startHunt' | 'kill' | 'turnIn' | 'cancelTurnIn' | 'complete';
 
 const TRANSITIONS: Readonly<Record<Exclude<Quest06Event, 'kill'>, { from: Quest06State; to: Quest06State }>> = {
   offer: { from: 'NOT_STARTED', to: 'OFFERED' },
@@ -45,7 +49,9 @@ const TRANSITIONS: Readonly<Record<Exclude<Quest06Event, 'kill'>, { from: Quest0
   finalTalk: { from: 'SKILL_ASSIGNED', to: 'FINAL_DIALOGUE' },
   cancelFinal: { from: 'FINAL_DIALOGUE', to: 'SKILL_ASSIGNED' },
   startHunt: { from: 'FINAL_DIALOGUE', to: 'HUNTING' },
-  complete: { from: 'READY_TO_TURN_IN', to: 'COMPLETED' },
+  turnIn: { from: 'READY_TO_TURN_IN', to: 'TURN_IN_DIALOGUE' },
+  cancelTurnIn: { from: 'TURN_IN_DIALOGUE', to: 'READY_TO_TURN_IN' },
+  complete: { from: 'TURN_IN_DIALOGUE', to: 'COMPLETED' },
 };
 
 const TARGET = TUTORIAL_QUEST_06.target.count;
@@ -68,11 +74,11 @@ export function applyQuest06(p: Quest06Progress, event: Quest06Event): Quest06Pr
 
 /** Roland has something to say about this quest (dotted path, click to talk / turn in). */
 export function isQuest06AtRoland(p: Quest06Progress): boolean {
-  return ['OFFERED', 'INTRO_DIALOGUE', 'SKILL_ASSIGNED', 'FINAL_DIALOGUE', 'READY_TO_TURN_IN'].includes(p.state);
+  return ['OFFERED', 'INTRO_DIALOGUE', 'SKILL_ASSIGNED', 'FINAL_DIALOGUE', 'READY_TO_TURN_IN', 'TURN_IN_DIALOGUE'].includes(p.state);
 }
 
 export function isQuest06Tracking(p: Quest06Progress): boolean {
-  return p.state === 'HUNTING' || p.state === 'READY_TO_TURN_IN';
+  return p.state === 'HUNTING' || p.state === 'READY_TO_TURN_IN' || p.state === 'TURN_IN_DIALOGUE';
 }
 
 export type ScrollTutorialStep = 'openInventory' | 'selectScroll' | 'useScroll' | 'openSkills' | 'selectSkill' | 'assignSkill' | 'chooseSlot';
@@ -126,6 +132,9 @@ export function restoreQuest06(raw: unknown, scrollGiven: boolean): Quest06Progr
       return { state: 'SKILL_ASSIGNED', kills: 0 };
     case 'HUNTING':
       return kills >= TARGET ? { state: 'READY_TO_TURN_IN', kills: TARGET } : { state: 'HUNTING', kills };
+    case 'TURN_IN_DIALOGUE':
+      // a turn-in talk cut off before its reward: it waits to be turned in again
+      return { state: 'READY_TO_TURN_IN', kills: TARGET };
     case 'READY_TO_TURN_IN':
     case 'COMPLETED':
       return { state: d.state as Quest06State, kills: TARGET };

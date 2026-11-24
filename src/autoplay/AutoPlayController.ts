@@ -83,6 +83,16 @@ export class AutoPlayController<T> {
     this.lastManualAt = this.port.now();
   }
 
+  /**
+   * Auto Play was switched off: nothing it remembered carries over (the attacker to retaliate against, the tick),
+   * so it cannot retarget by itself; the next start begins fresh (new anchor).
+   */
+  stop(): void {
+    this.wasOn = false;
+    this.attacker = null;
+    this.nextTickAt = 0;
+  }
+
   update(on: boolean, settings: AutoPlaySettings): void {
     if (!on) {
       this.wasOn = false;

@@ -15,6 +15,8 @@ export interface ObstacleDefinition {
   spec: MapObjectSpec;
   /** Emits smoke particles from this offset (px, relative to the footprint centre). */
   smokeOffsetY?: number;
+  /** Drawn mirrored (the city wall along the other axis). */
+  flipX?: boolean;
   /** Faint accent glow behind the prop. */
   glow?: { offsetY: number; scale: number; alpha: number };
 }
@@ -39,6 +41,7 @@ export const OBSTACLES: Readonly<Record<ObstacleType, ObstacleDefinition>> = Obj
         originX: art.anchorX / art.width,
         originY: art.anchorY / art.height,
         blocksMovement: spec.category === 'blocking',
+        flipX: handmade?.flipX,
         spec,
         ...EXTRAS[id],
       },

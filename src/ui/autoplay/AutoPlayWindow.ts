@@ -20,6 +20,7 @@ import type { Rect } from '../passiveTree/PassiveTreeLayout';
 import { FrameButton } from '../passiveTree/PassiveTreeWindow';
 import { fitText } from '../text/fitText';
 import { typo } from '../UITheme';
+import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
 import { autoPlayLayout, dropIndex, RECOVERY_ROWS, sliderValue, sliderX, SKILL_SLOT, type AutoPlayLayout } from './AutoPlayLayout';
 
 type RecoveryKey = keyof AutoPlayRecovery;
@@ -61,6 +62,8 @@ export class AutoPlayWindow {
   private readonly allButton: FrameButton;
   private readonly noneButton: FrameButton;
   private open = false;
+  /** START turned Auto Play on (called just before the window closes; GameUIScene: the Auto Combat tutorial). */
+  onStarted: (() => void) | null = null;
   private drag: { from: number; startX: number; moved: boolean } | null = null;
   private slider: 'range' | RecoveryKey | null = null;
 
@@ -179,7 +182,7 @@ export class AutoPlayWindow {
         this.slide(p.x);
       });
     }
-    this.startStop = this.button(L.startStop, INV_COLORS.lineText, () => AutoPlayService.toggle(this.character));
+    this.startStop = this.button(L.startStop, INV_COLORS.lineText, () => this.startOrStop());
     this.closeButton = this.button(L.close, INV_COLORS.redText, () => this.close());
 
     const onMove = (p: Phaser.Input.Pointer): void => this.onPointerMove(p);
@@ -204,6 +207,19 @@ export class AutoPlayWindow {
     this.setVisible(false);
   }
 
+  /** A settings panel on the screen (Auto Combat tutorial spotlight target), while open. */
+  tutorialArea(key: 'monsters' | 'skills' | 'options' | 'range' | 'recovery'): ScreenRect | null {
+    if (!this.open) return null;
+    const [wx, wy] = this.layout.window;
+    const [x, y, width, height] = this.layout.panels[key];
+    return throughCamera({ x: wx + x, y: wy + y, width, height }, this.scene.cameras.main);
+  }
+
+  /** START / STOP (tutorial spotlight target), while open. */
+  get startZone(): Phaser.GameObjects.Zone | null {
+    return this.open ? this.startStop.zone : null;
+  }
+
   get isOpen(): boolean {
     return this.open;
   }
@@ -225,6 +241,13 @@ export class AutoPlayWindow {
   toggle(): void {
     if (this.open) this.close();
     else this.show();
+  }
+
+  /** START / STOP: once Auto Play really started, the window closes (settings kept, Auto Play keeps running). */
+  private startOrStop(): void {
+    if (!AutoPlayService.toggle(this.character)) return;
+    this.onStarted?.();
+    this.close();
   }
 
   refresh(): void {

@@ -45,7 +45,7 @@ const C = {
   redText: '#d3424b',
   lineText: '#e7e7ee',
 } as const;
-const PERCENT_STATS = new Set(DERIVED_DISPLAY.filter((d) => d.percent).map((d) => d.key as string));
+const PERCENT_STATS = new Set<string>([...DERIVED_DISPLAY.filter((d) => d.percent).map((d) => d.key as string), 'aspdPercent']);
 
 interface NodeView {
   def: PassiveNodeDefinition;

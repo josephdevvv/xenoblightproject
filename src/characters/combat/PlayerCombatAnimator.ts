@@ -34,14 +34,14 @@ export class PlayerCombatAnimator implements PlayerActionAnimations {
     view.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.onComplete, this);
   }
 
-  play(action: PlayerAction, facing: ActionDirection): boolean {
+  play(action: PlayerAction, facing: ActionDirection, timeScale = 1): boolean {
     const clip = CLIP_FOR[action];
     if (!clip) return false;
     if (clip === 'hit_reaction' && this.acting && this.acting !== 'hit_reaction') return false;
     this.facing = facing;
     this.acting = clip;
     this.stance = false;
-    this.show(clip);
+    this.show(clip, timeScale);
     return true;
   }
 
@@ -76,13 +76,13 @@ export class PlayerCombatAnimator implements PlayerActionAnimations {
     this.release();
   }
 
-  private show(clip: PlayerCombatAction): void {
+  private show(clip: PlayerCombatAction, timeScale = 1): void {
     const sprite = this.view.sprite;
     this.view.animator.setHeld(true);
     const normalize = bodyNormalizeFor(this.view.getTextureKey()) ?? 1;
     sprite.setOrigin(CHARACTER_CANVAS_ROOT.x / CHARACTER_FRAME_WIDTH, CHARACTER_CANVAS_ROOT.y / CHARACTER_FRAME_HEIGHT);
     sprite.setScale(this.view.animator.getBaseScale() * normalize);
-    sprite.play(playerCombatAnimKey(this.set, clip, this.facing));
+    sprite.play({ key: playerCombatAnimKey(this.set, clip, this.facing), timeScale });
   }
 
   private release(): void {

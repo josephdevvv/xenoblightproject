@@ -70,5 +70,7 @@ export interface MapDefinition {
   decor?: DecorPlacement[];
   scatter?: DecorScatter[];
   zones?: MapZone[];
+  /** Tiles nothing can walk on (movement and pathfinding), with nothing drawn - e.g. beside a portal. */
+  blocked?: TileCoord[];
   spawn: TileCoord;
 }

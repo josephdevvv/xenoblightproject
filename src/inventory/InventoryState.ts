@@ -1,7 +1,6 @@
-import type { ItemDefinition } from '../items/ItemDefinition';
+import { stackLimit, type ItemDefinition } from '../items/ItemDefinition';
 import { itemDefinition } from '../items/ItemCatalog';
-import { emptyDerivedBonus, type DerivedBonus } from '../status/DerivedBonuses';
-import type { DerivedStats } from '../status/DerivedStats';
+import { emptyDerivedBonus, type DerivedBonus, type DerivedBonusKey } from '../status/DerivedBonuses';
 import { EQUIPMENT_SLOTS, INVENTORY_SLOT_COUNT, type EquipmentSlotId, type EquipOption } from './InventorySlots';
 import { instanceToStack, newInstanceId, readOptions, stackToInstance, type ItemInstance, type ItemStack } from './ItemInstance';
 
@@ -44,22 +43,32 @@ export type AddError = 'unknownItem' | 'invalidQuantity' | 'bagFull';
 export type AddResult = { ok: true; state: InventoryState } | { ok: false; error: AddError };
 
 /**
- * Adds items: stackable ones onto their stack, the others one per free slot, each a new instance. All of them
- * or none. An instance is never put onto a stack.
+ * Adds items. Stackable ones (consumables) first fill the existing stacks up to 99 each, in bag order, then open
+ * new stacks of up to 99 in free slots (120 = 99 + 21); the others (equipment, skill scrolls) take one free slot
+ * each, as a new instance. All of them or none: without room for everything nothing changes ('bagFull'). An
+ * instance is never put onto a stack.
  */
 export function addItem(s: InventoryState, itemId: string, quantity: number, lookup: Lookup = itemDefinition): AddResult {
   const def = lookup(itemId);
   if (!def) return { ok: false, error: 'unknownItem' };
   if (!Number.isInteger(quantity) || quantity < 1) return { ok: false, error: 'invalidQuantity' };
+  const limit = stackLimit(def);
   const bag = [...s.bag];
-  const stackAt = def.stackable ? bag.findIndex((x) => x?.itemId === itemId && x.instanceId === undefined) : -1;
-  if (stackAt >= 0) bag[stackAt] = { ...bag[stackAt]!, quantity: bag[stackAt]!.quantity + quantity };
-  else {
-    for (let left = def.stackable ? 1 : quantity; left > 0; left--) {
-      const free = bag.indexOf(null);
-      if (free < 0) return { ok: false, error: 'bagFull' };
-      bag[free] = def.stackable ? { itemId, quantity } : instanceToStack({ itemId, instanceId: newInstanceId() });
-    }
+  let left = quantity;
+  if (def.stackable) {
+    bag.forEach((x, i) => {
+      if (left === 0 || x?.itemId !== itemId || x.instanceId !== undefined || x.quantity >= limit) return;
+      const put = Math.min(left, limit - x.quantity);
+      bag[i] = { ...x, quantity: x.quantity + put };
+      left -= put;
+    });
+  }
+  while (left > 0) {
+    const free = bag.indexOf(null);
+    if (free < 0) return { ok: false, error: 'bagFull' };
+    const put = Math.min(left, limit);
+    bag[free] = def.stackable ? { itemId, quantity: put } : instanceToStack({ itemId, instanceId: newInstanceId() });
+    left -= put;
   }
   return { ok: true, state: { ...s, bag } };
 }
@@ -158,7 +167,7 @@ const MELEE_WEAPONS = new Set(['dagger']);
 export function equipmentDerivedBonus(s: InventoryState | undefined, lookup: Lookup = itemDefinition): DerivedBonus {
   const out = emptyDerivedBonus();
   if (!s) return out;
-  const add = (key: keyof DerivedStats, value: number): void => {
+  const add = (key: DerivedBonusKey, value: number): void => {
     if (value !== 0) out.flat[key] = (out.flat[key] ?? 0) + value;
   };
   for (const slot of EQUIPMENT_SLOTS) {
@@ -168,7 +177,7 @@ export function equipmentDerivedBonus(s: InventoryState | undefined, lookup: Loo
     if (def.weaponType === null || MELEE_WEAPONS.has(def.weaponType)) add('meleeAtk', def.bonuses.physicalAtk);
     if (def.weaponType === null || !MELEE_WEAPONS.has(def.weaponType)) add('rangedAtk', def.bonuses.physicalAtk);
     add('matk', def.bonuses.magicAtk);
-    for (const [key, value] of Object.entries(def.additionalStats) as [keyof DerivedStats, number][]) add(key, value);
+    for (const [key, value] of Object.entries(def.additionalStats) as [DerivedBonusKey, number][]) add(key, value);
   }
   return out;
 }
@@ -229,10 +238,17 @@ export function sanitizeInventory(raw: unknown, lookup: Lookup = itemDefinition)
     const def = lookup(e.itemId);
     const isInstance = def ? !def.stackable : e.instanceId !== undefined;
     const options = readOptions(e.options);
-    const entry: ItemStack = isInstance ? instanceToStack(instance(e.itemId, e)) : { itemId: e.itemId, quantity, ...(options ? { options } : {}) };
+    // a stack above the slot limit (files from before the 99 rule) keeps 99 here; the rest moves to free slots
+    const limit = def ? stackLimit(def) : Number.MAX_SAFE_INTEGER;
+    const here = isInstance ? 1 : Math.min(quantity, limit);
+    const entry: ItemStack = isInstance ? instanceToStack(instance(e.itemId, e)) : { itemId: e.itemId, quantity: here, ...(options ? { options } : {}) };
     if (i < bag.length) bag[i] = entry;
     else overflow.push(entry);
-    // several single items in one slot (broken data): one slot each
+    if (!isInstance) {
+      for (let rest = quantity - here; rest > 0; rest -= limit) overflow.push({ itemId: e.itemId, quantity: Math.min(rest, limit), ...(options ? { options } : {}) });
+    }
+    // several single items in one slot (broken data, or skill scrolls saved as a stack before they became one per
+    // slot): one slot each, every one its own instance
     if (isInstance && def) for (let n = 1; n < Math.min(quantity, INVENTORY_SLOT_COUNT); n++) overflow.push(instanceToStack(instance(e.itemId, {})));
   });
 

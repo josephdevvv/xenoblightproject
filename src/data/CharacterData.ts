@@ -39,6 +39,14 @@ export interface CharacterData {
   hotbar?: HotbarState;
   /** Skills learned from skill scrolls. Changed only by SkillService. */
   skills?: SkillsState;
+  /** One-time tutorial hints already finished (never shown again). Changed only by HintService. */
+  hints?: readonly string[];
+  /** Features the tutorial has unlocked (Navigate, Auto Combat). Changed only by FeatureService. */
+  unlocks?: readonly string[];
+  /** Portal states by portal id (absent = LOCKED). Changed only by PortalService. */
+  portals?: Readonly<Partial<Record<string, string>>>;
+  /** Gold (earned on kills; nothing spends it yet). Changed only by GoldService. */
+  gold?: number;
   /** The Q (HP potion) / W (SP potion) slots beside the hotbar. Changed only by HotbarService. */
   potionSlots?: PotionSlots;
   /** Auto Play settings (changed only by AutoPlayService); whether it runs is never stored. */

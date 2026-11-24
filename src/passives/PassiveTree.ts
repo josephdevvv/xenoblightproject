@@ -1,4 +1,4 @@
-import type { DerivedStats } from '../status/DerivedStats';
+import type { DerivedBonusKey } from '../status/DerivedBonuses';
 
 /**
  * Passive tree DATA (class-specific, language-free: names and texts are i18n keys built from the ids).
@@ -25,7 +25,7 @@ export type SkillModifierId = 'singleTargetSkillDamagePercent' | 'healPercent';
 
 /** What ONE rank gives. */
 export type PassiveEffect =
-  | { kind: 'flat'; stat: keyof DerivedStats; amount: number }
+  | { kind: 'flat'; stat: DerivedBonusKey; amount: number }
   | { kind: 'maxHpPercent'; amount: number }
   | { kind: 'skill'; modifier: SkillModifierId; amount: number };
 
@@ -53,7 +53,7 @@ export interface PassiveTreeDefinition {
   levelRewardsUntil: number;
 }
 
-const flat = (stat: keyof DerivedStats, amount: number): PassiveEffect => ({ kind: 'flat', stat, amount });
+const flat = (stat: DerivedBonusKey, amount: number): PassiveEffect => ({ kind: 'flat', stat, amount });
 
 export const DRIFTER_TREE: PassiveTreeDefinition = {
   id: 'drifter',
@@ -70,7 +70,7 @@ export const DRIFTER_TREE: PassiveTreeDefinition = {
     { id: 'vitality', icon: 'heart', maxRank: 2, branch: 'right', step: 2, requires: 'basic_guard', effects: [{ kind: 'maxHpPercent', amount: 5 }] },
     { id: 'recovery', icon: 'medical_cross', maxRank: 2, branch: 'right', step: 3, requires: 'vitality', effects: [{ kind: 'skill', modifier: 'healPercent', amount: 10 }] },
     // down: mobility
-    { id: 'swiftness', icon: 'feather', maxRank: 2, branch: 'down', step: 1, requires: 'drifters_resolve', effects: [flat('attackSpeedBonus', 2)] },
+    { id: 'swiftness', icon: 'feather', maxRank: 2, branch: 'down', step: 1, requires: 'drifters_resolve', effects: [flat('aspdPercent', 2)] }, // ASPD +2 % per rank
     { id: 'evasion', icon: 'eye', maxRank: 2, branch: 'down', step: 2, requires: 'swiftness', effects: [flat('flee', 4)] },
     { id: 'opportunity', icon: 'star', maxRank: 2, branch: 'down', step: 3, requires: 'evasion', effects: [flat('critRate', 1)] },
   ],

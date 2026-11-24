@@ -29,13 +29,13 @@ const wolf = monsterCombatStats(MONSTER_DEFINITIONS.mutant_wolf);
 
 test('level-1 Drifter combat stats come from the existing derived stats', () => {
   const p = level1Player();
-  assert.equal(p.atk, 7); // meleeAtk 5 + STR 1 x 2
+  assert.equal(p.atk, 6); // Melee ATK 6 at STR 1 (+0.5 per point above 1)
   assert.equal(p.def, 1);
-  assert.equal(p.maxHp, 120);
+  assert.equal(p.maxHp, 100);
   assert.equal(p.hit, 104);
   assert.equal(p.flee, 103);
-  assert.ok(Math.abs(p.critRate - 5.1) < 1e-9);
-  assert.equal(p.attackIntervalMs, Math.round(COMBAT_RULES.playerBaseAttackIntervalMs / 1.002));
+  assert.equal(p.critRate, 5);
+  assert.equal(p.attackIntervalMs, 1400, 'ASPD 11: 20 x (81 - 11)');
 });
 
 /** Final configured balance (2026-11-21): exact ATK / HIT / HP; everything else as before. */
@@ -73,20 +73,20 @@ test('no double multiplication: combat uses the configured ATK / HIT as they are
   assert.equal(normalDamage(wolf, level1Player()), 22);
 });
 
-test('Void Mite: exactly 4 normal hits from a level-1 Drifter', () => {
+test('Void Mite: exactly 5 normal hits from a level-1 Drifter', () => {
   const p = level1Player();
   const dmg = normalDamage(p, mite);
-  assert.equal(hitsToKill(p, mite), 4);
-  assert.ok(dmg * 3 < mite.maxHp && dmg * 4 >= mite.maxHp, `${dmg} per hit vs ${mite.maxHp} HP`);
+  assert.equal(hitsToKill(p, mite), 5);
+  assert.ok(dmg * 4 < mite.maxHp && dmg * 5 >= mite.maxHp, `${dmg} per hit vs ${mite.maxHp} HP`);
   assert.equal(hitChance(mite, p), 92, 'HIT 120 vs FLEE 103: 75 + 120 - 103');
-  assert.ok(mite.attackIntervalMs > p.attackIntervalMs * 2, 'mite still attacks much slower than the player');
+  assert.ok(mite.attackIntervalMs > p.attackIntervalMs * 1.5, 'mite still attacks much slower than the player (2,600 vs 1,400 ms)');
   assert.ok(hitChance(p, mite) >= 90, 'the player rarely misses a mite');
 });
 
 test('Mutant Wolf: tougher than the mite (more hits, harder bites, more EXP)', () => {
   const p = level1Player();
   assert.ok(hitsToKill(p, wolf) > hitsToKill(p, mite));
-  assert.equal(hitsToKill(p, wolf), 9);
+  assert.equal(hitsToKill(p, wolf), 12);
   assert.ok(wolf.maxHp > mite.maxHp && wolf.atk > mite.atk);
   assert.equal(hitChance(wolf, p), COMBAT_RULES.hitChanceMax);
   assert.ok(MONSTER_DEFINITIONS.mutant_wolf.combat.chaseSpeed > MONSTER_DEFINITIONS.voidmite.combat.chaseSpeed);
@@ -96,12 +96,12 @@ test('Mutant Wolf: tougher than the mite (more hits, harder bites, more EXP)', (
 test('attack rolls: misses, crits that cannot miss, normal damage otherwise', () => {
   const p = level1Player();
   const seq = (...v: number[]) => () => v.shift() ?? 0;
-  // crit roll below 5.1 % -> crit for 150 %
-  assert.deepEqual(rollAttack(p, mite, seq(0.01)), { hit: true, crit: true, damage: 9 });
+  // crit roll below 5 % -> crit for 150 % (floor(5 x 1.5))
+  assert.deepEqual(rollAttack(p, mite, seq(0.01)), { hit: true, crit: true, damage: 7 });
   // no crit, hit roll above the hit chance -> miss
   assert.deepEqual(rollAttack(p, mite, seq(0.5, 0.999)), { hit: false, crit: false, damage: 0 });
   // no crit, hit
-  assert.deepEqual(rollAttack(p, mite, seq(0.5, 0.1)), { hit: true, crit: false, damage: 6 });
+  assert.deepEqual(rollAttack(p, mite, seq(0.5, 0.1)), { hit: true, crit: false, damage: 5 });
   // never below the minimum damage
   assert.equal(normalDamage({ atk: 1 }, { def: 50 }), COMBAT_RULES.minDamage);
   assert.equal(hitChance({ hit: 0 }, { flee: 999 }), COMBAT_RULES.hitChanceMin);

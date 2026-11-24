@@ -58,6 +58,23 @@ export const MAP_OBJECTS: Readonly<Record<ObjectTextureId, MapObjectSpec>> = {
   city_wall: solid(3, 2, true),
   city_wall_broken: solid(3, 2, true),
   city_tower: solid(2, 2, true),
+  // the same wall pieces running along +y (rows)
+  city_wall_y: solid(2, 3, true),
+  city_wall_broken_y: solid(2, 3, true),
+  // Dawnkeep: the citadel, the gate, the church, houses and props
+  dk_keep: solid(3, 3, true),
+  dk_castle_tower: solid(2, 2, true),
+  dk_gate_tower: solid(2, 2, true),
+  dk_church: solid(3, 3, true),
+  dk_house_intact: solid(2, 2, true),
+  dk_ruin_burned: solid(3, 3, true),
+  dk_ruin_cottage: solid(3, 3, true),
+  dk_ruin_shell: solid(3, 3, true),
+  dk_market_stall: solid(2, 1),
+  dk_well: solid(),
+  dk_barricade: solid(2, 1),
+  dk_banner: solid(1, 1, true),
+  dk_knight_statue: solid(1, 1, true),
 };
 
 /** Flat ground details: always walkable, drawn under characters and props. */

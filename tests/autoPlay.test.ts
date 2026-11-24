@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Point } from '../src/core/types';
@@ -349,4 +351,44 @@ test('UI: window fits the screen; cards, slots and controls inside their panels;
   const H = hotbarLayout(960, 430);
   const last = H.slots[7];
   assert.ok(H.autoButton.x >= last.x + last.width && H.autoButton.y === last.y && H.autoButton.x + H.autoButton.width <= 960, 'right of slot 8');
+});
+
+test('START: once Auto Play really started the window closes (tutorial finished first); STOP keeps it open', () => {
+  const read = (f: string): string => fs.readFileSync(path.join(process.cwd(), f), 'utf8');
+  const win = read('src/ui/autoplay/AutoPlayWindow.ts');
+  const body = win.slice(win.indexOf('private startOrStop(): void {'));
+  assert.match(body, /if \(!AutoPlayService\.toggle\(this\.character\)\) return;\s*this\.onStarted\?\.\(\);\s*this\.close\(\);/);
+  assert.match(win, /this\.button\(L\.startStop, INV_COLORS\.lineText, \(\) => this\.startOrStop\(\)\)/);
+  const ui = read('src/scenes/GameUIScene.ts');
+  assert.match(ui, /this\.autoWindow\.onStarted = \(\) => this\.finishAutoTutorialOnStart\(\);/);
+  const finish = ui.slice(ui.indexOf('private finishAutoTutorialOnStart(): void {'));
+  assert.match(finish, /autoTutorialStep\(quest, true, this\.autoInfoIndex\) !== 'start'/);
+  assert.match(finish, /QuestService\.advance07\(character, 'autoTutorialDone'\)/);
+});
+
+test('stop: while off nothing is commanded; the attacker it remembered is forgotten, so a restart never retaliates against it', () => {
+  const w = world({ list: [mon('a', 'voidmite', 2, 0), mon('z', 'dark_avian', 9, 0)] });
+  const s = settings({ monsters: ['voidmite'], counterAttackers: false });
+  w.step(AUTO_TICK_MS, s);
+  w.ctl.notifyAttacked('z');
+  w.ctl.stop();
+  w.setTarget(null);
+  w.useQueued();
+  const before = w.log.length;
+  for (let i = 0; i < 10; i++) w.step(AUTO_TICK_MS, s, false);
+  assert.equal(w.log.length, before, 'off: no attack, skill, potion or move');
+  w.step(AUTO_TICK_MS, s);
+  assert.equal(w.log[before], 'attack a', 'restarted: the nearest selected type, not the old attacker');
+});
+
+test('stop wiring: switching Auto Play off clears target, swing, skill and path and stands idle (GameScene)', () => {
+  const game = fs.readFileSync(path.join(process.cwd(), 'src/scenes/GameScene.ts'), 'utf8');
+  assert.match(game, /if \(autoWasOn && !on\) this\.stopAutoPlayActions\(\);/);
+  const stop = game.slice(game.indexOf('private stopAutoPlayActions(): void {'));
+  const body = stop.slice(0, stop.indexOf('\n  }\n'));
+  for (const call of ['this.autoPlay.stop()', 'this.combat.clearTarget()', 'this.player.actions.reset?.()', 'this.player.halt()']) assert.ok(body.includes(call), call);
+  assert.ok(!body.includes('AutoPlayService.update'), 'settings untouched');
+  const combat = fs.readFileSync(path.join(process.cwd(), 'src/combat/CombatSystem.ts'), 'utf8');
+  const clear = combat.slice(combat.indexOf('  clearTarget(): void {'));
+  assert.match(clear.slice(0, 500), /this\.queuedSkill = null;[\s\S]*this\.pendingHits = \[\];/, 'the queued skill and the pending swing go with the target');
 });

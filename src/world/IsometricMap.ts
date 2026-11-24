@@ -163,6 +163,7 @@ export class IsometricMap {
     for (const o of this.obstacles) {
       const image = scene.add.image(Math.round(o.world.x), Math.round(o.world.y), o.definition.textureKey);
       image.setOrigin(o.definition.originX, o.definition.originY);
+      if (o.definition.flipX) image.setFlipX(true);
       if (o.definition.spec.w > 1 || o.definition.spec.h > 1 || o.definition.spec.tall) {
         // Large / tall props sort (and fade) against characters like walls do.
         this.structures.register(image, o.box, o.definition.spec.tall);

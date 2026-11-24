@@ -9,7 +9,7 @@ import { DeathOverlay } from '../ui/death/DeathOverlay';
 import { ChoiceDialog } from '../ui/ChoiceDialog';
 import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
 import { rectOfObject, SpotlightOverlay, type SpotlightTarget } from '../ui/tutorial/SpotlightOverlay';
-import { t } from '../i18n';
+import { t, type TranslationKey } from '../i18n';
 import { QuestService } from '../quests/QuestService';
 import { equipmentTutorialStep, statusTutorialStep, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
 import { trackedQuest } from '../quests/QuestTracker';
@@ -36,11 +36,18 @@ import type { ScrollProblem, UseProblem } from '../items/ConsumableUse';
 import { SkillWindow } from '../ui/skills/SkillWindow';
 import { AutoPlayWindow } from '../ui/autoplay/AutoPlayWindow';
 import { AutoPlayService } from '../autoplay/AutoPlayService';
+import { AUTO_INFO_STEPS, autoTutorialStep, potionHotkeyFinished, potionHotkeyStep, TUTORIAL_QUEST_07, type AutoInfoStep, type PotionHotkeyView } from '../quests/TutorialQuest07';
 import { MONSTER_SPAWNS } from '../monsters/MonsterSpawns';
 import { SkillService } from '../skills/SkillService';
 import { scrollGuideOf, scrollTutorialStep, TUTORIAL_QUEST_06, type ScrollTutorialStep } from '../quests/TutorialQuest06';
 import { labels } from '../i18n/labels';
 import { itemDefinition } from '../items/ItemCatalog';
+import { BannerStack } from '../ui/tutorial/BannerStack';
+import { FeatureService, type FeatureId } from '../features/FeatureUnlocks';
+import { QuestAcceptWatcher } from '../quests/QuestNotices';
+import { PortalService } from '../world/Portals';
+import { GoldService } from '../economy/GoldService';
+import { HintService, showClickToMoveHint, showNavigateHint } from '../tutorial/TutorialHints';
 
 /** How long the potion training points at the Q slot after the potion was put there, before Roland goes on. */
 const POTION_FLASH_MS = 1100;
@@ -69,6 +76,9 @@ export class GameUIScene extends Phaser.Scene {
   /** "Leave the game?" */
   private leaveDialog: ChoiceDialog | null = null;
   private spotlightOverlay: SpotlightOverlay | null = null;
+  /** "Left-click to move and talk to NPCs" - from the first entry until Mateus's first conversation, once. */
+  /** Upper-centre banners: the left-click hint (persistent) and 3-s notices (locked feature, quest accepted / done). */
+  private banners: BannerStack | null = null;
   private itemNotifications: ItemNotifications | null = null;
   /** "Assign Hotkey" (two rows of four slots). */
   private assignWindow: HotbarAssignWindow | null = null;
@@ -78,6 +88,10 @@ export class GameUIScene extends Phaser.Scene {
   private guideSuspended = false;
   /** The Skill window (K). */
   private skillWindow: SkillWindow | null = null;
+  /** Auto Combat tutorial: Roland's information lines clicked through so far (memory only: a reload starts them again). */
+  private autoInfoIndex = 0;
+  /** The Auto Combat tutorial line shown last. */
+  private autoGuide: AutoInfoStep | null = null;
   /** The potion training just put the potion on Q: that slot is pointed at for a moment. */
   private potionFlash: PotionSlotKey | null = null;
   /** Auto Play settings (the button right of the hotbar; X toggles Auto Play itself). */
@@ -106,6 +120,8 @@ export class GameUIScene extends Phaser.Scene {
     this.skillWindow = null;
     this.autoWindow = null;
     this.potionFlash = null;
+    this.autoInfoIndex = 0;
+    this.autoGuide = null;
     this.scrollGuide = null;
     const character = this.resolveCharacter(data.characterId);
     this.character = character;
@@ -126,7 +142,8 @@ export class GameUIScene extends Phaser.Scene {
         onPassive: () => this.canOpenWindows() && this.togglePassiveTree(),
         onInventory: () => this.canOpenWindows() && this.toggleInventory(),
         onSkills: () => this.canOpenWindows() && this.toggleSkills(),
-        onAutoPlay: () => this.canOpenWindows() && this.toggleAutoPlayWindow(),
+        onAutoPlay: () => this.featureReady('autoCombat') && this.canOpenWindows() && this.toggleAutoPlayWindow(),
+        onNavigate: () => this.onNavigate(),
         currentHp,
         currentSp,
         onHotbarSlot: (slot) => this.canUseHotbar() && this.useHotbarSlot(slot),
@@ -147,7 +164,14 @@ export class GameUIScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-T', onT));
     // nothing is taken off while the equipment tutorial is still running
     const canUnequip = (): boolean => QuestService.quest02(character).state !== 'EQUIPMENT_TUTORIAL';
-    this.inventoryWindow = new InventoryWindow(this, 12, characterInventorySource(character, canUnequip));
+    const inventoryWindow = new InventoryWindow(this, 12, characterInventorySource(character, canUnequip));
+    this.inventoryWindow = inventoryWindow;
+    // the header's Gold: the same balance as the HUD, updated on every change
+    inventoryWindow.setGold(GoldService.get(character));
+    const offGold = GoldService.onChange((c, gold) => {
+      if (c === character) inventoryWindow.setGold(gold);
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offGold);
     // Consumables: USE (the game checks every rule) and ASSIGN HOTKEY (a compact window above the Inventory).
     const assign = new HotbarAssignWindow(this, 16);
     this.assignWindow = assign;
@@ -235,8 +259,11 @@ export class GameUIScene extends Phaser.Scene {
     // (window open or not), except while typing.
     const monsterTypes = [...new Set((MONSTER_SPAWNS[game.map.definition.id] ?? []).map((p) => p.monster))];
     this.autoWindow = new AutoPlayWindow(this, 18, character, monsterTypes);
+    // START closes the window at once: the Auto Combat tutorial finishes first (its step needs the window open)
+    this.autoWindow.onStarted = () => this.finishAutoTutorialOnStart();
     const onX = (e: KeyboardEvent): void => {
       if (!isHotkeyPress(e, document.activeElement as HTMLElement | null)) return;
+      if (!this.featureReady('autoCombat')) return; // locked until the Auto Combat tutorial
       AutoPlayService.toggle(character);
     };
     this.input.keyboard?.on('keydown-X', onX);
@@ -294,9 +321,38 @@ export class GameUIScene extends Phaser.Scene {
       if (c === character) refreshQuest();
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, offQuest);
+    // the Reach Level 10 objective shows the level now: refreshed on every status change (level-ups)
+    const offLevel = CharacterStatusService.onChange((c) => {
+      if (c === character) refreshQuest();
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offLevel);
+    // after Reach Level 10 the tracker follows the gate portal (Sonny > the portal > nothing)
+    const offPortal = PortalService.onChange((c) => {
+      if (c === character) refreshQuest();
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offPortal);
     refreshQuest();
     // Tutorial spotlight: above the HUD and the windows, below dialogue and the death screen.
     this.spotlightOverlay = new SpotlightOverlay(this, 25);
+    // First-entry hint: just above the HUD, below every window; visual only (clicks reach the world).
+    this.banners = new BannerStack(this, 5);
+    const banners = this.banners;
+    // quest notices: "Quest accepted / completed: <name>" (a loaded save announces nothing it already had)
+    const accepted = new QuestAcceptWatcher(character);
+    const questName = (id: string): string => t(`quests.${id}.name` as TranslationKey);
+    const offAccepted = QuestService.onChange((c) => {
+      if (c !== character) return;
+      for (const id of accepted.newlyAccepted()) banners.notify(`quest.accepted.${id}`, 'notices.questAccepted', 'quest', { name: questName(id) });
+      FeatureService.sync(c); // a tutorial step reached: its feature unlocks (saved)
+    });
+    const offCompleted = QuestService.onCompleted((c, id) => {
+      if (c === character) banners.notify(`quest.completed.${id}`, 'notices.questCompleted', 'done', { name: questName(id) });
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      offAccepted();
+      offCompleted();
+    });
+    FeatureService.sync(character); // older saves: unlocked from their quest progress
     // Notices for received items: below the minimap, above dialogue, below the death screen.
     const notifications = new ItemNotifications(this, { ...this.hud.belowMinimap, right: Math.min(this.scale.width - 4, this.hud.belowMinimap.right + 8) }, 36);
     this.itemNotifications = notifications;
@@ -318,15 +374,34 @@ export class GameUIScene extends Phaser.Scene {
       this.dialogueWindow = null;
       this.leaveDialog = null;
       this.spotlightOverlay = null;
+      this.banners = null;
       this.itemNotifications = null;
       this.skillWindow = null;
       this.autoWindow = null;
     });
   }
 
+  /** One-time hints follow their rule (no close button, no timeout); one that ends fades out. */
+  private updateHints(): void {
+    const c = this.character;
+    if (!c || !this.banners) return;
+    this.banners.setPersistent('hint.clickToMove', 'hints.clickToMove', 'mouse', showClickToMoveHint(QuestService.quest01(c).state, HintService.isDone(c, 'click_to_move')));
+    this.banners.update();
+  }
+
+  /** The feature is unlocked; otherwise the "complete the tutorial" notice is shown and false returned. */
+  private featureReady(feature: FeatureId): boolean {
+    const c = this.character;
+    if (!c || FeatureService.isUnlocked(c, feature)) return true;
+    this.banners?.notify('feature.locked', 'features.locked', 'lock');
+    return false;
+  }
+
   update(_time: number, delta: number): void {
     this.updatePotionTraining();
     this.updateScrollTraining();
+    this.updateLevelTutorials();
+    this.updateHints();
     this.deathOverlay?.update(delta);
     this.spotlightOverlay?.update(delta, this.spotlightTarget());
     this.itemNotifications?.update(delta);
@@ -334,6 +409,12 @@ export class GameUIScene extends Phaser.Scene {
     const game = this.gameScene();
     if (!this.hud || !game?.player) return;
     this.hud.updateCooldowns((id) => game.skillCooldown(id));
+    // the AUTO button is gray while it cannot be used (dead, a conversation, the leave dialog)
+    const c = this.character;
+    this.hud.setAutoPlayEnabled(!!c && FeatureService.isUnlocked(c, 'autoCombat') && this.canOpenWindows() && this.isPlayerAlive());
+    // Navigate: locked until its tutorial; then only while the quest leads to an NPC (and nothing is in the way)
+    const navLocked = !c || !FeatureService.isUnlocked(c, 'navigate');
+    this.hud.setNavigationState(navLocked ? 'locked' : this.canOpenWindows() && game.canNavigate() ? 'enabled' : 'disabled');
     this.hud.update(
       game.player.getTilePosition(),
       game.monsters
@@ -460,10 +541,36 @@ export class GameUIScene extends Phaser.Scene {
     if (potion) return potion;
     const scroll = this.scrollSpotlight();
     if (scroll) return scroll;
+    const level = this.levelSpotlight();
+    if (level) return level;
     if (!this.canOpenWindows()) return null;
+    const navigate = this.navigateSpotlight();
+    if (navigate) return navigate;
     const status = this.statusSpotlight();
     if (status || this.statusWindow?.isOpen) return status;
     return this.passiveSpotlight() ?? this.equipmentSpotlight();
+  }
+
+  /** Navigate tutorial (Mateus's last quest turned in, Roland next): the quest tracker's Navigate button, once. */
+  private navigateSpotlight(): SpotlightTarget | null {
+    const c = this.character;
+    if (!c || !this.isNavigateTutorial()) return null;
+    return { id: 'navigate.roland', rect: () => rectOfObject(this, this.hud?.navButton), label: t('navigateTutorial.click') };
+  }
+
+  private isNavigateTutorial(): boolean {
+    const c = this.character;
+    return !!c && showNavigateHint(QuestService.quest03(c).state, QuestService.quest04(c).state, HintService.isDone(c, 'navigate_to_roland'));
+  }
+
+  /** Navigate clicked: walk to the quest NPC, or stop walking. During its tutorial, starting it finishes the step. */
+  private onNavigate(): void {
+    const game = this.gameScene();
+    if (!game || !this.featureReady('navigate') || !this.canOpenWindows()) return;
+    const tutorial = this.isNavigateTutorial();
+    const result = game.toggleQuestNavigation();
+    if (tutorial && (result === 'started' || result === 'arrived') && this.character) HintService.complete(this.character, 'navigate_to_roland');
+    this.spotlightOverlay?.update(0, this.spotlightTarget());
   }
 
   /**
@@ -638,6 +745,112 @@ export class GameUIScene extends Phaser.Scene {
     else if (step === 'assignSkill') rect = () => rectOfObject(this, s.assignZone);
     else rect = () => a.slotArea();
     return { id: `scroll.${step}`, rect, label: t(`scrollTutorial.${step}`) };
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Reach Level 10 tutorials (Tutorial Quest 07, after Roland's talk): 1) the SP potion onto W - Inventory button >
+  // the potion > ASSIGN HOTKEY > CLOSE; 2) Auto Combat - its button > five settings panels, a Roland line each (click
+  // it to go on) > START, which starts Auto Play and closes the window. Each is recorded once it is done.
+  // -------------------------------------------------------------------------------------------
+
+  private potionHotkeyView(): PotionHotkeyView | null {
+    const { character, inventoryWindow: w } = this;
+    if (!character || !w) return null;
+    const sp = TUTORIAL_QUEST_07.spPotionItemId;
+    const selected = w.selection.current;
+    return {
+      spInBag: bagIndexOf(character.inventory, sp) >= 0,
+      wHasSp: HotbarService.potions(character).sp === sp,
+      inventoryOpen: w.isOpen,
+      spSelected: selected?.kind === 'bag' && character.inventory?.bag[selected.index]?.itemId === sp,
+    };
+  }
+
+  /** Records a finished tutorial, and shows / hides Roland's Auto Combat lines as the steps change. */
+  private updateLevelTutorials(): void {
+    const character = this.character;
+    const view = this.potionHotkeyView();
+    if (!character || !view) return;
+    const quest = QuestService.quest07(character);
+    if (quest.state !== 'ACTIVE' || quest.autoTutorialDone) {
+      this.showAutoGuide(null);
+      return;
+    }
+    if (!quest.potionTutorialDone) {
+      if (potionHotkeyFinished(quest, view)) QuestService.advance07(character, 'potionTutorialDone');
+      return;
+    }
+    const step = autoTutorialStep(quest, this.autoWindow?.isOpen ?? false, this.autoInfoIndex);
+    // START pressed (or Auto Play already running at that step): Auto Play goes on, the window closes, done
+    if (step === 'start' && AutoPlayService.isOn(character)) {
+      this.showAutoGuide(null);
+      this.autoWindow?.close();
+      this.autoInfoIndex = 0;
+      QuestService.advance07(character, 'autoTutorialDone');
+      return;
+    }
+    this.showAutoGuide(step && (AUTO_INFO_STEPS as readonly string[]).includes(step) ? (step as AutoInfoStep) : null);
+  }
+
+  /** START clicked in the Auto Combat tutorial's last step: the tutorial is done (Auto Play keeps running). */
+  private finishAutoTutorialOnStart(): void {
+    const character = this.character;
+    if (!character) return;
+    const quest = QuestService.quest07(character);
+    if (autoTutorialStep(quest, true, this.autoInfoIndex) !== 'start' || !AutoPlayService.isOn(character)) return;
+    this.showAutoGuide(null);
+    this.autoInfoIndex = 0;
+    QuestService.advance07(character, 'autoTutorialDone');
+  }
+
+  /** Roland's line for an information step (non-modal; a click on it goes on to the next panel). */
+  private showAutoGuide(step: AutoInfoStep | null): void {
+    const dialogue = this.dialogueWindow;
+    if (!dialogue || step === this.autoGuide) return;
+    const ids = TUTORIAL_QUEST_07.autoGuideDialogueIds;
+    if (Object.values(ids).some((id) => dialogue.isShowing(DIALOGUES[id]))) dialogue.dismiss();
+    if (step && dialogue.isOpen) return; // another conversation first
+    this.autoGuide = step;
+    if (!step) return;
+    // at the bottom for the upper panels, at the top for the lower ones - never over the panel being explained
+    const position = step === 'monsters' || step === 'options' ? 'bottom' : 'top';
+    dialogue.open(
+      NPC_DEFINITIONS[TUTORIAL_QUEST_07.npcId].name,
+      DIALOGUES[ids[step]],
+      () => {
+        if (this.autoGuide === step) this.autoInfoIndex++;
+      },
+      { modal: false, position },
+    );
+  }
+
+  /** What the Reach Level 10 tutorials point at now (null = nothing; a conversation is open, or no step). */
+  private levelSpotlight(): SpotlightTarget | null {
+    const { character, inventoryWindow: w, autoWindow: a } = this;
+    if (!character || !w || !a || this.dialogueWindow?.isModal) return null;
+    const quest = QuestService.quest07(character);
+    const view = this.potionHotkeyView();
+    const potion = view ? potionHotkeyStep(quest, view) : null;
+    const otherWindow = this.statusWindow?.isOpen || this.passiveWindow?.isOpen || this.skillWindow?.isOpen || this.assignWindow?.isOpen;
+    if (potion) {
+      let rect: SpotlightTarget['rect'];
+      if (potion === 'openInventory') {
+        if (otherWindow || a.isOpen) return null;
+        rect = () => rectOfObject(this, this.hud?.inventoryButton);
+      } else if (potion === 'selectSp') {
+        rect = () => rectOfObject(this, w.slotZone({ kind: 'bag', index: bagIndexOf(character.inventory, TUTORIAL_QUEST_07.spPotionItemId) }));
+      } else if (potion === 'assign') rect = () => rectOfObject(this, w.assignZone);
+      else rect = () => rectOfObject(this, w.closeZone);
+      return { id: `level.potion.${potion}`, rect, label: t(`levelTutorial.${potion}`) };
+    }
+    const auto = autoTutorialStep(quest, a.isOpen, this.autoInfoIndex);
+    if (!auto) return null;
+    if (auto === 'open') {
+      if (otherWindow || w.isOpen) return null;
+      return { id: 'level.auto.open', rect: () => rectOfObject(this, this.hud?.autoButton), label: t('levelTutorial.openAuto') };
+    }
+    if (auto === 'start') return { id: 'level.auto.start', rect: () => rectOfObject(this, a.startZone), label: t('levelTutorial.start') };
+    return { id: `level.auto.${auto}`, rect: () => a.tutorialArea(auto), label: t('levelTutorial.info') };
   }
 
   // -------------------------------------------------------------------------------------------

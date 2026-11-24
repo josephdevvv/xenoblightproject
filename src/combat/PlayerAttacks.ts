@@ -34,3 +34,18 @@ export function playerImpactDelayMs(spriteId: string, attack: PlayerAttackDefini
   const sheet = combatSetFor(spriteId)?.actions[attack.animation] ?? REFERENCE;
   return impactDelayMs(sheet.frameMs, sheet.frames, attack.impactFrame);
 }
+
+/** The whole swing (every frame) at its authored speed, in ms. */
+export function playerSwingMs(spriteId: string, attack: PlayerAttackDefinition): number {
+  const sheet = combatSetFor(spriteId)?.actions[attack.animation] ?? REFERENCE;
+  return sheet.frameMs * sheet.frames;
+}
+
+/**
+ * Swing playback speed for an attack interval (ASPD): the authored speed while the whole swing fits in the
+ * interval, faster when it does not (an 800-ms swing at a 400-ms interval plays x2), never slower. The hit
+ * frame moves with it: hit delay = authored delay / speed - so the animation and the hit stay in sync.
+ */
+export function swingTimeScale(swingMs: number, intervalMs: number): number {
+  return intervalMs > 0 && swingMs > intervalMs ? swingMs / intervalMs : 1;
+}

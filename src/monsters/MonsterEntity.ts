@@ -1,9 +1,8 @@
 import Phaser from 'phaser';
-import { DEPTH } from '../config/constants';
-import { PALETTE, toColorInt } from '../config/palette';
 import type { Point } from '../core/types';
 import { PlayerMovement, type CollisionQuery } from '../player/PlayerMovement';
-import { createNameLabel, NAME_LABEL_COLORS, nameLabelTop, placeNameLabel } from '../ui/world/WorldNameLabel';
+import { createNameLabel, NAME_LABEL_COLORS } from '../ui/world/WorldNameLabel';
+import { NameplateBars } from '../ui/world/NameplateBars';
 import type { IsometricMap } from '../world/IsometricMap';
 import type { TileBox } from '../world/structures/StructureLayer';
 import { MONSTER_FACINGS, facingForDirection, type MonsterFacing } from './art/MonsterArt';
@@ -13,7 +12,6 @@ import { WanderBehavior } from './WanderBehavior';
 
 let nextMonsterId = 1;
 
-const HP_BAR_WIDTH = 26;
 /** Chasing / returning without progress for this long = give up (walk home / snap home). */
 const STUCK_MS = 1500;
 /** Seconds the corpse stays (after the death clip) before fading out. */
@@ -48,7 +46,8 @@ export class MonsterEntity {
   readonly label: Phaser.GameObjects.Text;
   /** Spawn point in continuous tile space (centre of the wander circle, respawn point). */
   readonly home: Point;
-  private readonly hpBar: Phaser.GameObjects.Graphics;
+  /** Name + green HP bar under the ground root (shared nameplate style). */
+  private readonly hpBar: NameplateBars;
   private readonly movement: PlayerMovement;
   private readonly behavior: WanderBehavior | null;
   private mode: MonsterMode = 'wander';
@@ -82,7 +81,7 @@ export class MonsterEntity {
     const facing: MonsterFacing = MONSTER_FACINGS[Math.abs(seed) % MONSTER_FACINGS.length];
     this.animator = new MonsterAnimator(scene, definition.art, facing);
     this.label = createNameLabel(scene, definition.displayName, NAME_LABEL_COLORS.monster);
-    this.hpBar = scene.add.graphics().setDepth(DEPTH.NamePlate).setVisible(false);
+    this.hpBar = new NameplateBars(scene, ['hp']);
     this.shadow = definition.flight ? scene.add.ellipse(0, 0, 18, 7, 0x000000, 0.32) : null;
     this.syncSprite();
   }
@@ -361,15 +360,10 @@ export class MonsterEntity {
     this.syncSprite();
   }
 
+  /** The green HP bar: always under a living monster's name, hidden from its death until it respawns. */
   private drawHpBar(): void {
-    const max = this.definition.combat.maxHp;
-    const show = this.isAlive() && this.hp < max;
-    this.hpBar.setVisible(show);
-    if (!show) return;
-    const w = Math.max(1, Math.round((HP_BAR_WIDTH * this.hp) / max));
-    this.hpBar.clear();
-    this.hpBar.fillStyle(toColorInt(PALETTE.black), 0.85).fillRect(-HP_BAR_WIDTH / 2 - 1, 0, HP_BAR_WIDTH + 2, 4);
-    this.hpBar.fillStyle(0xd74a51, 1).fillRect(-HP_BAR_WIDTH / 2, 1, w, 2);
+    this.hpBar.set('hp', this.hp, this.definition.combat.maxHp);
+    this.hpBar.setVisible(this.isAlive());
   }
 
   private syncSprite(): void {
@@ -380,7 +374,7 @@ export class MonsterEntity {
     const depth = this.map.resolveDepth(this.footprint(), world.y, this.animator.sprite.getBounds());
     this.animator.setRoot(x, y - this.lift(), depth);
     this.shadow?.setPosition(x, y).setDepth(depth - 1);
-    placeNameLabel(this.label, x, y);
-    this.hpBar.setPosition(x, nameLabelTop(y) + Math.round(this.label.height) + 1);
+    // the green HP bar right under the feet, the name under it (it keeps that place while the bar is hidden)
+    this.label.setPosition(x, this.hpBar.place(x, y));
   }
 }

@@ -4,6 +4,11 @@ import { PALETTE } from '../../config/palette';
 import { TextureKeys, type ObjectTextureId } from '../TextureKeys';
 import { bayerThreshold, createRng, mixHex, PixelCanvas } from './PixelCanvas';
 import { createRuinTextures, RUIN_OBJECT_ART } from './MockupRuinFactory';
+import { DAWNKEEP_ART, type DawnkeepObjectId } from '../../world/objects/DawnkeepArt';
+
+const DAWNKEEP_FALLBACK_SIZES = Object.fromEntries(
+  Object.entries(DAWNKEEP_ART).map(([id, a]) => [id, { width: a.width, height: a.height, anchorX: a.anchorX, anchorY: a.anchorY }]),
+) as Record<DawnkeepObjectId, ObjectArtSpec>;
 
 /**
  * TEMPORARY procedural tiles, props and FX textures for Milestone 01.
@@ -32,6 +37,10 @@ export const OBJECT_ART: Readonly<Record<ObjectTextureId, ObjectArtSpec>> = {
   brazier: { width: 16, height: 20, anchorX: 8, anchorY: 17 },
   shrine: { width: 16, height: 40, anchorX: 8, anchorY: 36 },
   ...RUIN_OBJECT_ART,
+  // mirrored city wall and Dawnkeep: hand-made art only (these sizes are used if a file fails to load)
+  city_wall_y: RUIN_OBJECT_ART.city_wall,
+  city_wall_broken_y: RUIN_OBJECT_ART.city_wall_broken,
+  ...DAWNKEEP_FALLBACK_SIZES,
 };
 
 export function createEnvironmentTextures(textures: Phaser.Textures.TextureManager): void {

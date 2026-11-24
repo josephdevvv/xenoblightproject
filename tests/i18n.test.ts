@@ -147,7 +147,7 @@ test('gameplay unchanged: level-1 derived stats are the specified values', () =>
   const d = computeDerivedStats(1, createStatBlock(1));
   const shown = Object.fromEntries(DERIVED_DISPLAY.map((e) => [e.key, formatStatValue(d[e.key], e.percent)]));
   assert.deepEqual(shown, {
-    meleeAtk: '7', rangedAtk: '7', matk: '7', maxHp: '120', maxSp: '23', def: '1', mdef: '0.5',
-    hit: '104', flee: '103', attackSpeedBonus: '0.2%', critRate: '5.1%', critDamage: '150%', materialFindBonus: '0.05%',
+    meleeAtk: '6', rangedAtk: '6', matk: '6', maxHp: '100', maxSp: '20', def: '1', mdef: '0.5',
+    hit: '104', flee: '103', aspd: '11', critRate: '5%', critDamage: '150%', materialFindBonus: '0%',
   });
 });

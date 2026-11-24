@@ -8,6 +8,8 @@ import { TUTORIAL_QUEST_02 } from './TutorialQuest02';
 import { TUTORIAL_QUEST_03 } from './TutorialQuest03';
 import { TUTORIAL_QUEST_05 } from './TutorialQuest05';
 import { TUTORIAL_QUEST_06 } from './TutorialQuest06';
+import { TUTORIAL_QUEST_07 } from './TutorialQuest07';
+import { GoldService } from '../economy/GoldService';
 
 /** EXP a quest paid: the amount and the levels it gained (for the EXP / LEVEL UP feedback). */
 export interface QuestExpPaid {
@@ -39,10 +41,22 @@ export const QuestRewards = {
     return paid ? { ok: true, ...paid } : { ok: false, error: 'notReady' };
   },
 
-  /** Tutorial Quest 06, talking to Roland at 10/10 (no conversation): 150 EXP; completed. */
+  /** Tutorial Quest 06, clicking through line 1 of Roland's turn-in talk: the Heal Skill Scroll, then 150 EXP; completed. */
   quest06(character: CharacterData): QuestTurnIn {
+    if (QuestService.quest06(character).state !== 'TURN_IN_DIALOGUE') return { ok: false, error: 'notReady' };
+    const given = InventoryService.grantOnce(character, TUTORIAL_QUEST_06.healScroll);
+    if (given !== null && given !== 'alreadyGranted') return { ok: false, error: given };
     const paid = pay(character, TUTORIAL_QUEST_06.id, () => QuestService.advance06(character, 'complete'));
     return paid ? { ok: true, ...paid } : { ok: false, error: 'notReady' };
+  },
+
+  /**
+   * Tutorial Quest 07, clicking through line 1 of Roland's Lv 10 talk: 1,000 Gold. The quest step is taken first
+   * (once), so a second click, a second conversation or a loaded save never pays again. The Gold paid now (0 = none).
+   */
+  quest07(character: CharacterData): number {
+    if (!QuestService.advance07(character, 'reward')) return 0;
+    return GoldService.add(character, TUTORIAL_QUEST_07.goldReward);
   },
 
   /** Tutorial Quest 05, when Roland's completion conversation ends: 150 EXP; completed. */

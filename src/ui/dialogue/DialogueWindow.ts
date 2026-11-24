@@ -28,7 +28,16 @@ export interface DialogueHooks {
   modal?: boolean;
   /** 'top' = at the top of the screen (guide lines over a window whose lower part is in use). Default 'bottom'. */
   position?: 'bottom' | 'top';
+  /**
+   * A question: at `step` the line is shown with these answers (translation keys) above the window instead of the
+   * continuation arrow. Clicking one closes the window and calls onChoose(index) - the caller opens the branch
+   * (onFinished does not run). The window itself does not advance while answers are shown.
+   */
+  choices?: { step: number; options: readonly string[]; onChoose: (index: number) => void };
 }
+
+/** The answer boxes above the window: one under the other, the last one just above the window. */
+const CHOICE = { width: 300, height: 26, gap: 6, above: 8 } as const;
 
 /** Top edge of the window when it is shown at the top of the screen. */
 const TOP_Y = 6;
@@ -67,10 +76,16 @@ export class DialogueWindow {
   private readonly pictureFrame: Phaser.GameObjects.Graphics;
   private readonly pictureImage: Phaser.GameObjects.Image;
   private panelTop: number;
+  /** The answers shown now (each a frame, a label and its click zone). */
+  private choiceObjects: Phaser.GameObjects.GameObject[] = [];
+  private readonly scene: Phaser.Scene;
+  private readonly depth: number;
   /** Bottom position of the panel; open() moves everything by the difference for 'top'. */
   private readonly baseY: number;
 
   constructor(scene: Phaser.Scene, depth: number) {
+    this.scene = scene;
+    this.depth = depth;
     const { width: sw, height: sh } = scene.scale;
     const x = Math.round((sw - PANEL.width) / 2);
     const y = sh - PANEL.bottom - PANEL.height;
@@ -162,9 +177,23 @@ export class DialogueWindow {
     this.panelTop = y;
   }
 
+  /** Answers are shown now (for checks / tests). */
+  get choicesShown(): number {
+    return this.choiceObjects.length / 3;
+  }
+
+  /** Picks answer `index` of the question shown now (what a click on it does). */
+  choose(index: number): void {
+    const q = this.hooks.choices;
+    if (!this.session || !q || this.session.step !== q.step || index < 0 || index >= q.options.length) return;
+    this.close();
+    q.onChoose(index);
+  }
+
   private advance(): void {
     const session = this.session;
     if (!session) return;
+    if (this.hooks.choices?.step === session.step) return; // a question: only an answer goes on
     const { onFinished, hooks } = this;
     if (!session.isLastStep && hooks.beforeStep?.(session.step + 1) === false) {
       this.close();
@@ -180,6 +209,7 @@ export class DialogueWindow {
   }
 
   private close(): void {
+    this.showChoices(null);
     this.session = null;
     this.lines = null;
     this.onFinished = null;
@@ -194,6 +224,34 @@ export class DialogueWindow {
     const measure = (s: string): number => context.measureText(s).width;
     this.lineText.setText(wrapText(translate(this.session.line), this.textWidth, measure));
     this.showPicture(this.hooks.picture?.(this.session.step) ?? null);
+    const q = this.hooks.choices;
+    this.showChoices(q && q.step === this.session.step ? q.options : null);
+  }
+
+  /** The answers of a question above the window, in its style (light frame, red on hover); null hides them. */
+  private showChoices(options: readonly string[] | null): void {
+    for (const o of this.choiceObjects) o.destroy();
+    this.choiceObjects = [];
+    this.next.setVisible(options === null && this.session !== null);
+    if (!options) return;
+    const x = Math.round(this.panel.x + (PANEL.width - CHOICE.width) / 2);
+    options.forEach((key, i) => {
+      const y = this.panelTop - CHOICE.above - (options.length - i) * (CHOICE.height + CHOICE.gap) + CHOICE.gap;
+      const frame = this.scene.add.graphics({ x, y }).setDepth(this.depth + 2);
+      const label = this.scene.add.text(x + CHOICE.width / 2, y + CHOICE.height / 2, translate(key), typo('body', C.text)).setOrigin(0.5).setDepth(this.depth + 3);
+      const draw = (hover: boolean): void => {
+        frame.clear();
+        frame.fillStyle(C.fill, 0.96).fillRect(0, 0, CHOICE.width, CHOICE.height);
+        frame.fillStyle(hover ? C.red : C.line, 1).fillRect(0, 0, CHOICE.width, 1).fillRect(0, CHOICE.height - 1, CHOICE.width, 1).fillRect(0, 0, 1, CHOICE.height).fillRect(CHOICE.width - 1, 0, 1, CHOICE.height);
+        label.setColor(hover ? '#f0a0a5' : C.text);
+      };
+      draw(false);
+      const zone = this.scene.add.zone(x, y, CHOICE.width, CHOICE.height).setOrigin(0, 0).setDepth(this.depth + 4).setInteractive({ useHandCursor: true });
+      zone.on('pointerover', () => draw(true));
+      zone.on('pointerout', () => draw(false));
+      zone.on('pointerup', (p: Phaser.Input.Pointer) => p.button === 0 && this.choose(i));
+      this.choiceObjects.push(frame, label, zone);
+    });
   }
 
   /** The picture of the current step; hidden when it has none (or its texture is not loaded). */
@@ -240,7 +298,10 @@ export class DialogueWindow {
 
   private setVisible(visible: boolean): void {
     for (const o of [this.blocker, this.panel, this.nameText, this.lineText, this.next]) o.setVisible(visible);
-    if (!visible) this.showPicture(null);
+    if (!visible) {
+      this.showPicture(null);
+      this.showChoices(null);
+    }
     const modal = visible && this.hooks.modal !== false;
     this.blocker.setVisible(modal);
     this.pressed = false;

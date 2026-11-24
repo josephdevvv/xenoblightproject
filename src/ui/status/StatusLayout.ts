@@ -21,7 +21,7 @@ export const SECONDARY_COLUMNS: readonly (readonly { id: SecondarySectionId; sta
     { id: 'defense', stats: ['def', 'mdef', 'flee'] },
     { id: 'other', stats: ['materialFindBonus'] },
   ],
-  [{ id: 'offense', stats: ['meleeAtk', 'rangedAtk', 'matk', 'hit', 'attackSpeedBonus', 'critRate', 'critDamage'] }],
+  [{ id: 'offense', stats: ['meleeAtk', 'rangedAtk', 'matk', 'hit', 'aspd', 'critRate', 'critDamage'] }],
 ];
 
 export interface StatRowLayout {

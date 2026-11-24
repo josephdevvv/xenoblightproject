@@ -33,6 +33,14 @@ export interface SavedProgress {
   skills?: SkillsState;
   /** Absent = empty Q / W. */
   potionSlots?: PotionSlots;
+  /** Absent = 0. */
+  gold?: number;
+  /** Absent = none finished. */
+  hints?: readonly string[];
+  /** Absent = none unlocked. */
+  unlocks?: readonly string[];
+  /** Absent = every portal locked. */
+  portals?: Readonly<Partial<Record<string, string>>>;
   /** Absent = default Auto Play settings. */
   autoPlay?: AutoPlaySettings;
 }
@@ -56,6 +64,10 @@ export const CharacterStatusService = {
     character.hotbar = createHotbar();
     character.skills = createSkills();
     character.potionSlots = createPotionSlots();
+    character.gold = 0;
+    character.hints = [];
+    character.unlocks = [];
+    character.portals = {};
     character.autoPlay = createAutoPlaySettings();
     QuestService.begin(character);
   },
@@ -69,6 +81,10 @@ export const CharacterStatusService = {
     character.hotbar = saved.hotbar ?? createHotbar();
     character.skills = saved.skills ?? createSkills();
     character.potionSlots = saved.potionSlots ?? createPotionSlots();
+    character.gold = saved.gold ?? 0;
+    character.hints = [...(saved.hints ?? [])];
+    character.unlocks = [...(saved.unlocks ?? [])];
+    character.portals = { ...(saved.portals ?? {}) };
     character.autoPlay = saved.autoPlay ?? createAutoPlaySettings();
     QuestService.restore(character, saved.quests);
   },

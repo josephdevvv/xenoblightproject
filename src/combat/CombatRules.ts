@@ -1,3 +1,4 @@
+import { aspdIntervalMs } from '../status/Aspd';
 import type { DerivedStats } from '../status/DerivedStats';
 
 /**
@@ -24,8 +25,7 @@ export interface CombatStats {
 }
 
 export const COMBAT_RULES = {
-  /** Player basic attack interval before Attack Speed bonus (Attack Speed % shortens it). */
-  playerBaseAttackIntervalMs: 1200,
+
   /** Unarmed / starter melee reach. */
   playerAttackRange: 1.25,
   /** hit % = base + HIT - FLEE, clamped. */
@@ -49,7 +49,7 @@ export function playerCombatStats(d: DerivedStats): CombatStats {
     flee: d.flee,
     critRate: d.critRate,
     critDamage: d.critDamage,
-    attackIntervalMs: Math.round(COMBAT_RULES.playerBaseAttackIntervalMs / (1 + d.attackSpeedBonus / 100)),
+    attackIntervalMs: aspdIntervalMs(d.aspd), // 20 x (81 - ASPD) ms, decimals kept
     attackRange: COMBAT_RULES.playerAttackRange,
   };
 }

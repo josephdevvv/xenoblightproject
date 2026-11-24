@@ -1,4 +1,5 @@
 import pack from './hudPack.generated.json';
+import { MENU_BAR, menuSlotLefts } from './MenuBarArt';
 
 /**
  * Dungeon HUD layout (art: art-source/ui/dungeon_hud, converted by tools/import-hud-pack.ps1).
@@ -48,12 +49,13 @@ const LAYER_ANCHORS: Record<string, Anchor> = {
 /** Reference-canvas rectangles measured from the layer PNGs (2-px borders included). */
 export const REF_ELEMENTS = {
   playerPanel: [15, 10, 470, 64],
-  menuSlots: [1322, 1373, 1424, 1475, 1526].map((x) => [x, 17, 38, 30] as const),
-  menuMore: [1577, 17, 38, 30],
+  /** The 6 menu slots, centred in the bar with equal spacing (drawn in code - see MenuBarArt). */
+  menuSlots: menuSlotLefts().map((p) => [MENU_BAR.layerRefX + 2 * p, MENU_BAR.slotRefY, MENU_BAR.slotRefWidth, MENU_BAR.slotRefHeight] as const),
   minimap: [1440, 70, 199, 121],
   coordinateBox: [1504, 201, 134, 26],
   questPins: [148, 199, 250].map((y) => [25, y, 10, 34] as const),
-  autoButton: [235, 144, 78, 33],
+  /** The quest tracker's button box (Navigate), baked into 02_quest_auto. */
+  questNavButton: [235, 144, 78, 33],
   chatTabs: [
     [15, 859, 60, 17],
     [77, 859, 71, 17],
@@ -62,6 +64,9 @@ export const REF_ELEMENTS = {
   chatInput: [15, 874, 453, 19],
   hotbarSlots: [577, 651, 725, 799, 873, 947, 1021, 1095, 1169, 1243].map((x) => [x, 817, 67, 76] as const),
 } as const;
+
+/** Which menu slot (0-based, left to right) each button takes: slot 5 is a placeholder (three bars), slot 6 Settings. */
+export const MENU_SLOT = { status: 0, passive: 1, skills: 2, inventory: 3, more: 4, settings: 5 } as const;
 
 export interface ScreenRect {
   x: number;

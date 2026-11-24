@@ -22,6 +22,25 @@ export const DIALOGUES = {
   roland_avian_skills: lines('roland_avian_skills', 1),
   roland_avian_hotkey: lines('roland_avian_hotkey', 1),
   roland_avian_go: lines('roland_avian_go', 1),
+  roland_avian_done: lines('roland_avian_done', 6),
+  // Reach Level 10 offered but its talk was cut off after the reward: lines 2-6 again
+  roland_level10_offer: lines('roland_avian_done', 6).slice(1),
+  // Reach Level 10 turned in: line 1 pays 1,000 Gold, the last one completes the quest (on to Sonny)
+  roland_level10_done: lines('roland_level10_done', 4),
+  // ...cut off after the reward: lines 2-4 again
+  roland_level10_done_rest: lines('roland_level10_done', 4).slice(1),
+  // the gate guards (GateTalks): the question, then a branch per answer
+  sonny_gate: lines('sonny_gate', 2),
+  sonny_from_roland: lines('sonny_from_roland', 2),
+  sonny_just_walking: lines('sonny_just_walking', 2),
+  jack_gate: lines('jack_gate', 1),
+  jack_from_roland: lines('jack_from_roland', 2),
+  jack_just_walking: lines('jack_just_walking', 2),
+  roland_auto_monsters: lines('roland_auto_monsters', 1),
+  roland_auto_skills: lines('roland_auto_skills', 1),
+  roland_auto_options: lines('roland_auto_options', 1),
+  roland_auto_range: lines('roland_auto_range', 1),
+  roland_auto_recovery: lines('roland_auto_recovery', 1),
 } as const satisfies Record<string, readonly string[]>;
 
 export type DialogueId = keyof typeof DIALOGUES;

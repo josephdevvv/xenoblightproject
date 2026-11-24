@@ -10,8 +10,14 @@ export function characterInventorySource(character: CharacterData, canUnequip: (
   return {
     itemAt: (slot) => {
       const state = InventoryService.state(character);
-      const item = slot.kind === 'equipment' ? state.equipment[slot.slot] : state.bag[slot.index];
-      return item ? itemInfo(item.itemId) : null;
+      if (slot.kind === 'equipment') {
+        const worn = state.equipment[slot.slot];
+        return worn ? itemInfo(worn.itemId) : null;
+      }
+      const stack = state.bag[slot.index];
+      const info = stack ? itemInfo(stack.itemId) : null;
+      if (!stack || !info) return info;
+      return itemDefinition(stack.itemId)?.stackable ? { ...info, quantity: stack.quantity } : info;
     },
     equipOption: (bagIndex) => equipOption(InventoryService.state(character), bagIndex, character.status.level),
     equip: (bagIndex, slot) => InventoryService.equip(character, bagIndex, slot) === null,

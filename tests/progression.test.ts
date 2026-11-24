@@ -9,9 +9,9 @@ import { applyLevelUp, createInitialStatus, pointsEarnedAtLevel, STATUS_RULES } 
 
 const MAX = STATUS_RULES.maxLevel;
 
-test('curve: the Level 1-10 table (80 ... 420), 2,080 EXP in total; Level 10 is a target, not a cap', () => {
-  assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8, 9].map(expToNextLevel), [80, 110, 140, 180, 220, 260, 310, 360, 420]);
-  assert.equal(totalExpBetween(1, 10), 2080);
+test('curve: the Level 1-10 table (80 ... 1,000, 1,500), 3,800 EXP in total; Level 10 is a target, not a cap', () => {
+  assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8, 9].map(expToNextLevel), [80, 110, 140, 180, 220, 260, 310, 1000, 1500]);
+  assert.equal(totalExpBetween(1, 10), 3800);
   assert.equal(FIRST_MAP_TARGET_LEVEL, 10);
   // levels 10+ keep the pre-existing curve unchanged
   for (const l of [10, 11, 25, 50, 98]) assert.equal(expToNextLevel(l), legacyExpToNextLevel(l));
@@ -35,7 +35,7 @@ test('level-ups: Level 1 starts at 0, each threshold levels exactly, excess carr
   }
   assert.deepEqual(addExp(1, 70, 25, MAX), { level: 2, exp: 15, levelsGained: 1 }, 'excess carries over');
   assert.deepEqual(addExp(1, 0, 80 + 110 + 140 + 7, MAX), { level: 4, exp: 7, levelsGained: 3 }, 'one reward, three level-ups');
-  assert.deepEqual(addExp(1, 0, 2080, MAX), { level: 10, exp: 0, levelsGained: 9 });
+  assert.deepEqual(addExp(1, 0, 3800, MAX), { level: 10, exp: 0, levelsGained: 9 });
   assert.deepEqual(addExp(MAX, 0, 10_000, MAX), { level: MAX, exp: 0, levelsGained: 0 });
 });
 
@@ -65,7 +65,9 @@ test('monster EXP: Void Mite 20, Mutant Wolf 32 (separate from combat stats); re
   const monsterExp = 20 * monsterExpReward('voidmite') + 25 * monsterExpReward('mutant_wolf');
   assert.equal(monsterExp, 1200);
   assert.equal(monsterExp + TUTORIAL_QUEST_EXP_BUDGET.total, 2100);
-  assert.ok(monsterExp + TUTORIAL_QUEST_EXP_BUDGET.total >= totalExpBetween(1, 10), 'the plan reaches Level 10');
+  // since Lv 8 -> 9 = 1,000 and Lv 9 -> 10 = 1,500 the quests and this reference hunt leave 1,700 EXP: Reach Level 10
+  // (Tutorial Quest 07) sends the player to hunt for them
+  assert.equal(totalExpBetween(1, 10) - (monsterExp + TUTORIAL_QUEST_EXP_BUDGET.total), 1700);
 });
 
 test('kill rewards: once per monster life (a respawn pays again, a repeat never)', () => {

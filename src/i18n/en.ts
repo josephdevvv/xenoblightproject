@@ -117,6 +117,7 @@ export const en: Messages = {
   },
   maps: {
     ashen_crossroads: 'Ashen Crossroads',
+    dawnkeep: 'Dawnkeep',
   },
   hud: {
     level: 'Lv {level}',
@@ -125,6 +126,7 @@ export const en: Messages = {
     exp: 'EXP {percent}%',
     noActiveQuest: 'No active quest',
     auto: 'Auto',
+    navigate: 'Navigate',
     menuStatus: 'Status (T)',
     menuSettings: 'Settings',
     menuPassive: 'Passive Tree (P)',
@@ -157,10 +159,10 @@ export const en: Messages = {
     },
     stats: {
       str: { label: 'STR', description: 'Melee ATK' },
-      dex: { label: 'DEX', description: 'Ranged ATK, HIT' },
+      dex: { label: 'DEX', description: 'Ranged ATK, HIT, ASPD' },
       int: { label: 'INT', description: 'MATK, Max SP' },
       vit: { label: 'VIT', description: 'Max HP, DEF, MDEF' },
-      agi: { label: 'AGI', description: 'Attack speed, FLEE' },
+      agi: { label: 'AGI', description: 'FLEE, ASPD' },
       luk: { label: 'LUK', description: 'Crit, Material find' },
     },
     derived: {
@@ -173,7 +175,8 @@ export const en: Messages = {
       mdef: 'MDEF',
       hit: 'HIT',
       flee: 'FLEE',
-      attackSpeedBonus: 'Attack Speed (bonus)',
+      aspd: 'ASPD',
+      aspdPercent: 'ASPD',
       critRate: 'Critical Rate',
       critDamage: 'Critical Damage',
       materialFindBonus: 'Material Find (relative)',
@@ -382,6 +385,32 @@ export const en: Messages = {
     select: 'Select a skill to see its details',
     keys: 'Click a skill to select it  ·  K / Esc close',
   },
+  dialogueChoices: {
+    fromRoland: 'Roland sent me.',
+    justWalking: 'Just taking a walk.',
+  },
+  features: {
+    locked: 'Complete the tutorial to unlock this feature.',
+  },
+  notices: {
+    questAccepted: 'Quest accepted: {name}',
+    questCompleted: 'Quest completed: {name}',
+  },
+  hints: {
+    clickToMove: 'Left-click to move and talk to NPCs.',
+  },
+  navigateTutorial: {
+    click: 'Click Navigate to walk to Roland',
+  },
+  levelTutorial: {
+    openInventory: 'Open the Inventory (I)',
+    selectSp: 'Select the SP Recovery Potion',
+    assign: 'Press Assign Hotkey (the potion goes on W)',
+    closeInventory: 'Close the Inventory',
+    openAuto: 'Open Auto Play',
+    info: 'Click Roland\'s line to continue',
+    start: 'Start Auto Play',
+  },
   scrollTutorial: {
     openInventory: 'Open the Inventory (I)',
     selectScroll: 'Select the Power Thrust Skill Scroll',
@@ -426,6 +455,14 @@ export const en: Messages = {
       objective: 'Find Roland',
       objectiveTutorial: 'Learn to use the Red Healing Potion',
       objectiveReturn: 'Return to Roland and talk to him',
+    },
+    tutorial_07_reach_level_10: {
+      name: 'Reach Level 10',
+      objective: 'Talk to Roland',
+      objectiveLevel: 'Reach Level 10 (Lv {level}/{target})',
+      objectiveReturn: 'Return to Roland',
+      objectiveSonny: 'Head north and talk to Sonny at the gate',
+      objectivePortal: 'Step through the portal',
     },
     tutorial_06_dark_avian_hunt: {
       name: 'Dark Avian Hunt',
@@ -513,6 +550,58 @@ export const en: Messages = {
     },
     roland_avian_hotkey: {
       l1: 'Select the skill and assign it a hotkey so it\'s easy to use.',
+    },
+    roland_avian_done: {
+      l1: 'All done, then. Here is your reward.',
+      l2: 'This healing scroll will help you survive your fights.',
+      l3: 'Next, gather experience here before you head into the city to understand this new world.',
+      l4: 'Level up by hunting the monsters around here, until you reach Level 10.',
+      l5: 'I\'ll also share a few little tricks to make your hunting easier.',
+      l6: 'Alright, come back once you reach Level 10.',
+    },
+    roland_level10_done: {
+      l1: 'So this is the fruit of your training, isn\'t it?',
+      l2: 'Well then, if you\'ve come this far, you\'re ready.',
+      l3: 'Head further north and you\'ll find the guards at the gate. Talk to Sonny.',
+      l4: 'And don\'t get caught up talking to Jack. He makes no sense.',
+    },
+    sonny_gate: {
+      l1: 'This is the gate of Dawnkeep, the first fortress of the Kingdom of Rosencrown.',
+      l2: 'What business brings you here?',
+    },
+    sonny_from_roland: {
+      l1: 'Oh, so you\'re the drifter Mateus found? Alright, alright.',
+      l2: 'I\'ll open the way into the city for you. Be ready to learn a great many things.',
+    },
+    sonny_just_walking: {
+      l1: 'What\'s wrong with you? You stink, and you\'re filthy, drifter!',
+      l2: 'Go talk to Jack if you want to get on someone\'s nerves.',
+    },
+    jack_gate: {
+      l1: 'Who are you, and what are you doing in a place like this?',
+    },
+    jack_from_roland: {
+      l1: 'Who\'s Roland? Never heard of him.',
+      l2: 'Go back the way you came, you stinking wretch.',
+    },
+    jack_just_walking: {
+      l1: 'A walk? What kind of walk do you take in a place like this?',
+      l2: 'Go back the way you came, you stinking wretch.',
+    },
+    roland_auto_monsters: {
+      l1: 'Choose the monsters you want to hunt here. You can pick several kinds.',
+    },
+    roland_auto_skills: {
+      l1: 'Your hotbar attack skills line up here. Drag to sort them - the leftmost is used first.',
+    },
+    roland_auto_options: {
+      l1: 'Set whether to strike back when attacked, or to answer whatever is attacking you.',
+    },
+    roland_auto_range: {
+      l1: 'Set the hunting range: the whole map, or just the area around you.',
+    },
+    roland_auto_recovery: {
+      l1: 'Set potions and healing skills to be used by themselves when HP or SP runs low.',
     },
     roland_avian_go: {
       l1: 'Alright, off you go.',

@@ -12,10 +12,13 @@ import { DamageNumbers } from './DamageNumbers';
 import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
 import { PLAYER_IMPACT_VFX } from '../characters/combat/PlayerCombatArt';
 import { monsterVfxAnimKey, monsterVfxKey } from '../monsters/art/MonsterArt';
-import { PLAYER_ATTACKS, playerImpactDelayMs, type PlayerAttackDefinition, type PlayerAttackId } from './PlayerAttacks';
+import { PLAYER_ATTACKS, playerImpactDelayMs, playerSwingMs, swingTimeScale, type PlayerAttackDefinition, type PlayerAttackId } from './PlayerAttacks';
 import type { AttackVfxLayer, VfxTarget } from './vfx/AttackVfxLayer';
 import { spriteHitAnchor } from './vfx/HitAnchor';
 import { monsterExpReward } from '../progression/MonsterExpRewards';
+import { monsterGoldReward } from '../progression/MonsterGoldRewards';
+import { GoldService } from '../economy/GoldService';
+import { formatGold } from '../ui/hud/GoldIcon';
 import { KillRewardLedger } from '../progression/LevelProgression';
 
 /** How often the player re-plans the way to a moving target. */
@@ -311,8 +314,10 @@ export class CombatSystem {
     if (id && activate && !activate()) id = null; // not enough SP / on cooldown by now: a basic swing
     const attack = PLAYER_ATTACKS[id ?? 'basic'];
     this.lastCombatAt = this.elapsed;
-    this.player.actions.play('attack', this.player.actionFacingTowards(target.position));
-    this.pendingHits.push({ target, attack, at: this.elapsed + playerImpactDelayMs(this.spriteId, attack) });
+    // ASPD: a swing longer than the attack interval plays faster, its hit frame (and so the damage) with it
+    const speed = swingTimeScale(playerSwingMs(this.spriteId, attack), stats.attackIntervalMs);
+    this.player.actions.play('attack', this.player.actionFacingTowards(target.position), speed);
+    this.pendingHits.push({ target, attack, at: this.elapsed + playerImpactDelayMs(this.spriteId, attack) / speed });
   }
 
   private resolvePendingHits(): void {
@@ -349,14 +354,26 @@ export class CombatSystem {
     if (!target.isAlive()) this.onKill(target);
   }
 
-  /** A monster this player defeated: EXP from the reward table, paid once for this death; quests count it once too. */
+  /**
+   * A monster this player defeated: EXP and Gold from the reward tables, paid once for this death (the same kill
+   * credit); quests count it once too.
+   */
   private onKill(monster: MonsterEntity): void {
     this.clearTarget();
     if (monster.isAlive() || !this.killRewards.claim(monster.id, monster.life)) return;
     const exp = monsterExpReward(monster.definition.id);
     const levels = CharacterStatusService.gainExp(this.character, exp);
+    const gold = GoldService.add(this.character, monsterGoldReward(monster.definition.id));
     QuestService.recordKill(this.character, monster.definition.id);
     this.showExpGain(exp, levels);
+    this.showGoldGain(gold);
+  }
+
+  /** Gold the player just gained (kills, quest rewards): "+N Gold" over the head, under "+EXP" (and "LEVEL n!"). */
+  showGoldGain(gold: number): void {
+    if (gold <= 0) return;
+    const w = this.player.getWorldPosition();
+    this.numbers.show(w.x, w.y - 52, `+${formatGold(gold)} Gold`, 'info');
   }
 
   /** EXP the player just gained (kills, quest rewards): +EXP over the head; a level-up shows LEVEL n! and heals fully. */

@@ -153,7 +153,7 @@ test('status: passive bonuses on top of the derived formulas; Vitality multiplie
   assert.equal(d.def, base.def + 3);
   assert.equal(d.mdef, base.mdef + 3);
   assert.equal(d.flee, base.flee + 4);
-  assert.equal(d.attackSpeedBonus, base.attackSpeedBonus + 2);
+  assert.ok(Math.abs(d.aspd - (base.aspd + (81 - base.aspd) * 0.02)) < 1e-9, 'Swiftness: ASPD +2 % (of the gap to 81)');
   assert.equal(d.critRate, base.critRate + 1);
   assert.equal(d.maxHp, Math.floor((base.maxHp + 5) * 1.1), 'Max HP = (base + flat) x (1 + 10 %), whole HP (rounded down)');
   assert.equal(applyDerivedBonus({ ...base, maxHp: 120 }, { flat: { maxHp: 5 }, maxHpPercent: 10 }).maxHp, 137, '125 x 1.10 = 137.5 -> 137');

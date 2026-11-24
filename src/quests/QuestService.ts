@@ -30,6 +30,7 @@ import { applyQuest04, createQuest04, isItemUseBlocked, restoreQuest04, TUTORIAL
 import { applyQuest05, createQuest05, restoreQuest05, TUTORIAL_QUEST_05, type Quest05Event, type Quest05Progress } from './TutorialQuest05';
 import { SkillService } from '../skills/SkillService';
 import { applyQuest06, createQuest06, restoreQuest06, TUTORIAL_QUEST_06, type Quest06Event, type Quest06Progress } from './TutorialQuest06';
+import { applyQuest07, createQuest07, restoreQuest07, TUTORIAL_QUEST_07, type Quest07Event, type Quest07Progress } from './TutorialQuest07';
 
 /** A character's quests by quest id. Entries of quests this build does not know are kept as stored. */
 export interface QuestLog {
@@ -39,6 +40,7 @@ export interface QuestLog {
   tutorial_04_potion_training: Quest04Progress;
   tutorial_05_mutant_wolf_hunt: Quest05Progress;
   tutorial_06_dark_avian_hunt: Quest06Progress;
+  tutorial_07_reach_level_10: Quest07Progress;
   [otherQuestId: string]: unknown;
 }
 
@@ -63,6 +65,7 @@ export const QuestService = {
       tutorial_04_potion_training: createQuest04(),
       tutorial_05_mutant_wolf_hunt: createQuest05(),
       tutorial_06_dark_avian_hunt: createQuest06(),
+      tutorial_07_reach_level_10: createQuest07(),
     };
   },
 
@@ -80,6 +83,7 @@ export const QuestService = {
       tutorial_04_potion_training: restoreQuest04(stored[TUTORIAL_QUEST_04.id]),
       tutorial_05_mutant_wolf_hunt: restoreQuest05(stored[TUTORIAL_QUEST_05.id]),
       tutorial_06_dark_avian_hunt: restoreQuest06(stored[TUTORIAL_QUEST_06.id], hasGrant(character.inventory, TUTORIAL_QUEST_06.reward.grantId)),
+      tutorial_07_reach_level_10: restoreQuest07(stored[TUTORIAL_QUEST_07.id]),
     };
   },
 
@@ -198,7 +202,25 @@ export const QuestService = {
     const next = applyQuest06(this.quest06(character), event);
     if (!next) return false;
     commit(character, { tutorial_06_dark_avian_hunt: next });
-    if (next.state === 'COMPLETED') for (const l of completedListeners) l(character, TUTORIAL_QUEST_06.id);
+    if (next.state === 'COMPLETED') {
+      for (const l of completedListeners) l(character, TUTORIAL_QUEST_06.id);
+      // the same talk goes on to the next quest: Reach Level 10
+      this.advance07(character, 'offer');
+    }
+    return true;
+  },
+
+  quest07(character: CharacterData): Quest07Progress {
+    return character.quests?.tutorial_07_reach_level_10 ?? createQuest07();
+  },
+
+  /** Applies a step of Tutorial Quest 07 (Reach Level 10, its tutorials). False when it is not valid now. */
+  advance07(character: CharacterData, event: Quest07Event): boolean {
+    if (!character.quests) return false;
+    const next = applyQuest07(this.quest07(character), event, character.status.level);
+    if (!next) return false;
+    commit(character, { tutorial_07_reach_level_10: next });
+    if (next.state === 'COMPLETED') for (const l of completedListeners) l(character, TUTORIAL_QUEST_07.id);
     return true;
   },
 
@@ -226,6 +248,7 @@ export const QuestService = {
     if (this.quest03(character).state === 'COMPLETED') this.advance04(character, 'offer');
     if (this.quest04(character).state === 'COMPLETED') this.advance05(character, 'start');
     if (this.quest05(character).state === 'COMPLETED') this.advance06(character, 'offer');
+    if (this.quest06(character).state === 'COMPLETED') this.advance07(character, 'offer');
   },
 
   /** The Passive Tree tutorial's node is unlocked. */
@@ -264,7 +287,7 @@ export const QuestService = {
 function commit(
   character: CharacterData,
   change: Partial<
-    Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger' | 'tutorial_03_void_mite_hunt' | 'tutorial_04_potion_training' | 'tutorial_05_mutant_wolf_hunt' | 'tutorial_06_dark_avian_hunt'>
+    Pick<QuestLog, 'tutorial_01_find_mateus' | 'tutorial_02_rusty_dagger' | 'tutorial_03_void_mite_hunt' | 'tutorial_04_potion_training' | 'tutorial_05_mutant_wolf_hunt' | 'tutorial_06_dark_avian_hunt' | 'tutorial_07_reach_level_10'>
   >,
 ): void {
   character.quests = { ...character.quests!, ...change };

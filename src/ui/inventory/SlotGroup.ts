@@ -3,6 +3,8 @@ import { isValidSlot, sameSlot, type InventorySource, type SlotRef, type SlotSel
 import type { Rect } from '../passiveTree/PassiveTreeLayout';
 import { iconScale } from './InventoryLayout';
 import { drawOutline, drawSlotFrame, INV_COLORS } from './inventoryTheme';
+import { PALETTE } from '../../config/palette';
+import { typo } from '../UITheme';
 
 export interface SlotSpec {
   /** May change (the bag grid scrolls: a cell shows another bag slot); a ref past the bag shows nothing. */
@@ -18,6 +20,8 @@ export class SlotGroup {
   private readonly frames: Phaser.GameObjects.Graphics;
   private readonly highlight: Phaser.GameObjects.Graphics;
   private readonly icons = new Map<SlotSpec, Phaser.GameObjects.Image>();
+  /** Stack quantity at the bottom right (stackable items only), the same style as the hotbar's. */
+  private readonly counts = new Map<SlotSpec, Phaser.GameObjects.Text>();
   private readonly zones = new Map<SlotSpec, Phaser.GameObjects.Zone>();
   private hovered: SlotSpec | null = null;
   private pressed: SlotSpec | null = null;
@@ -46,10 +50,15 @@ export class SlotGroup {
       if (!isValidSlot(slot.ref)) {
         // past the last bag slot (the bag's last row is not full): an empty cell
         this.icons.get(slot)?.setVisible(false);
+        this.counts.get(slot)?.setText('');
         continue;
       }
       drawSlotFrame(this.frames, slot.rect);
-      const icon = this.source.itemAt(slot.ref)?.icon ?? null;
+      const item = this.source.itemAt(slot.ref);
+      const quantity = item?.quantity;
+      if (quantity !== undefined) this.countOf(slot).setText(String(quantity));
+      else this.counts.get(slot)?.setText('');
+      const icon = item?.icon ?? null;
       if (icon && this.scene.textures.exists(icon.texture)) {
         const image = this.iconOf(slot).setTexture(icon.texture, icon.frame).setVisible(true);
         image.setScale(iconScale(image.frame.width, image.frame.height, slot.rect[2] - 4));
@@ -83,6 +92,17 @@ export class SlotGroup {
       this.root.addAt(image, this.root.getIndex(this.frames) + 1);
     }
     return image;
+  }
+
+  private countOf(slot: SlotSpec): Phaser.GameObjects.Text {
+    let text = this.counts.get(slot);
+    if (!text) {
+      const [x, y, w, h] = slot.rect;
+      text = this.scene.add.text(x + w - 2, y + h - 1, '', typo('small', PALETTE.white)).setOrigin(1, 1).setStroke(PALETTE.black, 3);
+      this.counts.set(slot, text);
+      this.root.addAt(text, this.root.getIndex(this.highlight));
+    }
+    return text;
   }
 
   private buildZone(slot: SlotSpec): Phaser.GameObjects.Zone {

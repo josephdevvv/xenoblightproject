@@ -12,6 +12,8 @@ import { inventoryLayout, type InventoryLayout } from './InventoryLayout';
 import { drawOutline, drawPanelFrame, INV_COLORS } from './inventoryTheme';
 import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
 import { ItemDetailPanel } from './ItemDetailPanel';
+import { GoldDisplay } from '../hud/GoldDisplay';
+import { GOLD_DISPLAY } from '../hud/GoldIcon';
 
 /**
  * After EQUIP the same button says UNEQUIP (and the other way round): further clicks are ignored for a moment,
@@ -38,6 +40,8 @@ export class InventoryWindow {
   private readonly captions: Phaser.GameObjects.Text[];
   private readonly hint: Phaser.GameObjects.Text;
   private readonly closeButton: FrameButton;
+  /** Gold in the header's top-right corner (the same display as the HUD). */
+  private readonly gold: GoldDisplay;
   private open = false;
   private actionPauseUntil = 0;
   /** Equipping / taking off did not work (message for the player). */
@@ -80,6 +84,10 @@ export class InventoryWindow {
     this.captions = panels.map((p) => scene.add.text(p[0] + L.caption.x, p[1] + L.caption.y, '', typo('small', PALETTE.silver)));
     this.hint = scene.add.text(L.hint.x, L.hint.y, '', typo('small', PALETTE.slate)).setOrigin(0, 0.5);
     this.root.add([this.title, ...this.captions, this.hint]);
+    // Gold: right-aligned with the item panel's caption inset, centred on the title row
+    const detailRight = L.panels.detail[0] + L.panels.detail[2] - L.caption.x;
+    this.gold = new GoldDisplay(scene, detailRight, ty + Math.floor((th - GOLD_DISPLAY.icon.size) / 2), 0, this.root);
+    this.gold.set(0);
 
     const onClick = (slot: SlotRef): void => this.selection.select(slot);
     this.equipment = new EquipmentPanel(scene, this.root, L, source, this.selection, onClick);
@@ -105,6 +113,11 @@ export class InventoryWindow {
     return this.open;
   }
 
+  /** The Gold balance (GameUIScene feeds it from GoldService, on every change). */
+  setGold(gold: number): void {
+    this.gold.set(gold);
+  }
+
   /** The click zone of a slot (tutorial spotlight target). */
   slotZone(slot: SlotRef): Phaser.GameObjects.Zone | null {
     if (slot.kind === 'bag' && slot.index >= 0) this.grid.ensureVisible(slot.index); // the bag scrolls: bring it into view
@@ -123,6 +136,11 @@ export class InventoryWindow {
 
   get assignZone(): Phaser.GameObjects.Zone | null {
     return this.detail.actionZone('assign');
+  }
+
+  /** CLOSE (tutorial spotlight target), while open. */
+  get closeZone(): Phaser.GameObjects.Zone | null {
+    return this.open ? this.closeButton.zone : null;
   }
 
   /** USE of a selected skill scroll (tutorial spotlight target). */

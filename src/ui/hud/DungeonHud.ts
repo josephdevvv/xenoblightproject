@@ -20,7 +20,25 @@ import { HotbarService } from '../../hotbar/HotbarService';
 import { InventoryService } from '../../inventory/InventoryService';
 import { itemCount } from '../../inventory/InventoryState';
 import { entryIcon } from '../hotbar/hotbarIcons';
+import { GoldService } from '../../economy/GoldService';
+import { GoldDisplay } from './GoldDisplay';
+import { centerInkIn, textInk } from '../text/TextInk';
+import { MENU_SLOT } from './HudLayout';
+import { GEAR_ICON, MENU_ART, MENU_BAR, MORE_ICON } from './MenuBarArt';
 import { cooldownSeconds, elapsedFraction, handAngle, remainingWedge, sweepStep } from './CooldownSweep';
+import {
+  AUTO_ARROW_PHASES,
+  AUTO_BUTTON_STATES,
+  AUTO_ICON_SIZE,
+  AUTO_TEXT_COLORS,
+  autoArrowKey,
+  autoArrowPhase,
+  autoArrowPixels,
+  autoBaseKey,
+  autoBasePixels,
+  autoButtonState,
+  type AutoButtonState,
+} from './AutoButtonArt';
 import { POTION_KEY_LABEL, POTION_SLOT_KEYS, type PotionSlotKey } from '../../hotbar/PotionSlots';
 import { SkillService } from '../../skills/SkillService';
 import { isSkillUnlocked } from '../../skills/ActiveSkills';
@@ -34,8 +52,13 @@ const TEXT = HUD_LAYOUT.dynamic_text;
 const HIDDEN_LAYERS = new Set<string>(['04_chat', '05_hotbar']);
 /** Hotbar slot colours, sampled from the pack's hotbar art. */
 const HOTBAR_COLORS = { frame: 0xe5e5eb, fill: 0x0f0f12, divider: 0x6c6c75 } as const;
+/** The status block's HP bar (green, like the nameplate HP bars). */
+const HUD_HP_GREEN = '#4fbf4f';
 /** Lift for top-anchored text (see text()). */
 const HUD_TEXT_LIFT = 4;
+
+/** The Navigate label: the art's own text colour while usable (also while navigating), brighter on hover. */
+const NAV_COLORS = { enabled: PALETTE.slate, hover: PALETTE.silver, disabled: '#2c2c32' } as const;
 
 export interface DungeonHudOptions {
   character: CharacterData;
@@ -50,6 +73,8 @@ export interface DungeonHudOptions {
   onSkills?: () => void;
   /** The Auto Play button (right of the hotbar): opens its settings. */
   onAutoPlay?: () => void;
+  /** The quest tracker's Navigate button (only clickable while enabled): walk to / stop walking to the quest NPC. */
+  onNavigate?: () => void;
   /** Current SP (combat); max SP when absent. */
   currentSp?: () => number;
   /** Current HP (combat); max HP when absent. */
@@ -83,6 +108,8 @@ export class DungeonHud {
   private readonly space: HudSpace;
   private readonly nameText: Phaser.GameObjects.Text;
   private readonly levelText: Phaser.GameObjects.Text;
+  /** Gold in the status block's top-right corner (its name row): coin + amount. */
+  private readonly gold: GoldDisplay;
   private readonly hpText: Phaser.GameObjects.Text;
   private readonly spText: Phaser.GameObjects.Text;
   private readonly hpBar: Phaser.GameObjects.Rectangle;
@@ -117,12 +144,22 @@ export class DungeonHud {
   readonly skillButton: Phaser.GameObjects.Zone;
   /** The Auto Play button right of the hotbar. */
   readonly autoButton: Phaser.GameObjects.Zone;
-  private readonly autoFrame: Phaser.GameObjects.Graphics;
+  /** The round AUTO button: ring + disc, the circular arrows (turning while on), the "AUTO" text. */
+  private readonly autoBase: Phaser.GameObjects.Image;
+  private readonly autoArrows: Phaser.GameObjects.Image;
   private readonly autoLabel: Phaser.GameObjects.Text;
-  private readonly autoStateText: Phaser.GameObjects.Text;
-  private readonly autoButtonRect: { x: number; y: number; width: number; height: number };
-  private autoTag: Phaser.GameObjects.Text | null = null;
+  /** The quest tracker's Navigate button (tutorial spotlight target): its box, label and state. */
+  readonly navButton: Phaser.GameObjects.Zone;
+  private readonly navLabel: Phaser.GameObjects.Text;
+  private readonly navBox: ScreenRect;
+  private navEnabled = true;
+  private navHover = false;
+  private navLocked = false;
   private autoOn = false;
+  private autoHover = false;
+  private autoEnabled = true;
+  /** What the button shows now (redrawn only when it changes). */
+  private autoShown = '';
   /** Where notices below the minimap start: its right edge, under the map name. */
   readonly belowMinimap: { right: number; top: number };
   /** Hotbar slots 1-8: click zones (UI hit testing, checks), icons and quantities. */
@@ -164,13 +201,23 @@ export class DungeonHud {
     this.nameText = this.text(name.x, name.y, '', 'label', PALETTE.white);
     this.levelText = this.text(level.x, level.y, '', 'label', PALETTE.accentLight);
     this.nameMaxWidth = level.x - name.x - 6;
+    // Gold: the status block's top-right corner - the 12-px coin fills the name row (between the frame's top bevel
+    // and the divider), the amount ends as far from the right border as the name starts from the left one
+    const panel = this.space.inner(P, REF_ELEMENTS.playerPanel);
+    this.gold = new GoldDisplay(scene, panel.x + panel.width - (name.x - panel.x), panel.y + 1, depth + 1);
+    const offGold = GoldService.onChange((c) => {
+      if (c === options.character) this.refreshGold();
+    });
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, offGold);
+    this.refreshGold();
     const hpAt = this.space.point(P, TEXT.hp_value);
     const spAt = this.space.point(P, TEXT.mp_value);
     this.hpText = this.text(hpAt.x, hpAt.y, '', 'small', PALETTE.pale);
     this.spText = this.text(spAt.x, spAt.y, '', 'small', PALETTE.pale);
     this.hpArea = this.space.fill(P, BAR.hp.fill_rect as [number, number, number, number]);
     this.spArea = this.space.fill(P, BAR.mp.fill_rect as [number, number, number, number]);
-    this.hpBar = this.bar(this.hpArea, BAR.hp.hex);
+    // HP is green (as on the nameplates); the pack's red is not used
+    this.hpBar = this.bar(this.hpArea, HUD_HP_GREEN);
     this.spBar = this.bar(this.spArea, BAR.mp.hex);
 
     // 3. EXP bar (no EXP system yet: always 0 %).
@@ -238,16 +285,29 @@ export class DungeonHud {
       });
       return zone;
     });
-    // Auto Play button right of W: AUTO + ON / OFF, red while running; a click opens its settings (X toggles)
+    // Auto Play button right of W: a round gold-ringed AUTO badge (normal / hover / on - the arrows turn - /
+    // disabled); a click opens its settings (X toggles Auto Play)
     const A = H.autoButton;
-    this.autoButtonRect = A;
-    this.autoFrame = scene.add.graphics().setDepth(depth + 1);
-    this.text(A.x + 3, A.y + 2, 'X', 'small', PALETTE.gray, false);
-    this.autoLabel = this.text(A.x + A.width / 2, A.y + 15, '', 'small', PALETTE.pale, false).setOrigin(0.5, 0.5);
-    this.autoStateText = this.text(A.x + A.width / 2, A.y + 27, '', 'small', PALETTE.slate, false).setOrigin(0.5, 0.5);
+    ensureAutoButtonTextures(scene);
+    const half = (AUTO_ICON_SIZE - 1) / 2;
+    const cx = A.x + Math.floor(A.width / 2);
+    const cy = A.y + Math.floor(A.height / 2);
+    // top-left at whole pixels (the art has a centre pixel): crisp at any position
+    this.autoBase = scene.add.image(cx - half, cy - half, autoBaseKey('normal')).setOrigin(0, 0).setDepth(depth + 1);
+    this.autoArrows = scene.add.image(cx - half, cy - half, autoArrowKey('normal', 0)).setOrigin(0, 0).setDepth(depth + 2);
+    this.autoLabel = this.text(cx, cy, 'AUTO', 'small', AUTO_TEXT_COLORS.normal, false).setOrigin(0.5, 0.5).setStroke(PALETTE.black, 2).setDepth(depth + 3);
+    this.text(A.x, A.y, 'X', 'small', PALETTE.gray, false).setDepth(depth + 3);
     this.autoButton = scene.add.zone(A.x, A.y, A.width, A.height).setOrigin(0, 0).setDepth(depth + 4).setInteractive({ useHandCursor: true });
     this.autoButton.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (p.button === 0) this.options.onAutoPlay?.();
+    });
+    this.autoButton.on('pointerover', () => {
+      this.autoHover = true;
+      this.drawAutoButton();
+    });
+    this.autoButton.on('pointerout', () => {
+      this.autoHover = false;
+      this.drawAutoButton();
     });
     this.drawAutoButton();
     const refreshHotbar = (c: CharacterData): void => {
@@ -257,14 +317,22 @@ export class DungeonHud {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => offs.forEach((off) => off()));
     this.refreshHotbar();
 
-    // 4. Quest tracker (setQuest) + AUTO (placeholder: no auto-play system yet).
+    // 4. Quest tracker (setQuest) + Navigate: walks to the quest's NPC (GameUIScene enables it while the quest
+    // leads to an NPC; a second click stops). Its label stays in the art's colour - never red.
     const Q = '02_quest_auto';
     const pin = this.space.frame(Q, REF_ELEMENTS.questPins[0]);
     this.questName = this.text(pin.x + pin.width + 4, pin.y + 1, '', 'small', PALETTE.gray);
     this.questObjective = this.text(pin.x + pin.width + 4, pin.y + 17, '', 'small', PALETTE.silver);
-    const auto = this.space.point(Q, TEXT.auto_label);
-    const autoText = this.text(auto.x, auto.y, '', 'small', PALETTE.slate);
-    this.autoTag = autoText;
+    this.navBox = this.space.frame(Q, REF_ELEMENTS.questNavButton);
+    this.navLabel = this.text(this.navBox.x, this.navBox.y, '', 'small', NAV_COLORS.enabled, false);
+    const nb = this.navBox;
+    this.navButton = scene.add.zone(nb.x, nb.y, nb.width, nb.height).setOrigin(0, 0).setDepth(depth + 4).setInteractive({ useHandCursor: true });
+    this.navButton.on('pointerup', (p: Phaser.Input.Pointer) => {
+      if (p.button === 0 && this.navEnabled) this.options.onNavigate?.();
+    });
+    this.navButton.on('pointerover', () => this.setNavHover(true));
+    this.navButton.on('pointerout', () => this.setNavHover(false));
+    this.setNavigationEnabled(false);
 
     // 5. Map, coordinates and menu.
     const M = '03_map_and_menu';
@@ -276,7 +344,9 @@ export class DungeonHud {
     const mapFrame = this.space.frame(M, REF_ELEMENTS.minimap);
     this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: Math.ceil(mapName.y + mapName.height) + 2 };
     this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
-    const statusSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[0]);
+    // Menu bar, 6 slots left to right: Status, Passive Tree, Skills, Inventory, (placeholder), Settings
+    this.drawMenuSlots(M);
+    const statusSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[MENU_SLOT.status]);
     this.statusButton = this.buildMenuButton(statusSlot, 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
       // Tiny character-sheet glyph: head + shoulders.
       const cx = slot.x + Math.floor(slot.width / 2);
@@ -286,7 +356,7 @@ export class DungeonHud {
       g.fillRect(cx - 4, slot.y + 8, 9, 3);
     });
     // Passive Tree (second slot): a center node with left / right / down branches.
-    const passiveSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[1]);
+    const passiveSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[MENU_SLOT.passive]);
     this.passiveButton = this.buildMenuButton(passiveSlot, 'hud.menuPassive', () => this.options.onPassive(), (g, slot, color) => {
       const cx = slot.x + Math.floor(slot.width / 2);
       const cy = slot.y + Math.floor(slot.height / 2) - 2;
@@ -301,8 +371,8 @@ export class DungeonHud {
     });
     this.statusPip = this.unspentPip(statusSlot);
     this.passivePip = this.unspentPip(passiveSlot);
-    // Inventory (third slot): a bag.
-    this.inventoryButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[2]), 'hud.menuInventory', () => this.options.onInventory(), (g, slot, color) => {
+    // Inventory: a bag.
+    this.inventoryButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[MENU_SLOT.inventory]), 'hud.menuInventory', () => this.options.onInventory(), (g, slot, color) => {
       const cx = slot.x + Math.floor(slot.width / 2);
       g.fillStyle(toColorInt(color), 1);
       g.fillRect(cx - 2, slot.y + 1, 5, 1);
@@ -313,8 +383,8 @@ export class DungeonHud {
       g.fillRect(cx + 2, slot.y + 8, 4, 3);
       g.fillRect(cx, slot.y + 8, 1, 2);
     });
-    // Skills (fourth slot): an open book.
-    this.skillButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[3]), 'hud.menuSkills', () => this.options.onSkills?.(), (g, slot, color) => {
+    // Skills: an open book.
+    this.skillButton = this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[MENU_SLOT.skills]), 'hud.menuSkills', () => this.options.onSkills?.(), (g, slot, color) => {
       const cx = slot.x + Math.floor(slot.width / 2);
       const top = slot.y + 2;
       g.fillStyle(toColorInt(color), 1);
@@ -325,8 +395,13 @@ export class DungeonHud {
       g.fillRect(cx - 5, top + 4, 3, 1).fillRect(cx + 3, top + 4, 3, 1);
       g.fillRect(cx - 5, top + 6, 3, 1).fillRect(cx + 3, top + 6, 3, 1);
     });
-    // The pack's menu button (three bars, baked into the art) opens Settings.
-    this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuMore), 'hud.menuSettings', () => this.options.onSettings(), null);
+    // Settings (last slot): a gear.
+    this.buildMenuButton(this.space.inner(M, REF_ELEMENTS.menuSlots[MENU_SLOT.settings]), 'hud.menuSettings', () => this.options.onSettings(), (g, slot, color) => {
+      const left = slot.x + Math.floor((slot.width - GEAR_ICON[0].length) / 2);
+      const top = slot.y + Math.floor((slot.height - GEAR_ICON.length) / 2);
+      g.fillStyle(toColorInt(color), 1);
+      GEAR_ICON.forEach((row, j) => [...row].forEach((ch, i) => ch === '#' && g.fillRect(left + i, top + j, 1, 1)));
+    });
 
     this.unsubscribe = CharacterStatusService.onChange((c) => {
       if (c === options.character) this.refreshStatus();
@@ -335,30 +410,80 @@ export class DungeonHud {
 
     localize(scene, () => {
       this.refreshQuest();
-      autoText.setText(t('hud.auto'));
+      this.layoutNavLabel();
       this.drawAutoButton();
       mapName.setText(labels.map(options.map.definition.id));
       this.refreshStatus();
     });
   }
 
-  /** Auto Play running or not: the button turns red with ON, the AUTO tag of the quest panel lights up. */
+  /**
+   * The Navigate button: usable (the quest leads to an NPC, nothing in the way), disabled (gray, no click) or locked
+   * by the tutorial (gray, but a click still reaches onNavigate - which says why).
+   */
+  setNavigationState(state: 'enabled' | 'disabled' | 'locked'): void {
+    const locked = state === 'locked';
+    if (locked !== this.navLocked) {
+      this.navLocked = locked;
+      this.paintNav();
+    }
+    this.setNavigationEnabled(state !== 'disabled');
+  }
+
+  private setNavigationEnabled(enabled: boolean): void {
+    if (enabled === this.navEnabled) return;
+    this.navEnabled = enabled;
+    if (enabled) this.navButton.setInteractive({ useHandCursor: true });
+    else {
+      this.navButton.disableInteractive();
+      this.navHover = false;
+    }
+    this.paintNav();
+  }
+
+  private setNavHover(on: boolean): void {
+    this.navHover = on && this.navEnabled;
+    this.paintNav();
+  }
+
+  private paintNav(): void {
+    this.navLabel.setColor(!this.navEnabled || this.navLocked ? NAV_COLORS.disabled : this.navHover ? NAV_COLORS.hover : NAV_COLORS.enabled);
+  }
+
+  /** "พาไป" / "Navigate", its letters centred in the box both ways (measured from the painted pixels). */
+  private layoutNavLabel(): void {
+    this.navLabel.setText(t('hud.navigate'));
+    const ink = textInk(this.navLabel) ?? { left: 0, right: this.navLabel.width - 1, top: 0, bottom: this.navLabel.height - 1 };
+    const at = centerInkIn(this.navBox, ink);
+    this.navLabel.setPosition(at.x, at.y);
+  }
+
+  /** Auto Play running or not: the round button turns bright with ON. */
   setAutoPlay(on: boolean): void {
     if (on === this.autoOn) return;
     this.autoOn = on;
     this.drawAutoButton();
   }
 
+  /** The button can be used now (not dead, not in a conversation): otherwise it is drawn gray. */
+  setAutoPlayEnabled(enabled: boolean): void {
+    if (enabled === this.autoEnabled) return;
+    this.autoEnabled = enabled;
+    this.drawAutoButton();
+  }
+
+  /** Current look and arrow phase (the arrows turn while on: called every frame, redrawn only on a change). */
   private drawAutoButton(): void {
-    const A = this.autoButtonRect;
-    const on = this.autoOn;
-    const g = this.autoFrame.clear();
-    g.fillStyle(on ? 0x2a1216 : HOTBAR_COLORS.fill, 1).fillRect(A.x, A.y, A.width, A.height);
-    const edge = on ? 0xd3424b : HOTBAR_COLORS.frame;
-    g.fillStyle(edge, 1).fillRect(A.x, A.y, A.width, 1).fillRect(A.x, A.y + A.height - 1, A.width, 1).fillRect(A.x, A.y, 1, A.height).fillRect(A.x + A.width - 1, A.y, 1, A.height);
-    this.autoLabel.setText(t('hud.auto').toUpperCase()).setColor(on ? PALETTE.white : PALETTE.pale);
-    this.autoStateText.setText(on ? t('autoPlay.on') : t('autoPlay.off')).setColor(on ? '#d3424b' : PALETTE.slate);
-    this.autoTag?.setColor(on ? '#d3424b' : PALETTE.slate);
+    const state: AutoButtonState = autoButtonState(this.autoOn, this.autoHover, this.autoEnabled);
+    const phase = autoArrowPhase(state, this.scene.time.now);
+    const shown = `${state}:${phase}`;
+    if (shown === this.autoShown) return;
+    const stateChanged = !this.autoShown.startsWith(`${state}:`);
+    this.autoShown = shown;
+    this.autoArrows.setTexture(autoArrowKey(state, phase));
+    if (!stateChanged) return;
+    this.autoBase.setTexture(autoBaseKey(state));
+    this.autoLabel.setColor(AUTO_TEXT_COLORS[state]);
   }
 
   /** Small red pip on the Passive Tree menu slot while passive points are unspent (the tutorial has its own spotlight). */
@@ -448,6 +573,11 @@ export class DungeonHud {
     });
   }
 
+  /** The Gold amount (and the coin just left of it), right-aligned at whole pixels. */
+  private refreshGold(): void {
+    this.gold.set(GoldService.get(this.options.character));
+  }
+
   /** Quest tracker: the active quest's name and objective, or the placeholder text. */
   setQuest(questId: string | null, objectiveKey = 'objective', params?: Record<string, number>): void {
     this.questId = questId;
@@ -464,6 +594,7 @@ export class DungeonHud {
 
   /** Per-frame: coordinates, minimap and HP (only redrawn when it changes). */
   update(playerTile: Point, monsters: readonly Point[]): void {
+    this.drawAutoButton();
     const hp = this.options.currentHp ? Math.round(this.options.currentHp()) : null;
     const sp = this.options.currentSp ? Math.round(this.options.currentSp()) : null;
     if ((hp !== null && hp !== this.lastHp) || (sp !== null && sp !== this.lastSp)) {
@@ -496,6 +627,25 @@ export class DungeonHud {
     const ratio = levelProgress(c.status.level, c.status.exp, STATUS_RULES.maxLevel);
     this.setBar(this.expBar, this.expArea, ratio, 1);
     this.expText.setText(t('hud.exp', { percent: (ratio * 100).toFixed(2) }));
+  }
+
+  /**
+   * The menu bar's inside, repainted over the pack's off-centre slots: 6 slot frames (1-px border, top highlight
+   * line) centred with equal spacing, and the pack's three-bar icon in slot 5 - a placeholder, no function yet.
+   */
+  private drawMenuSlots(M: HudLayerId): void {
+    const g = this.scene.add.graphics().setDepth(this.depth + 0.5);
+    const slots = REF_ELEMENTS.menuSlots.map((r) => this.space.frame(M, r));
+    const barLeft = this.space.x(M, MENU_BAR.layerRefX) + MENU_BAR.innerLeft;
+    g.fillStyle(MENU_ART.fill, 1).fillRect(barLeft, slots[0].y, MENU_BAR.innerWidth, slots[0].height);
+    for (const f of slots) {
+      g.fillStyle(MENU_ART.border, 1).fillRect(f.x, f.y, f.width, f.height);
+      g.fillStyle(MENU_ART.fill, 1).fillRect(f.x + 1, f.y + 1, f.width - 2, f.height - 2);
+      g.fillStyle(MENU_ART.highlight, 1).fillRect(f.x + 1, f.y + 1, f.width - 2, 1);
+    }
+    const more = slots[MENU_SLOT.more];
+    g.fillStyle(MENU_ART.border, 1);
+    for (const row of MORE_ICON.rows) g.fillRect(more.x + MORE_ICON.fromCol, more.y + row, MORE_ICON.toCol - MORE_ICON.fromCol + 1, 1);
   }
 
   /**
@@ -565,5 +715,24 @@ export class DungeonHud {
     const width = Math.round(area.width * ratio);
     bar.setVisible(width > 0);
     bar.setSize(Math.max(width, 1), area.height);
+  }
+}
+
+/** The AUTO button's art as small canvas textures (once per game): a base per look, the arrows per look / phase. */
+function ensureAutoButtonTextures(scene: Phaser.Scene): void {
+  const make = (key: string, pixels: Uint8ClampedArray): void => {
+    if (scene.textures.exists(key)) return;
+    const texture = scene.textures.createCanvas(key, AUTO_ICON_SIZE, AUTO_ICON_SIZE);
+    if (!texture) return;
+    const ctx = texture.getContext();
+    const image = ctx.createImageData(AUTO_ICON_SIZE, AUTO_ICON_SIZE);
+    image.data.set(pixels);
+    ctx.putImageData(image, 0, 0);
+    texture.refresh();
+  };
+  for (const state of AUTO_BUTTON_STATES) {
+    make(autoBaseKey(state), autoBasePixels(state));
+    const phases = state === 'on' ? AUTO_ARROW_PHASES : 1;
+    for (let phase = 0; phase < phases; phase++) make(autoArrowKey(state, phase), autoArrowPixels(state, phase));
   }
 }

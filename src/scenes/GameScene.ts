@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import type { Point } from '../core/types';
 import { DEPTH, SCENES } from '../config/constants';
 import { PALETTE } from '../config/palette';
 import { AssetManager } from '../assets/AssetManager';
@@ -37,6 +38,7 @@ import { QuestRewards, type QuestExpPaid, type QuestTurnIn } from '../quests/Que
 import { isQuest04AtRoland, TUTORIAL_QUEST_04 } from '../quests/TutorialQuest04';
 import { isQuest05AtRoland, TUTORIAL_QUEST_05 } from '../quests/TutorialQuest05';
 import { isQuest06AtRoland, TUTORIAL_QUEST_06 } from '../quests/TutorialQuest06';
+import { isQuest07AtRoland, isQuest07ToSonny, TUTORIAL_QUEST_07 } from '../quests/TutorialQuest07';
 import { HotbarService } from '../hotbar/HotbarService';
 import { itemCount } from '../inventory/InventoryState';
 import { hpRestored, scrollProblem, spRestored, useProblem, type ScrollProblem, type UseProblem } from '../items/ConsumableUse';
@@ -48,9 +50,17 @@ import type { ActionDirection, Direction } from '../core/Direction';
 import { monsterSheetKey } from '../monsters/art/MonsterArt';
 import { InventoryService } from '../inventory/InventoryService';
 import { MONSTER_CURSOR, MonsterCursor } from '../ui/world/MonsterCursor';
+import { NPC_CURSOR, NpcCursor } from '../ui/world/NpcCursor';
+import { PortalEntity } from '../world/PortalEntity';
+import { arrivalGuard, arrivalPoint, onPortalTile, PORTALS, PortalService, stepWarps, updateWarpGuard, warpAllowed, type PortalId, type WarpGuard } from '../world/Portals';
+import { GATE_ANSWERS, gateTalkOf, type GateTalk } from '../dialogue/GateTalks';
+import type { InteractableNpc } from '../npcs/NpcInteraction';
 import { SKILL_CURSOR, SkillTargetCursor } from '../ui/world/SkillTargetCursor';
+import { GOLD_ICON } from '../ui/hud/GoldIcon';
+import { HintService } from '../tutorial/TutorialHints';
 import { AutoPlayController } from '../autoplay/AutoPlayController';
 import { AutoPlayService } from '../autoplay/AutoPlayService';
+import { QuestNavigation, type NavigationStart } from '../navigation/QuestNavigation';
 import { AutoPlayRangeView } from '../ui/world/AutoPlayRangeView';
 import type { PotionSlotKey } from '../hotbar/PotionSlots';
 import { PLAYER_MOVEMENT } from '../player/PlayerController';
@@ -66,14 +76,20 @@ import { DungeonHud } from '../ui/hud/DungeonHud';
 import { LoadingScreen } from '../ui/LoadingScreen';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import type { IsometricMap } from '../world/IsometricMap';
-import { DEFAULT_MAP_ID } from '../world/loading/MapRegistry';
+import { DEFAULT_MAP_ID, startMapId } from '../world/loading/MapRegistry';
 import { placeSavedLocation, type SavedLocation } from '../save/SavedLocation';
 import { respawnTile } from '../world/SpawnPoints';
 
 export interface GameSceneData {
-  /** Save point of a loaded save file: the player continues there; otherwise at the map's start. */
+  /** Save point of a loaded save file: the player continues there (on its map); otherwise at the map's start. */
   savedLocation?: SavedLocation | null;
+  /** The map to enter (a portal to another map); default: the saved location's map, else the first map. */
+  mapId?: string;
+  /** Where to appear on it (tile space) - the portal's destination. */
+  arrival?: Point;
 }
+
+
 
 const CULLING_DEBUG_SOURCE = 'Culling';
 const MONSTER_DEBUG_SOURCE = 'Monsters';
@@ -116,6 +132,13 @@ export class GameScene extends Phaser.Scene {
   npcs: NpcEntity[] = [];
   /** Left click on an NPC that has something to say (walk there, then talk). */
   npcInteraction!: NpcInteraction<NpcEntity>;
+  /** The quest tracker's Navigate: walking to the quest NPC (independent of Auto Combat). */
+  navigation!: QuestNavigation<InteractableNpc>;
+  /** The portal on this map (hidden until opened), walking up to it, and the NPC talk cursor. */
+  portal: PortalEntity | null = null;
+  /** The player stood on the portal's tile last frame (a warp needs a step ONTO it). */
+  private onPortal = false;
+  npcCursor!: NpcCursor;
   /** Dotted path on the ground to the active quest's NPC. */
   questTrail!: PathTrail;
   questTrailView!: PathTrailView;
@@ -143,6 +166,10 @@ export class GameScene extends Phaser.Scene {
   private readonly skillReadyAt = new Map<string, number>();
   /** Only for placing the player once after loading a file - respawning never uses it. */
   private loadedLocation: SavedLocation | null = null;
+  /** Where a portal from another map puts the player (once, after the map is built). */
+  private arrival: Point | null = null;
+  /** Right after arriving through a portal: no warping back at once (see WARP_GUARD). */
+  private warpGuard: WarpGuard | null = null;
 
   constructor() {
     super(SCENES.Game);
@@ -150,6 +177,8 @@ export class GameScene extends Phaser.Scene {
 
   create(data: GameSceneData = {}): void {
     this.loadedLocation = data.savedLocation ?? null;
+    this.mapId = startMapId(data);
+    this.arrival = data.arrival ?? null;
     this.scene.settings.data = {}; // Phaser would hand the same data to the next start without any
     this.ready = false;
     this.failed = false;
@@ -207,6 +236,7 @@ export class GameScene extends Phaser.Scene {
       this.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
       this.input.off(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
       this.monsterCursor?.reset();
+      this.npcCursor?.reset();
       this.scene.stop(SCENES.GameUI);
       const services = GameServices.tryGet();
       services?.debugSources.delete(CULLING_DEBUG_SOURCE);
@@ -228,7 +258,14 @@ export class GameScene extends Phaser.Scene {
     if (alive && !this.isTalking()) this.player.update(delta);
     if (alive) this.npcInteraction.update();
     else this.npcInteraction.cancel();
-    this.questTrail.update(delta, this.player.getTilePosition(), alive ? (this.questNpc()?.position ?? null) : null);
+    if (alive) this.updatePortalStep();
+    this.updateNavigation(alive);
+    this.questTrail.update(delta, this.player.getTilePosition(), alive ? (this.questTarget()?.position ?? null) : null);
+    if (this.portal) {
+      this.portal.sync(PortalService.state(this.character, this.portal.definition.id as PortalId));
+      this.portal.update(delta);
+    }
+    if (this.warpGuard) this.warpGuard = updateWarpGuard(this.warpGuard, this.portalDistance());
     this.questTrailView.draw(this.questTrail);
     if (alive) this.playerCombat?.update(this.combat.isInCombat(), this.player.getState() === 'walk', this.player.getFacing());
     // Camera first, then draw the player and its name plate at camera-stable whole pixels. The camera
@@ -247,11 +284,27 @@ export class GameScene extends Phaser.Scene {
     // target-select mode ends by itself when the player can no longer use it (window, conversation, death)
     if (this.skillTargeting && (!alive || !this.canPerform('attack') || this.uiScene()?.worldBlocked)) this.cancelSkillTargeting();
     // pointer outside the canvas keeps its last position: only a pointer over the game can hover
-    if (this.skillCursor.state === 'none') this.monsterCursor.update(delta, alive && !this.isTalking() && this.input.manager.isOver && this.pointerOverMonster(this.input.activePointer) !== null);
+    if (this.skillCursor.state === 'none') {
+      const free = alive && !this.isTalking() && this.input.manager.isOver;
+      const over = free ? this.pointerTarget(this.input.activePointer) : null;
+      // the cursor that lets go first, then the one that takes over (both use the game cursor's override)
+      if (over === 'monster') {
+        this.npcCursor.update(false);
+        this.monsterCursor.update(delta, true);
+      } else {
+        this.monsterCursor.update(delta, false);
+        this.npcCursor.update(over === 'npc');
+      }
+    }
     this.map.updateOcclusion(this.player.getFootprint(), this.player.getScreenRect(), delta);
     this.atmosphere.update(delta);
     this.culler.update();
-    this.hud.update(this.player.view);
+    this.hud.update(this.player.view, alive ? this.playerVitals() : null);
+  }
+
+  /** HP / SP for the player's nameplate bars (live combat values). */
+  private playerVitals(): { hp: number; maxHp: number; sp: number; maxSp: number } {
+    return { hp: this.combat.getPlayerHp(), maxHp: this.combat.getPlayerMaxHp(), sp: this.combat.getPlayerSp(), maxSp: this.combat.getPlayerMaxSp() };
   }
 
   private async loadWorld(character: CharacterData): Promise<void> {
@@ -276,6 +329,15 @@ export class GameScene extends Phaser.Scene {
         services.assets
           .load({ key: MONSTER_CURSOR.key, type: 'image', url: MONSTER_CURSOR.url })
           .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor over monsters`)),
+        services.assets
+          .load({ key: NPC_CURSOR.key, type: 'image', url: NPC_CURSOR.url })
+          .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor over NPCs`)),
+        ...Object.values(PORTALS)
+          .filter((p) => p.mapId === this.mapId)
+          .map((p) => services.assets.load({ key: p.art.key, type: 'spritesheet', url: p.art.url, frameWidth: p.art.size, frameHeight: p.art.size }).catch((e: Error) => console.warn(`[portal] ${e.message}`))),
+        ...[GOLD_ICON.large, GOLD_ICON.small, GOLD_ICON.hud].map((icon) =>
+          services.assets.load({ key: icon.key, type: 'image', url: icon.url }).catch((e: Error) => console.warn(`[gold] ${e.message}`)),
+        ),
         services.assets
           .load({ key: SKILL_CURSOR.key, type: 'image', url: SKILL_CURSOR.url })
           .catch((e: Error) => console.warn(`[cursor] ${e.message} - normal cursor in skill target mode`)),
@@ -330,6 +392,9 @@ export class GameScene extends Phaser.Scene {
     this.npcs = npcsOnMap(this.mapId)
       .filter((n) => this.textures.exists(npcSheetKey(n)))
       .map((n) => new NpcEntity(this, this.map, n));
+    // The portal of this map (shown once opened - its state is saved)
+    const portal = Object.values(PORTALS).find((p) => p.mapId === this.mapId);
+    this.portal = portal && this.textures.exists(portal.art.key) ? new PortalEntity(this, this.map, portal) : null;
     const npcTiles = this.npcs.map(({ definition: { tile } }) => ({ minX: tile.col, minY: tile.row, maxX: tile.col + 1, maxY: tile.row + 1 }));
 
     this.monsters.spawn((MONSTER_SPAWNS[this.mapId] ?? []).filter((p) => this.monstersWithArt.has(p.monster)), {
@@ -341,7 +406,14 @@ export class GameScene extends Phaser.Scene {
     const saved = placeSavedLocation(this.loadedLocation, this.mapId, this.map, PLAYER_MOVEMENT.radius);
     this.loadedLocation = null;
     if (saved) this.player.teleport(saved);
-    const startWorld = saved ? this.map.tileToWorld(saved.x, saved.y) : spawnWorld;
+    // Through a portal from another map: at its destination, when one can stand there
+    const arrived = !saved ? placeSavedLocation(this.arrival ? { mapId: this.mapId, ...this.arrival } : null, this.mapId, this.map, PLAYER_MOVEMENT.radius) : null;
+    this.arrival = null;
+    if (arrived) this.player.teleport(arrived);
+    this.warpGuard = arrived ? arrivalGuard(this.time.now, this.portalDistance()) : null;
+    this.onPortal = this.portal !== null && onPortalTile(this.player.getTilePosition(), this.portal.definition.tile);
+    const here = saved ?? arrived;
+    const startWorld = here ? this.map.tileToWorld(here.x, here.y) : spawnWorld;
 
     // Combat: player vs monsters, click targeting (see onPointerDown)
     this.combat = new CombatSystem(this, character, this.player, this.monsters);
@@ -350,8 +422,18 @@ export class GameScene extends Phaser.Scene {
     this.playerCombat = this.combatSet ? new PlayerCombatAnimator(view, this.combatSet) : null;
     if (this.playerCombat) this.player.actions = this.playerCombat;
     this.npcInteraction = new NpcInteraction<NpcEntity>(this.player, (npc) => this.talkTo(npc));
+    this.navigation = new QuestNavigation<InteractableNpc>(this.player);
     this.autoPlay = new AutoPlayController<MonsterEntity>(this.autoPlayPort());
     this.combat.onPlayerAttacked = (monster) => this.autoPlay.notifyAttacked(monster);
+    // Auto Play switched off (START / STOP button or X): everything it started stops at once
+    let autoWasOn = AutoPlayService.isOn(this.character);
+    const offAuto = AutoPlayService.onChange((c) => {
+      if (c !== this.character) return;
+      const on = AutoPlayService.isOn(c);
+      if (autoWasOn && !on) this.stopAutoPlayActions();
+      autoWasOn = on;
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, offAuto);
     this.autoRange = new AutoPlayRangeView(this, (x, y) => this.map.tileToWorld(x, y));
     // The tutorial quests follow what the player does (first passive node, dagger worn, a stat point spent)
     const syncQuest = (c: CharacterData): void => {
@@ -362,6 +444,7 @@ export class GameScene extends Phaser.Scene {
     this.questTrailView = new PathTrailView(this, (x, y) => this.map.tileToWorld(x, y));
     this.clickMarker = new ClickMarker(this);
     this.monsterCursor = new MonsterCursor(this.textures);
+    this.npcCursor = new NpcCursor(this.textures);
     this.skillCursor = new SkillTargetCursor(this.textures);
 
     // Camera
@@ -405,7 +488,7 @@ export class GameScene extends Phaser.Scene {
 
     // HUD
     this.hud = new GameHud(this, character);
-    this.hud.update(this.player.view);
+    this.hud.update(this.player.view, this.playerVitals());
   }
 
   /**
@@ -419,14 +502,21 @@ export class GameScene extends Phaser.Scene {
     }
     if (!this.ready || !pointer.leftButtonDown() || !this.canPerform('move') || this.isOverUi(pointer)) return;
     this.npcInteraction.cancel(); // any new command replaces a pending approach
+    this.navigation.cancel(); // ...and Navigate: the click's own path takes over
     this.autoPlay.notifyManual(); // a command by hand: Auto Play waits a moment instead of overriding it
     const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
     const monster = this.pickMonster(world.x, world.y);
     const npc = this.pickTalkingNpc(world.x, world.y);
     if (npc && (!monster || npc.sprite.depth >= monster.sprite.depth)) {
       if (!this.canPerform('interact')) return;
+      this.npcCursor.press();
       this.combat.clearTarget();
       this.npcInteraction.request(npc);
+      return;
+    }
+    // an open portal: a click walks onto its tile (stepping on it warps - see updatePortalStep)
+    if (!monster && this.portal?.contains(world.x, world.y)) {
+      this.combat.moveTo(this.portal.position);
       return;
     }
     if (monster) {
@@ -472,6 +562,73 @@ export class GameScene extends Phaser.Scene {
   //   10 Dark Avians -> back to Roland (150 EXP, no conversation)
   // -------------------------------------------------------------------------------------------
 
+  /**
+   * The quest tracker's Navigate: walks to the quest NPC (the normal pathfinding), or - while doing so - stops at
+   * once. "unavailable": no quest NPC, not alive, talking. A target or an NPC approach in progress is dropped.
+   */
+  toggleQuestNavigation(): NavigationStart | 'stopped' | 'unavailable' {
+    if (this.navigation.active) {
+      this.navigation.stop();
+      return 'stopped';
+    }
+    const npc = this.questTarget();
+    if (!this.ready || !npc || !this.death.life.isAlive() || !this.canPerform('move')) return 'unavailable';
+    this.npcInteraction.cancel();
+    this.combat.clearTarget();
+    return this.navigation.start(npc);
+  }
+
+  /** Navigate can be used now: the quest leads to an NPC, the player is alive and free to move. */
+  canNavigate(): boolean {
+    return this.ready && this.questTarget() !== null && this.death.life.isAlive() && this.canPerform('move');
+  }
+
+  /**
+   * Per frame: navigation ends in range of the NPC (stops, faces it), when the quest NPC changes, at death or when
+   * the path ended. While it runs Auto Combat (if on) waits as for a manual command - it is not switched off.
+   */
+  /**
+   * Per frame: stepping onto the open portal's tile warps at once (no click, no dialog) - never while Auto Play /
+   * Auto Combat runs, never right after an arrival (WARP_GUARD), never twice without stepping off.
+   */
+  private updatePortalStep(): void {
+    const p = this.portal;
+    if (!p) return;
+    const isOn = onPortalTile(this.player.getTilePosition(), p.definition.tile);
+    const wasOn = this.onPortal;
+    this.onPortal = isOn;
+    const state = PortalService.state(this.character, p.definition.id as PortalId);
+    if (stepWarps({ wasOn, isOn, autoPlay: AutoPlayService.isOn(this.character), state, allowed: warpAllowed(this.warpGuard, this.time.now) })) this.enterPortal(p);
+  }
+
+  /** Distance (tiles) from the player to this map's portal; Infinity without one. */
+  private portalDistance(): number {
+    if (!this.portal) return Infinity;
+    const p = this.player.getTilePosition();
+    return Math.hypot(this.portal.position.x - p.x, this.portal.position.y - p.y);
+  }
+
+  private updateNavigation(alive: boolean): void {
+    if (!alive) {
+      this.navigation.cancel();
+      return;
+    }
+    this.navigation.update(this.questTarget());
+    if (this.navigation.active) this.autoPlay.notifyManual();
+  }
+
+  /**
+   * Where the quest leads now (dotted path, Navigate): its NPC - or, once Sonny opened it, the gate portal until the
+   * player went through.
+   */
+  questTarget(): InteractableNpc | null {
+    const npc = this.questNpc();
+    if (npc) return npc;
+    const p = this.portal;
+    const leads = p && isQuest07ToSonny(QuestService.quest07(this.character)) && PortalService.state(this.character, p.definition.id as PortalId) === 'UNLOCKED';
+    return leads ? p : null;
+  }
+
   /** The NPC the active quest sends the player to (dotted path), or null. */
   questNpc(): NpcEntity | null {
     const id = this.questNpcId();
@@ -485,7 +642,11 @@ export class GameScene extends Phaser.Scene {
     if (isQuest03AtMateus(QuestService.quest03(c))) return TUTORIAL_QUEST_03.npcId;
     if (isQuest04AtRoland(QuestService.quest04(c))) return TUTORIAL_QUEST_04.npcId;
     if (isQuest05AtRoland(QuestService.quest05(c))) return TUTORIAL_QUEST_05.npcId;
-    return isQuest06AtRoland(QuestService.quest06(c)) ? TUTORIAL_QUEST_06.npcId : null;
+    if (isQuest06AtRoland(QuestService.quest06(c))) return TUTORIAL_QUEST_06.npcId;
+    const quest07 = QuestService.quest07(c);
+    if (isQuest07AtRoland(quest07, c.status.level)) return TUTORIAL_QUEST_07.npcId;
+    // Reach Level 10 completed: on to Sonny at the north gate - until he opened the portal
+    return isQuest07ToSonny(quest07) && PortalService.state(c, 'dawnkeep_gate') === 'LOCKED' ? TUTORIAL_QUEST_07.nextNpcId : null;
   }
 
   /** Entering the map: new characters get the quest; a handoff that was cut off is finished. */
@@ -503,23 +664,45 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** NPCs that react to a click now (the others behave as before: the click is a walk command). */
+  /** NPCs that react to a click now: the quest NPC and the gate guards (the others: the click is a walk command). */
+  private isTalkable(npc: NpcEntity): boolean {
+    return npc === this.questNpc() || gateTalkOf(npc.definition.id) !== null;
+  }
+
+  /** The talkable NPC under a world point (the front-most), or null. */
   private pickTalkingNpc(x: number, y: number): NpcEntity | null {
-    const npc = this.questNpc();
-    return npc?.contains(x, y) ? npc : null;
+    let best: NpcEntity | null = null;
+    for (const n of this.npcs) if (this.isTalkable(n) && n.contains(x, y) && (!best || n.sprite.depth > best.sprite.depth)) best = n;
+    return best;
+  }
+
+  /** What a click there would act on, by the same rules as onPointerDown (cursor choice). */
+  private pointerTarget(pointer: Phaser.Input.Pointer): 'monster' | 'npc' | null {
+    if (!this.ready || this.isOverUi(pointer)) return null;
+    const world = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+    const monster = this.pickMonster(world.x, world.y);
+    const npc = this.pickTalkingNpc(world.x, world.y);
+    if (npc && (!monster || npc.sprite.depth >= monster.sprite.depth)) return 'npc';
+    return monster ? 'monster' : null;
   }
 
   private talkTo(npc: NpcEntity): void {
     const ui = this.scene.isActive(SCENES.GameUI) ? (this.scene.get(SCENES.GameUI) as GameUIScene) : null;
     const dialogue = ui?.dialogue;
-    if (!ui || !dialogue || dialogue.isOpen || npc !== this.questNpc()) return;
+    if (!ui || !dialogue || dialogue.isOpen || !this.isTalkable(npc)) return;
     const { character } = this;
     const name = npc.definition.name;
+    const gate = gateTalkOf(npc.definition.id);
+    if (gate) {
+      this.gateTalk(ui, name, gate);
+      return;
+    }
     if (npc.definition.id === TUTORIAL_QUEST_04.npcId) {
       this.talkToRoland(ui, name);
       return;
     }
     if (QuestService.advance(character, 'talk')) {
+      HintService.complete(character, 'click_to_move'); // the "left-click" hint fades out now, for good
       this.beginConversation(ui);
       dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_01.dialogueId], () => {
         this.combat.setSuspended(false);
@@ -608,6 +791,50 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
+   * The gate guards (Sonny, Jack): the question with two answers, then the branch of the chosen answer. Sonny's
+   * "Roland sent me" branch opens the portal when it ends (once - PortalService); everything else is just talk.
+   */
+  private gateTalk(ui: GameUIScene, name: string, gate: GateTalk): void {
+    const dialogue = ui.dialogue!;
+    const end = (): void => this.combat.setSuspended(false);
+    this.beginConversation(ui);
+    dialogue.open(name, DIALOGUES[gate.intro], end, {
+      onInterrupted: end,
+      choices: {
+        step: gate.questionStep,
+        options: GATE_ANSWERS,
+        onChoose: (answer) => {
+          dialogue.open(name, DIALOGUES[gate.branches[answer]], () => {
+            end();
+            if (answer === gate.opensPortalOn) PortalService.unlock(this.character, 'dawnkeep_gate');
+          }, { onInterrupted: end });
+        },
+      },
+    });
+  }
+
+  /** Through an open portal: to its destination at once (the camera jumps with the player); the arrow goes away. */
+  private enterPortal(portal: PortalEntity): void {
+    if (this.leaving || !warpAllowed(this.warpGuard, this.time.now)) return; // just arrived: no warping straight back
+    if (!PortalService.enter(this.character, portal.definition.id as PortalId)) return;
+    this.combat.clearTarget();
+    this.navigation.cancel();
+    this.npcInteraction.cancel();
+    const dest = portal.definition.destination as { mapId?: string; col: number; row: number };
+    if (dest.mapId && dest.mapId !== this.mapId) {
+      // another map: the scene starts again on it (the character, its progress and settings stay as they are)
+      this.leaving = true;
+      this.player.halt();
+      this.scene.restart({ mapId: dest.mapId, arrival: arrivalPoint(dest) } satisfies GameSceneData);
+      return;
+    }
+    this.player.teleport(arrivalPoint(dest));
+    this.cameraFollow.snap();
+    this.warpGuard = arrivalGuard(this.time.now, this.portalDistance());
+    this.onPortal = onPortalTile(this.player.getTilePosition(), portal.definition.tile);
+  }
+
+  /**
    * A turn-in that pays at the end of its conversation: the usual feedback, or - when its items did not fit -
    * the reason, and the quest waits to be turned in again (nothing was given, nothing is lost).
    */
@@ -667,13 +894,86 @@ export class GameScene extends Phaser.Scene {
       return true;
     }
     if (this.continueAvianBriefing()) return true;
-    if (QuestService.quest06(character).state === 'READY_TO_TURN_IN') {
-      // 10/10: paid by talking to Roland - no new conversation
-      const result = QuestRewards.quest06(character);
-      if (result.ok) this.showQuestExp(result);
-      return result.ok;
+    if (QuestService.advance06(character, 'turnIn')) {
+      // 10/10: six lines - clicking through line 1 pays 150 EXP + the Heal scroll (once); the last line accepts
+      // Reach Level 10 with its potions. A full bag stops at line 1 (nothing paid) and the turn-in waits.
+      this.beginConversation(ui);
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_06.turnInDialogueId], () => {
+        this.combat.setSuspended(false);
+        this.acceptQuest07(ui);
+      }, {
+        beforeStep: (step) => {
+          if (step !== 1) return true;
+          const result = QuestRewards.quest06(character);
+          if (result.ok) {
+            this.showQuestExp(result);
+            return true;
+          }
+          if (result.error !== 'notReady') ui.notifications?.showText(t(result.error === 'bagFull' ? 'notifications.bagFull' : 'notifications.itemFailed'));
+          return false;
+        },
+        onInterrupted: () => {
+          this.combat.setSuspended(false);
+          QuestService.advance06(character, 'cancelTurnIn'); // only before the reward (afterwards Quest 07 is offered)
+        },
+      });
+      return true;
+    }
+    if (QuestService.quest07(character).state === 'OFFERED') {
+      // the turn-in talk was cut off after its reward: lines 2-6 again, then the acceptance
+      this.beginConversation(ui);
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_07.offerDialogueId], () => {
+        this.combat.setSuspended(false);
+        this.acceptQuest07(ui);
+      }, { onInterrupted: () => this.combat.setSuspended(false) });
+      return true;
+    }
+    if (QuestService.advance07(character, 'turnIn')) {
+      // Lv 10: four lines - clicking through line 1 pays 1,000 Gold (once); the last line completes the quest and
+      // the dotted path turns to Sonny
+      this.beginConversation(ui);
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_07.turnInDialogueId], () => {
+        this.combat.setSuspended(false);
+        QuestService.advance07(character, 'complete');
+      }, {
+        beforeStep: (step) => {
+          if (step === TUTORIAL_QUEST_07.rewardBeforeStep) this.combat.showGoldGain(QuestRewards.quest07(character));
+          return true;
+        },
+        onInterrupted: () => {
+          this.combat.setSuspended(false);
+          QuestService.advance07(character, 'cancelTurnIn'); // only before the reward (afterwards it resumes at line 2)
+        },
+      });
+      return true;
+    }
+    if (QuestService.quest07(character).state === 'REWARDED') {
+      // the Lv 10 talk was cut off after its reward: lines 2-4 again, then completed
+      this.beginConversation(ui);
+      dialogue.open(name, DIALOGUES[TUTORIAL_QUEST_07.resumeDialogueId], () => {
+        this.combat.setSuspended(false);
+        QuestService.advance07(character, 'complete');
+      }, { onInterrupted: () => this.combat.setSuspended(false) });
+      return true;
     }
     return false;
+  }
+
+  /**
+   * Reach Level 10 accepted (the last line of Roland's talk): 80 HP + 50 SP potions, each once by its grant id, then
+   * the quest runs. A full bag: the reason is shown and the offer waits (what was given stays given, never twice).
+   */
+  private acceptQuest07(ui: GameUIScene): void {
+    const { character } = this;
+    if (QuestService.quest07(character).state !== 'OFFERED') return;
+    for (const supply of TUTORIAL_QUEST_07.supplies) {
+      const error = InventoryService.grantOnce(character, supply);
+      if (error !== null && error !== 'alreadyGranted') {
+        ui.notifications?.showText(t(error === 'bagFull' ? 'notifications.bagFull' : 'notifications.itemFailed'));
+        return;
+      }
+    }
+    QuestService.advance07(character, 'accept');
   }
 
   /**
@@ -941,6 +1241,19 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  /**
+   * Auto Play was just switched off: the target is cleared with its pending swing and queued skill (nothing lands,
+   * nothing is paid), the walk path is dropped and the character stands idle. Nothing retargets until it is
+   * started again; manual clicks work at once. Settings are untouched. (At death the death flow handles all of it.)
+   */
+  private stopAutoPlayActions(): void {
+    this.autoPlay.stop();
+    if (!this.ready || !this.death.life.isAlive() || this.combat.isDefeated()) return;
+    this.combat.clearTarget();
+    this.player.actions.reset?.();
+    this.player.halt();
+  }
+
   /** Runs Auto Play, turns it off at death (it never restarts by itself) and shows the hunting circle. */
   private updateAutoPlay(alive: boolean): void {
     const c = this.character;
@@ -960,6 +1273,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private beginConversation(ui: GameUIScene): void {
+    this.navigation.cancel();
     ui.closeAllWindows();
     this.combat.setSuspended(true);
     this.player.halt();
@@ -984,6 +1298,7 @@ export class GameScene extends Phaser.Scene {
     // the pressed skill cursor lasts while the button is held: back to "ready", or to the normal cursor after a cast
     if (this.skillCursor.state === 'press') this.skillCursor.set(this.skillTargeting ? 'idle' : 'none');
     this.monsterCursor.release(this.pointerOverMonster(pointer) !== null);
+    this.npcCursor.release(this.pointerTarget(pointer) === 'npc');
   }
 
   // -------------------------------------------------------------------------------------------
@@ -995,6 +1310,7 @@ export class GameScene extends Phaser.Scene {
   private beginSkillTargeting(id: SkillId): void {
     this.skillTargeting = id;
     this.monsterCursor.reset();
+    this.npcCursor.reset();
     this.skillCursor.set('idle');
   }
 
@@ -1028,6 +1344,7 @@ export class GameScene extends Phaser.Scene {
 
   private onPointerOut(): void {
     this.monsterCursor?.reset();
+    this.npcCursor?.reset();
   }
 
   private isOverUi(pointer: Phaser.Input.Pointer): boolean {

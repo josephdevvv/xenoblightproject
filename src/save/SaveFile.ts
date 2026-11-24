@@ -7,6 +7,10 @@ import { createHotbar, sanitizeHotbar, type HotbarState } from '../hotbar/Hotbar
 import { createPotionSlots, migratePotionSlots, sanitizePotionSlots, type PotionSlots } from '../hotbar/PotionSlots';
 import { createSkills, sanitizeSkills, type SkillsState } from '../skills/LearnedSkills';
 import { createAutoPlaySettings, sanitizeAutoPlay, type AutoPlaySettings } from '../autoplay/AutoPlaySettings';
+import { sanitizeGold } from '../economy/GoldService';
+import { sanitizeHints, type TutorialHintId } from '../tutorial/TutorialHints';
+import { sanitizeUnlocks, type FeatureId } from '../features/FeatureIds';
+import { sanitizePortals, type PortalId, type PortalState } from '../world/Portals';
 import { createInventory, sanitizeInventory, type InventoryState } from '../inventory/InventoryState';
 import { createPassiveProgress, sanitizePassiveProgress, type PassiveProgress } from '../passives/PassiveProgress';
 import { parseSavedStatus } from '../status/StatusRecord';
@@ -45,6 +49,14 @@ export interface GameSave {
   potionSlots: PotionSlots;
   /** Learned skills (none for files from before skills could be learned). */
   skills: SkillsState;
+  /** Gold (0 for files from before Gold existed). */
+  gold: number;
+  /** Finished one-time tutorial hints (none for files from before them). */
+  hints: TutorialHintId[];
+  /** Features the tutorial unlocked (none for files from before them - the game unlocks them from quest progress). */
+  unlocks: FeatureId[];
+  /** Opened / gone-through portals (none for files from before portals). */
+  portals: Partial<Record<PortalId, PortalState>>;
   /** Auto Play settings (defaults for files from before Auto Play existed). */
   autoPlay: AutoPlaySettings;
   /** Save point of this file (never a respawn point). */
@@ -78,6 +90,10 @@ export function serializeSave(character: CharacterData, savedLocation: SavedLoca
     potionSlots: character.potionSlots ?? createPotionSlots(),
     skills: character.skills ?? createSkills(),
     autoPlay: character.autoPlay ?? createAutoPlaySettings(),
+    gold: sanitizeGold(character.gold),
+    hints: sanitizeHints(character.hints).state,
+    unlocks: sanitizeUnlocks(character.unlocks).state,
+    portals: sanitizePortals(character.portals).state,
     location: savedLocation,
   };
   return JSON.stringify({ ...document, checksum: checksum(document) }, null, 2);
@@ -150,6 +166,13 @@ function parse(text: string): ParseResult {
   repaired.push(...parsedSkills.dropped);
   const parsedAutoPlay = sanitizeAutoPlay(document.autoPlay);
   repaired.push(...parsedAutoPlay.repaired);
+  if (document.gold !== undefined && sanitizeGold(document.gold) !== document.gold) repaired.push('gold');
+  const parsedHints = sanitizeHints(document.hints);
+  repaired.push(...parsedHints.dropped);
+  const parsedUnlocks = sanitizeUnlocks(document.unlocks);
+  repaired.push(...parsedUnlocks.dropped);
+  const parsedPortals = sanitizePortals(document.portals);
+  repaired.push(...parsedPortals.dropped);
   const questRecords: Record<string, unknown> = {};
   for (const [id, record] of Object.entries(quests as Json)) {
     if (isObject(record)) questRecords[id] = record;
@@ -168,6 +191,10 @@ function parse(text: string): ParseResult {
       potionSlots,
       skills: parsedSkills.state,
       autoPlay: parsedAutoPlay.settings,
+      gold: sanitizeGold(document.gold),
+      hints: parsedHints.state,
+      unlocks: parsedUnlocks.state,
+      portals: parsedPortals.state,
       savedLocation: parseSavedLocation(location),
       savedAt: typeof document.savedAt === 'number' && Number.isFinite(document.savedAt) ? document.savedAt : null,
       repaired,

@@ -1,5 +1,5 @@
+import type { DerivedBonusKey } from '../status/DerivedBonuses';
 import { EQUIPMENT_SLOTS, type EquipmentSlotId } from '../inventory/InventorySlots';
-import type { DerivedStats } from '../status/DerivedStats';
 import { isSkillId, type SkillId } from '../skills/SkillDefinitions';
 
 /**
@@ -45,7 +45,7 @@ export interface ItemDefinition {
   requiredLevel: number;
   bonuses: Readonly<EquipmentBonuses>;
   /** Further flat bonuses on derived stats; empty = none. */
-  additionalStats: Readonly<Partial<Record<keyof DerivedStats, number>>>;
+  additionalStats: Readonly<Partial<Record<DerivedBonusKey, number>>>;
   /** Ids of special effects; empty = none. */
   specialEffects: readonly string[];
   stackable: boolean;
@@ -67,6 +67,14 @@ function validUse(use: Readonly<ItemUseEffect> | undefined): boolean {
   return sp === undefined || (Number.isInteger(sp) && sp > 0 && sp <= 100);
 }
 
+/** Most of one stackable item in one bag slot (consumables); anything else is one per slot. */
+export const MAX_STACK = 99;
+
+/** How many of an item fit in one bag slot: 99 when stackable (consumables), else 1 (equipment, skill scrolls). */
+export function stackLimit(def: Pick<ItemDefinition, 'stackable'>): number {
+  return def.stackable ? MAX_STACK : 1;
+}
+
 export function itemProblems(d: ItemDefinition): string[] {
   const out: string[] = [];
   if (!/^[a-z][a-z0-9_]*$/.test(d.id)) out.push('id: lower-case letters, digits and _ only');
@@ -78,6 +86,7 @@ export function itemProblems(d: ItemDefinition): string[] {
   if (!Number.isInteger(d.requiredLevel) || d.requiredLevel < 1) out.push(`requiredLevel: ${d.requiredLevel}`);
   for (const [key, value] of Object.entries({ ...d.bonuses, ...d.additionalStats })) if (!Number.isFinite(value)) out.push(`${key}: ${value}`);
   if (d.category === 'equipment' && d.stackable) out.push('equipment does not stack');
+  if (d.category === 'skill_scroll' && d.stackable) out.push('skill scrolls do not stack');
   if (!d.icon.url || d.icon.width < 1 || d.icon.height < 1) out.push('icon');
   return out;
 }

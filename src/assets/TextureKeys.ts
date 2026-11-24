@@ -46,6 +46,23 @@ export const TextureKeys = {
     city_wall: 'obj_city_wall',
     city_wall_broken: 'obj_city_wall_broken',
     city_tower: 'obj_city_tower',
+    // the city wall along the other axis (the same art, mirrored)
+    city_wall_y: 'obj_city_wall_y',
+    city_wall_broken_y: 'obj_city_wall_broken_y',
+    // Dawnkeep (hand-made, world/objects/DawnkeepArt)
+    dk_keep: 'obj_dk_keep',
+    dk_castle_tower: 'obj_dk_castle_tower',
+    dk_gate_tower: 'obj_dk_gate_tower',
+    dk_church: 'obj_dk_church',
+    dk_house_intact: 'obj_dk_house_intact',
+    dk_ruin_burned: 'obj_dk_ruin_burned',
+    dk_ruin_cottage: 'obj_dk_ruin_cottage',
+    dk_ruin_shell: 'obj_dk_ruin_shell',
+    dk_market_stall: 'obj_dk_market_stall',
+    dk_well: 'obj_dk_well',
+    dk_barricade: 'obj_dk_barricade',
+    dk_banner: 'obj_dk_banner',
+    dk_knight_statue: 'obj_dk_knight_statue',
   },
   /** Flat, walkable ground details drawn on the ground layer. */
   decor: {

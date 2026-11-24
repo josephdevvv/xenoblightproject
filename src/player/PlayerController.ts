@@ -24,8 +24,8 @@ export type PlayerAction = 'attack' | 'hit' | 'cast' | 'death';
  * the target). Replace with an implementation that plays the 4-direction clips once the art arrives.
  */
 export interface PlayerActionAnimations {
-  /** Returns true when it played an animation for the action. */
-  play(action: PlayerAction, facing: ActionDirection): boolean;
+  /** Returns true when it played an animation for the action. `timeScale`: playback speed (attacks follow ASPD). */
+  play(action: PlayerAction, facing: ActionDirection, timeScale?: number): boolean;
   /** Stops every action clip (interrupted attack, death, respawn). */
   reset?(): void;
 }

@@ -67,18 +67,18 @@ test('full bag: refused, nothing lost; works again with one free slot', () => {
 test('equip -> unequip -> re-equip: bonus removed and restored through the normal stat calculation, saved every time', () => {
   withoutStorage(() => {
     const c = withDagger('Alpha');
-    assert.equal(melee(c), 14);
+    assert.equal(melee(c), 13);
     assert.deepEqual(InventoryService.unequip(c, 'weapon'), { bagIndex: 0 });
-    assert.equal(melee(c), 10);
+    assert.equal(melee(c), 9);
     assert.deepEqual(equipmentDerivedBonus(c.inventory), { flat: { def: 1 }, maxHpPercent: 0 }, 'only the starter armor is left');
     assert.deepEqual([c.inventory!.equipment.weapon, c.inventory!.bag[0]?.itemId, c.inventory!.bag[0]?.quantity], [null, DAGGER, 1]);
     const reloaded = saveAndLoad(c);
     assert.deepEqual(reloaded.inventory, c.inventory);
-    assert.equal(melee(reloaded), 10);
+    assert.equal(melee(reloaded), 9);
     assert.equal(InventoryService.equip(reloaded, 0, 'weapon'), null);
-    assert.equal(melee(reloaded), 14);
+    assert.equal(melee(reloaded), 13);
     const again = saveAndLoad(reloaded);
-    assert.deepEqual([again.inventory!.equipment.weapon?.itemId, count(again.inventory!), melee(again)], [DAGGER, 2, 14]);
+    assert.deepEqual([again.inventory!.equipment.weapon?.itemId, count(again.inventory!), melee(again)], [DAGGER, 2, 13]);
   });
 });
 
@@ -104,7 +104,7 @@ test('bag full: the item stays worn with its bonus, nothing is announced', () =>
     const worn = c.inventory!;
     c.inventory = { ...worn, bag: worn.bag.map(() => ({ itemId: 'x', quantity: 1 })) };
     assert.deepEqual(InventoryService.unequip(c, 'weapon'), { error: 'bagFull' });
-    assert.deepEqual([c.inventory.equipment.weapon?.itemId, melee(c), changes], [DAGGER, 14, 0]);
+    assert.deepEqual([c.inventory.equipment.weapon?.itemId, melee(c), changes], [DAGGER, 13, 0]);
     assert.deepEqual(InventoryService.unequip(c, 'hat'), { error: 'emptySlot' });
     off();
   });

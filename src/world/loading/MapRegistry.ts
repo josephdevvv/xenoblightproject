@@ -1,6 +1,8 @@
 import type { AssetRequest } from '../../systems/AssetLoadingManager';
 import type { MapDefinition } from '../MapData';
 import { ASHEN_CROSSROADS } from '../maps/AshenCrossroads';
+import { DAWNKEEP } from '../maps/Dawnkeep';
+import { DAWNKEEP_ART, type DawnkeepObjectId } from '../objects/DawnkeepArt';
 import { handmadeArtAssets } from '../objects/HandmadeArt';
 
 /**
@@ -22,6 +24,20 @@ export const MAP_REGISTRY: Readonly<Record<string, MapManifest>> = {
     // hand-made Zone 5 city wall / gate sprites
     assets: handmadeArtAssets(),
   },
+  [DAWNKEEP.id]: {
+    id: DAWNKEEP.id,
+    name: DAWNKEEP.name,
+    definition: () => DAWNKEEP,
+    // the city wall set (mirrored walls share its files) + the Dawnkeep sprites
+    assets: handmadeArtAssets(['city_wall', 'city_wall_broken', 'city_tower', ...(Object.keys(DAWNKEEP_ART) as DawnkeepObjectId[])]),
+  },
 };
 
 export const DEFAULT_MAP_ID = ASHEN_CROSSROADS.id;
+
+/** The map a start of the game scene enters: a portal's map, a loaded save's map, or the first map (unknown ids ignored). */
+export function startMapId(data: { mapId?: string; savedLocation?: { mapId: string } | null }): string {
+  if (data.mapId && MAP_REGISTRY[data.mapId]) return data.mapId;
+  const saved = data.savedLocation?.mapId;
+  return saved && MAP_REGISTRY[saved] ? saved : DEFAULT_MAP_ID;
+}

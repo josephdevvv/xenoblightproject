@@ -61,10 +61,10 @@ function useScroll(c: CharacterData, itemId: string): ReturnType<typeof scrollPr
   return null;
 }
 
-test('scroll items: exactly as specified, their own 32x32 icons, consumable and stackable, both languages', () => {
+test('scroll items: exactly as specified, their own 32x32 icons, one per slot (not stackable), both languages', () => {
   for (const [id, skill] of [[THRUST, 'drifter_lv1'], [HEAL, 'drifter_heal']] as const) {
     const def = itemDefinition(id)!;
-    assert.deepEqual([def.category, def.stackable, def.teaches], ['skill_scroll', true, skill], id);
+    assert.deepEqual([def.category, def.stackable, def.teaches], ['skill_scroll', false, skill], id);
     assert.deepEqual(def.icon, { url: `assets/items/scrolls/${id}_32x32.png`, width: 32, height: 32 });
   }
   assert.ok(ITEM_CATALOG.has(THRUST) && ITEM_CATALOG.has(HEAL));
@@ -179,7 +179,11 @@ test('quest 06 rules: the order of the states, kills only while hunting (capped 
   assert.deepEqual(q, p('HUNTING'));
   for (let i = 0; i < 12; i++) q = applyQuest06(q!, 'kill') ?? q;
   assert.deepEqual(q, p('READY_TO_TURN_IN', 10));
-  assert.deepEqual(applyQuest06(q!, 'complete'), p('COMPLETED', 10));
+  assert.equal(applyQuest06(q!, 'complete'), null, 'only through the turn-in talk');
+  assert.deepEqual(applyQuest06(q!, 'turnIn'), p('TURN_IN_DIALOGUE', 10));
+  assert.deepEqual(applyQuest06(p('TURN_IN_DIALOGUE', 10), 'cancelTurnIn'), p('READY_TO_TURN_IN', 10));
+  assert.deepEqual(applyQuest06(p('TURN_IN_DIALOGUE', 10), 'complete'), p('COMPLETED', 10));
+  assert.deepEqual(restoreQuest06({ state: 'TURN_IN_DIALOGUE', kills: 10 }, true), p('READY_TO_TURN_IN', 10), 'a cut-off turn-in waits again');
   assert.equal(applyQuest06(p('OFFERED'), 'scrollGiven'), null, 'no scroll before the conversation');
   assert.deepEqual(applyQuest06(p('INTRO_DIALOGUE'), 'cancelTalk'), p('OFFERED'));
   assert.deepEqual(applyQuest06(p('FINAL_DIALOGUE'), 'cancelFinal'), p('SKILL_ASSIGNED'));
@@ -278,16 +282,19 @@ test('Dark Avian hunt: yellow !, intro, scroll once, tutorial, line 14, 10 Dark 
     assert.equal(tracked(), 'Defeat Dark Avians (10/10)');
     setLanguage('th');
     assert.deepEqual([QuestService.quest06(c), npcQuestMarker(c, ROLAND)], [p('READY_TO_TURN_IN', 10), 'completed']);
-    // turn-in by talking to Roland: 150 EXP once, nothing else
-    const items = JSON.stringify(c.inventory);
+    // turn-in: Roland's talk; clicking through line 1 pays 150 EXP + the Heal Skill Scroll, once
+    assert.deepEqual(QuestRewards.quest06(c), { ok: false, error: 'notReady' }, 'not without the talk');
+    assert.ok(QuestService.advance06(c, 'turnIn'));
     const r = QuestRewards.quest06(c);
     assert.ok(r.ok && r.exp === 150, JSON.stringify(r));
     for (let i = 0; i < 3; i++) assert.equal(QuestRewards.quest06(c).ok, false);
-    assert.equal(JSON.stringify(c.inventory), items, 'no items (the Heal scroll is not given by this quest)');
+    assert.equal(itemCount(c.inventory, HEAL), 1, 'the Heal Skill Scroll, once');
     const loaded = saveAndLoad(c);
     assert.equal(QuestRewards.quest06(loaded).ok, false, 'loaded: never paid again');
-    assert.deepEqual([QuestService.quest06(loaded).state, npcQuestMarker(loaded, ROLAND), trackedQuest(loaded)], ['COMPLETED', null, null], 'no marker, no path');
-    assert.deepEqual(SkillService.state(loaded).learned, ['drifter_lv1']);
+    // the next quest waits at Roland (the same talk accepts it)
+    assert.deepEqual([QuestService.quest06(loaded).state, QuestService.quest07(loaded).state, npcQuestMarker(loaded, ROLAND)], ['COMPLETED', 'OFFERED', 'available']);
+    assert.deepEqual(trackedQuest(loaded), { questId: 'tutorial_07_reach_level_10', objectiveKey: 'objective' });
+    assert.deepEqual([SkillService.state(loaded).learned, itemCount(loaded.inventory, HEAL)], [['drifter_lv1'], 1]);
   });
 });
 

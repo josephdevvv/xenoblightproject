@@ -49,6 +49,8 @@ export interface ItemInfo {
   /** Stats / effects, one line each. */
   effects: readonly string[];
   icon: { texture: string; frame?: string | number } | null;
+  /** How many lie in this slot - stackable items (consumables) only; absent for equipment and skill scrolls. */
+  quantity?: number;
 }
 
 /** Where a bag item is worn, and why it cannot be worn now (null = it can). */

@@ -6,6 +6,7 @@ import { TUTORIAL_QUEST_03 } from './TutorialQuest03';
 import { TUTORIAL_QUEST_04 } from './TutorialQuest04';
 import { TUTORIAL_QUEST_05 } from './TutorialQuest05';
 import { TUTORIAL_QUEST_06 } from './TutorialQuest06';
+import { isQuest07Ready, TUTORIAL_QUEST_07 } from './TutorialQuest07';
 import { TUTORIAL_QUEST_01 } from './TutorialQuest01';
 
 /**
@@ -141,6 +142,25 @@ function quest06Marker(character: CharacterData): QuestMarkerState | null {
     case 'HUNTING':
       return 'inProgress';
     case 'READY_TO_TURN_IN':
+    case 'TURN_IN_DIALOGUE':
+      return 'completed';
+    case 'COMPLETED':
+      return null;
+  }
+}
+
+/** Roland: yellow ! while Reach Level 10 is offered, the gray arrow below Lv 10, the check mark from Lv 10 until turned in. */
+function quest07Marker(character: CharacterData): QuestMarkerState | null {
+  const quest = QuestService.quest07(character);
+  switch (quest.state) {
+    case 'NOT_STARTED':
+      return QuestService.quest06(character).state === 'COMPLETED' ? 'available' : null;
+    case 'OFFERED':
+      return 'available';
+    case 'ACTIVE':
+      return isQuest07Ready(quest, character.status.level) ? 'completed' : 'inProgress';
+    case 'TURN_IN_DIALOGUE':
+    case 'REWARDED':
       return 'completed';
     case 'COMPLETED':
       return null;
@@ -154,6 +174,7 @@ export const QUEST_MARKER_SOURCES: readonly QuestMarkerSource[] = [
   { npcId: TUTORIAL_QUEST_04.npcId, marker: quest04Marker },
   { npcId: TUTORIAL_QUEST_05.npcId, marker: quest05Marker },
   { npcId: TUTORIAL_QUEST_06.npcId, marker: quest06Marker },
+  { npcId: TUTORIAL_QUEST_07.npcId, marker: quest07Marker },
 ];
 
 /** The one marker an NPC shows for this character now. */

@@ -85,6 +85,10 @@ export class MapLayout {
     for (const run of d.walls ?? []) this.pieces.push(...wallRunPieces(run));
 
     for (const o of d.objects) this.placeObject(o.type, o.col, o.row, -1);
+    for (const t of d.blocked ?? []) {
+      if (!this.isInside(t.col, t.row)) throw new Error(`Map "${d.id}": blocked tile (${t.col}, ${t.row}) lies outside the map.`);
+      this.blocked[t.row][t.col] = true;
+    }
 
     for (const p of this.pieces) {
       if (!p.solid) continue;

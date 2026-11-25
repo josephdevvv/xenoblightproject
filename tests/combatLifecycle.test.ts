@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type Phaser from 'phaser';
 import { loadPlayerCombatAssets } from '../src/characters/combat/PlayerCombatAssets';
-import { PLAYER_COMBAT_ACTIONS, PLAYER_COMBAT_SETS, PLAYER_IMPACT_VFX, playerCombatAnimKey, playerCombatSheetKey } from '../src/characters/combat/PlayerCombatArt';
+import { PLAYER_COMBAT_ACTIONS, PLAYER_COMBAT_SETS, PLAYER_IMPACT_VFX, PLAYER_OPTIONAL_COMBAT_ACTIONS, playerCombatAnimKey, playerCombatSheetKey } from '../src/characters/combat/PlayerCombatArt';
 import { GameServices, type Services } from '../src/systems/GameServices';
 import { DEFAULT_GC_GRACE_MS, ResourceCacheManager } from '../src/systems/ResourceCacheManager';
 
@@ -10,7 +10,9 @@ const MOHAWK = 'char_male_mohawk_blonde_drifter';
 const BALD = 'char_male_bald_none_drifter';
 const OWNER = 'player-combat';
 const SET = PLAYER_COMBAT_SETS[MOHAWK];
-const COMBAT_KEYS = PLAYER_COMBAT_ACTIONS.map((a) => playerCombatSheetKey(SET, a));
+// the 4 required sheets + the optional ones this export has (Mohawk Blonde r2: unarmed_punch)
+const COMBAT_ACTIONS = [...PLAYER_COMBAT_ACTIONS, ...PLAYER_OPTIONAL_COMBAT_ACTIONS.filter((a) => SET.optional[a])];
+const COMBAT_KEYS = COMBAT_ACTIONS.map((a) => playerCombatSheetKey(SET, a));
 const ALL_KEYS = [PLAYER_IMPACT_VFX.key, ...COMBAT_KEYS];
 
 interface FakeFrame {
@@ -106,6 +108,7 @@ class World {
   playEverything(withCombatArt = true): void {
     this.play(PLAYER_IMPACT_VFX.animKey);
     if (withCombatArt) for (const action of PLAYER_COMBAT_ACTIONS) for (const facing of SET.actions[action].rows) this.play(playerCombatAnimKey(SET, action, facing));
+    if (withCombatArt) for (const action of PLAYER_OPTIONAL_COMBAT_ACTIONS) for (const facing of SET.optional[action]?.rows ?? []) this.play(playerCombatAnimKey(SET, action, facing));
   }
 
   get animationKeys(): string[] {
@@ -165,7 +168,7 @@ test('unused art is still cleaned up - with its animations - and rebuilt when it
   const w = new World();
   await w.enter(MOHAWK);
   const all = w.animationKeys;
-  assert.equal(all.length, 1 + 4 * 4, '16 combat clips + the impact');
+  assert.equal(all.length, 1 + COMBAT_ACTIONS.length * 4, 'every combat clip (4 facings each) + the impact');
   w.leave();
   await w.enter(BALD);
   assert.ok(COMBAT_KEYS.every((k) => w.textureKeys.includes(k)), 'kept during the grace period');
@@ -194,7 +197,7 @@ test('many transitions between characters: nothing accumulates, everything alway
     w.now += seed % 70_000;
     w.leave();
     if (seed % 3 === 0) w.now += seed % 90_000;
-    assert.ok(w.textureKeys.length <= ALL_KEYS.length && w.animationKeys.length <= 17, `round ${i}`);
+    assert.ok(w.textureKeys.length <= ALL_KEYS.length && w.animationKeys.length <= 1 + COMBAT_ACTIONS.length * 4, `round ${i}`);
     const { tracked, inUse } = w.cache.stats();
     assert.ok(tracked <= ALL_KEYS.length && inUse === 0, 'nobody holds anything in character creation');
   }

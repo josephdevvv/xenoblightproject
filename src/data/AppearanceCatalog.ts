@@ -62,7 +62,7 @@ export const HAIR_COLORS: ReadonlyArray<HairColorOption> = [
 export const OUTFITS: ReadonlyArray<AppearanceOption> = [
   { id: 'basic' },
   { id: 'adventurer' },
-  // Drifter class outfit (Sprite Forge). Real art for bald / mohawk-blonde (male) and bald / straight-bangs-blonde (female).
+  // Drifter class outfit (Sprite Forge). Real art for bald / mohawk / side swept (male) and bald / straight bangs (female), every hair colour.
   { id: 'drifter' },
 ];
 

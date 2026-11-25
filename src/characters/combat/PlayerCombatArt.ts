@@ -1,4 +1,14 @@
-import maleSpikeBlondeDrifter from '../../../public/assets/characters/male/spike_blonde/drifter/combat/male_spike_blonde_drifter_combat.json';
+// Mohawk Blonde: r2 export (same 4 sheets, + the approved unarmed_punch).
+import maleSpikeBlondeDrifter from '../../../public/assets/characters/male/spike_blonde/drifter/combat/male_spike_blonde_drifter_combat_r2.json';
+import maleSpikeBlackDrifter from '../../../public/assets/characters/male/spike_black/drifter/combat/male_spike_black_drifter_combat.json';
+import maleSpikeSilverDrifter from '../../../public/assets/characters/male/spike_silver/drifter/combat/male_spike_silver_drifter_combat.json';
+import maleSpikeBrownDrifter from '../../../public/assets/characters/male/spike_brown/drifter/combat/male_spike_brown_drifter_combat.json';
+import maleSpikeRedDrifter from '../../../public/assets/characters/male/spike_red/drifter/combat/male_spike_red_drifter_combat.json';
+import femaleStraightBangsBlondeDrifter from '../../../public/assets/characters/female/straight_bangs_blonde/drifter/combat/female_straight_bangs_blonde_drifter_combat.json';
+import femaleStraightBangsBlackDrifter from '../../../public/assets/characters/female/straight_bangs_black/drifter/combat/female_straight_bangs_black_drifter_combat.json';
+import femaleStraightBangsSilverDrifter from '../../../public/assets/characters/female/straight_bangs_silver/drifter/combat/female_straight_bangs_silver_drifter_combat.json';
+import femaleStraightBangsBrownDrifter from '../../../public/assets/characters/female/straight_bangs_brown/drifter/combat/female_straight_bangs_brown_drifter_combat.json';
+import femaleStraightBangsRedDrifter from '../../../public/assets/characters/female/straight_bangs_red/drifter/combat/female_straight_bangs_red_drifter_combat.json';
 import maleSideSweptBlondeDrifter from '../../../public/assets/characters/male/side_swept_blonde/drifter/combat/male_side_swept_blonde_drifter_combat.json';
 import maleSideSweptBlackDrifter from '../../../public/assets/characters/male/side_swept_black/drifter/combat/male_side_swept_black_drifter_combat.json';
 import maleSideSweptSilverDrifter from '../../../public/assets/characters/male/side_swept_silver/drifter/combat/male_side_swept_silver_drifter_combat.json';
@@ -21,10 +31,11 @@ export type PlayerCombatAction = 'combat_idle' | 'dagger_thrust' | 'self_heal_ca
 export const PLAYER_COMBAT_ACTIONS: readonly PlayerCombatAction[] = ['combat_idle', 'dagger_thrust', 'self_heal_cast', 'hit_reaction'];
 /**
  * Optional actions: loaded (sheet + per-facing animations) when the appearance's export has them, never required.
- * unarmed_punch = the Drifter unarmed basic attack (Male Side Swept exports); not used by gameplay yet.
+ * unarmed_punch = the Drifter unarmed basic attack; combat_stance = the 1-frame stance (female exports). Neither is used
+ * by gameplay yet.
  */
-export type PlayerOptionalCombatAction = 'unarmed_punch';
-export const PLAYER_OPTIONAL_COMBAT_ACTIONS: readonly PlayerOptionalCombatAction[] = ['unarmed_punch'];
+export type PlayerOptionalCombatAction = 'unarmed_punch' | 'combat_stance';
+export const PLAYER_OPTIONAL_COMBAT_ACTIONS: readonly PlayerOptionalCombatAction[] = ['unarmed_punch', 'combat_stance'];
 
 export interface PlayerCombatSheet {
   file: string;
@@ -75,7 +86,7 @@ function fromExport(e: CombatExport): PlayerCombatSet {
 
 /** Combat sets by character sprite id. */
 export const PLAYER_COMBAT_SETS: Readonly<Record<string, PlayerCombatSet>> = Object.fromEntries(
-  [maleSpikeBlondeDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
+  [maleSpikeBlondeDrifter, maleSpikeBlackDrifter, maleSpikeSilverDrifter, maleSpikeBrownDrifter, maleSpikeRedDrifter, femaleStraightBangsBlondeDrifter, femaleStraightBangsBlackDrifter, femaleStraightBangsSilverDrifter, femaleStraightBangsBrownDrifter, femaleStraightBangsRedDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
 );
 
 export function combatSetFor(spriteId: string): PlayerCombatSet | null {

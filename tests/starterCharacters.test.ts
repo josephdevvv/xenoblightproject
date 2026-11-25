@@ -39,26 +39,27 @@ test('starter hairstyles per gender, Bald first (male: + Mohawk, Side Swept)', (
   assert.deepEqual(starterHairstyles('female').map((h) => h.id), ['bald', 'straight_bangs']);
 });
 
-test('exactly the required starter appearances (Side Swept in all 5 colours)', () => {
+test('exactly the required starter appearances (every hairstyle with hair in all 5 colours)', () => {
   assert.deepEqual(starterHairColors('side_swept'), ['blonde', 'black', 'silver', 'brown', 'red']);
-  assert.deepEqual(starterHairColors('mohawk'), ['blonde']);
+  assert.deepEqual(starterHairColors('mohawk'), ['blonde', 'black', 'silver', 'brown', 'red']);
+  assert.deepEqual(starterHairColors('straight_bangs'), ['blonde', 'black', 'silver', 'brown', 'red']);
   assert.deepEqual(starterHairColors('bald'), ['none']);
   assert.deepEqual(allStarterAppearances(), [
     { gender: 'male', hairstyleId: 'bald', hairColorId: 'none', outfitId: 'drifter' },
-    { gender: 'male', hairstyleId: 'mohawk', hairColorId: 'blonde', outfitId: 'drifter' },
+    ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'mohawk', hairColorId: c, outfitId: 'drifter' })),
     ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'side_swept', hairColorId: c, outfitId: 'drifter' })),
     { gender: 'female', hairstyleId: 'bald', hairColorId: 'none', outfitId: 'drifter' },
-    { gender: 'female', hairstyleId: 'straight_bangs', hairColorId: 'blonde', outfitId: 'drifter' },
+    ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'female', hairstyleId: 'straight_bangs', hairColorId: c, outfitId: 'drifter' })),
   ]);
 });
 
 test('each starter resolves to approved Drifter sheets that exist on disk', () => {
   const expected: Record<string, string> = {
     char_male_bald_none_drifter: 'male/bald/drifter/male_bald_drifter',
-    char_male_mohawk_blonde_drifter: 'male/spike_blonde/drifter/male_spike_blonde_drifter',
+    ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_male_mohawk_${c}_drifter`, `male/spike_${c}/drifter/male_spike_${c}_drifter`])),
+    ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_female_straight_bangs_${c}_drifter`, `female/straight_bangs_${c}/drifter/female_straight_bangs_${c}_drifter`])),
     ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_male_side_swept_${c}_drifter`, `male/side_swept_${c}/drifter/male_side_swept_${c}_drifter`])),
     char_female_bald_none_drifter: 'female/bald/drifter/female_bald_drifter',
-    char_female_straight_bangs_blonde_drifter: 'female/straight_bangs_blonde/drifter/female_straight_bangs_blonde_drifter',
   };
   for (const appearance of allStarterAppearances()) {
     const id = getCharacterSpriteId(appearance);
@@ -97,14 +98,16 @@ test('the manifest only references files that exist (no broken paths)', () => {
   }
 });
 
-test('new characters are always Drifters with the fixed hair colour', () => {
-  // Whatever else is passed in, only gender + hairstyle are taken from the caller.
-  const tricky = { gender: 'male' as const, hairstyleId: 'mohawk', hairColorId: 'red', outfitId: 'adventurer' };
+test('new characters are always Drifters with an available hair colour', () => {
+  // Whatever else is passed in, only gender + hairstyle (+ an available hair colour) are taken from the caller.
+  const tricky = { gender: 'male' as const, hairstyleId: 'mohawk', hairColorId: 'green', outfitId: 'adventurer' };
   const c = createCharacterData('Aria', tricky);
   assert.deepEqual(c.appearance, { gender: 'male', hairstyleId: 'mohawk', hairColorId: 'blonde', outfitId: 'drifter' });
   assert.equal(c.classId, STARTER_CLASS_ID);
   assert.equal(c.classId, 'drifter');
-  // Side Swept: the chosen colour is kept when it is one of its 5 approved colours, otherwise its default (blonde).
+  // Mohawk / Straight Bangs / Side Swept: the chosen colour is kept when it is one of the 5 approved colours, otherwise blonde.
+  assert.equal(createCharacterData('Mika', { gender: 'male', hairstyleId: 'mohawk', hairColorId: 'silver' }).appearance.hairColorId, 'silver');
+  assert.equal(createCharacterData('Nami', { gender: 'female', hairstyleId: 'straight_bangs', hairColorId: 'brown' }).appearance.hairColorId, 'brown');
   assert.equal(createCharacterData('Sora', { gender: 'male', hairstyleId: 'side_swept', hairColorId: 'red' }).appearance.hairColorId, 'red');
   assert.equal(createCharacterData('Sora', { gender: 'male', hairstyleId: 'side_swept', hairColorId: 'green' }).appearance.hairColorId, 'blonde');
   assert.equal(createCharacterData('Sora', { gender: 'male', hairstyleId: 'side_swept' }).appearance.hairColorId, 'blonde');
@@ -137,17 +140,17 @@ test('profiles: saved appearance + class persist and existing characters are res
   assert.equal(CharacterProfileStore.loadLastPlayed(store)?.name, 'Kaito');
   assert.equal(store.data[LAST_CHARACTER_KEY], 'Kaito');
 
-  // Side Swept in every colour: saved, loaded and restored unchanged, and it resolves to its approved art.
-  for (const c of starterHairColors('side_swept')) {
-    const ss = createCharacterData(`Side ${c}`, { gender: 'male', hairstyleId: 'side_swept', hairColorId: c });
+  // Every hairstyle with hair in every colour: saved, loaded and restored unchanged, and it resolves to its approved art.
+  for (const [gender, hairstyleId, tag] of [['male', 'side_swept', 'Side'], ['male', 'mohawk', 'Mohawk'], ['female', 'straight_bangs', 'Bangs']] as const) for (const c of starterHairColors(hairstyleId)) {
+    const ss = createCharacterData(`${tag} ${c}`, { gender, hairstyleId, hairColorId: c });
     assert.equal(CharacterProfileStore.save({ name: ss.name, appearance: ss.appearance, classId: ss.classId, createdAt: ss.createdAt }, store), true);
-    const back = CharacterProfileStore.load(`side ${c}`, store);
+    const back = CharacterProfileStore.load(`${tag.toLowerCase()} ${c}`, store);
     assert.equal(back.kind, 'loaded');
     if (back.kind !== 'loaded') return;
-    assert.deepEqual(back.profile.appearance, { gender: 'male', hairstyleId: 'side_swept', hairColorId: c, outfitId: 'drifter' });
+    assert.deepEqual(back.profile.appearance, { gender, hairstyleId, hairColorId: c, outfitId: 'drifter' });
     const again = restoreCharacterData(back.profile);
     assert.deepEqual(again.appearance, back.profile.appearance);
-    assert.ok(isApprovedCharacterSprite(getCharacterSpriteId(again.appearance)), `side_swept ${c} has approved art`);
+    assert.ok(isApprovedCharacterSprite(getCharacterSpriteId(again.appearance)), `${hairstyleId} ${c} has approved art`);
   }
 
   // An existing character with a different class / outfit is restored as saved (not re-defaulted).

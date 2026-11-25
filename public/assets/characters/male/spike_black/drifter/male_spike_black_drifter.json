@@ -1,0 +1,114 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-25T11:29:31.826Z",
+  "key": "male_spike_black_drifter",
+  "displayName": {
+    "en": "Male Mohawk Black Drifter",
+    "th": "ชาย หัวไก่ ดำ ดริฟเตอร์"
+  },
+  "alias": "Mohawk Black = Sprite Forge spike / black",
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "mohawk",
+    "hairColorId": "black",
+    "outfitId": "drifter"
+  },
+  "forge": {
+    "hairstyle": "spike",
+    "hairColor": "black",
+    "outfit": "drifter"
+  },
+  "spriteId": "char_male_mohawk_black_drifter",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/male/spike_black/drifter/male_spike_black_drifter_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "approved sheet approved/male/layers/drifter/male_spike_black_drifter_static_8dir.png (per-direction assets not registered; sheet approved with the outfit set)",
+    "sha256": "7ba9619bb46141578118152c49b95499e3a281f5f66dfbb00df6368ed69e6a53",
+    "directions": "see the approved outfit set record (mirrors flipped from SE/E/NE)"
+  },
+  "walk": {
+    "file": "assets/characters/male/spike_black/drifter/male_spike_black_drifter_walk_8dir.png",
+    "metadata": "assets/characters/male/spike_black/drifter/male_spike_black_drifter_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "863224af425ef5fb0e9320883e0918e55f018ba30007f03a7ba834185f56c9d2",
+    "directions": {
+      "S": {
+        "asset": "male_spike_black_drifter_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "male_spike_black_drifter_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_spike_black_drifter_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_spike_black_drifter_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_spike_black_drifter_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_spike_black_drifter_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_spike_black_drifter_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_spike_black_drifter_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 0
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

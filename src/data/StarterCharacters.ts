@@ -8,10 +8,10 @@ import type { CharacterAppearance } from './CharacterData';
  *
  *   gender  hairstyle        hair colour                          outfit   class
  *   male    bald             none                                 drifter  drifter
- *   male    mohawk           blonde                               drifter  drifter
+ *   male    mohawk           blonde | black | silver | brown | red drifter  drifter
  *   male    side_swept       blonde | black | silver | brown | red drifter  drifter
  *   female  bald             none                                 drifter  drifter
- *   female  straight_bangs   blonde                               drifter  drifter
+ *   female  straight_bangs   blonde | black | silver | brown | red drifter  drifter
  *
  * These are exactly the appearances with approved Sprite Forge Drifter art (SpriteForgeCharacters.ts).
  * The wider catalog (HAIRSTYLES, HAIR_COLORS, OUTFITS) stays as the data model for later content.
@@ -36,8 +36,8 @@ export const STARTER_HAIRSTYLE_IDS: Readonly<Record<Gender, readonly string[]>> 
  */
 export const STARTER_HAIR_COLOR_IDS: Readonly<Record<string, readonly string[]>> = {
   [BALD_HAIRSTYLE_ID]: [NO_HAIR_COLOR_ID],
-  mohawk: [STARTER_HAIR_COLOR_ID],
-  straight_bangs: [STARTER_HAIR_COLOR_ID],
+  mohawk: ['blonde', 'black', 'silver', 'brown', 'red'],
+  straight_bangs: ['blonde', 'black', 'silver', 'brown', 'red'],
   side_swept: ['blonde', 'black', 'silver', 'brown', 'red'],
 };
 

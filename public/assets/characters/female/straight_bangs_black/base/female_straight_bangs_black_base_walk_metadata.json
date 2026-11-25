@@ -1,0 +1,3423 @@
+{
+  "schema": "xenoblight-sprite-forge/animation@1",
+  "animation": "walk",
+  "jobId": "job_20261120_043941_ebb5ce",
+  "character": {
+    "gender": "female",
+    "hairstyle": "straight_bangs",
+    "hairColor": "black",
+    "outfit": "base_tee_shorts"
+  },
+  "master": {
+    "masterId": "FEMALE_MASTER",
+    "version": "v002"
+  },
+  "layerRole": "starter-outfit character reference (flattened skin + clothing; not a reusable under-clothing body layer)",
+  "frameSize": {
+    "width": 64,
+    "height": 64
+  },
+  "layout": {
+    "columns": 6,
+    "rows": 8,
+    "order": [
+      "S",
+      "SE",
+      "E",
+      "NE",
+      "N",
+      "NW",
+      "W",
+      "SW"
+    ],
+    "sheet": "female_straight-bangs_black_walk_8dir.png"
+  },
+  "frameMs": 125,
+  "loop": true,
+  "anchorConvention": "edge coordinates: pixel centre = x + 0.5; root = feet centre at the bottom edge of the lowest solid row (alpha >= 128, lowest 4 rows); head = centre of the top 4 solid rows at the top edge; groundContact = root; hairAnchor = centre of the topmost solid row (scalp top) at its top edge; outfitAnchor = centre of the first row with >= 4 neckline-coloured px (#ffffff/#cbdbfc) at its top edge; mirrored x' = frameWidth - x",
+  "directionPolicy": {
+    "id": "mirror5-v1",
+    "sources": {
+      "S": "original",
+      "SE": "original",
+      "E": "original",
+      "NE": "original",
+      "N": "original",
+      "NW": "mirror(NE)",
+      "W": "mirror(E)",
+      "SW": "mirror(SE)"
+    },
+    "exceptions": []
+  },
+  "masterAnchors": {
+    "S": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 30.684,
+        "y": 5
+      }
+    },
+    "SE": {
+      "root": {
+        "x": 31.675,
+        "y": 57
+      },
+      "head": {
+        "x": 31.176,
+        "y": 5
+      }
+    },
+    "E": {
+      "root": {
+        "x": 31.397,
+        "y": 57
+      },
+      "head": {
+        "x": 31.176,
+        "y": 5
+      }
+    },
+    "NE": {
+      "root": {
+        "x": 32.84,
+        "y": 57
+      },
+      "head": {
+        "x": 30.176,
+        "y": 5
+      }
+    },
+    "N": {
+      "root": {
+        "x": 31.5,
+        "y": 57
+      },
+      "head": {
+        "x": 31.19,
+        "y": 5
+      }
+    },
+    "NW": {
+      "root": {
+        "x": 31.16,
+        "y": 57
+      },
+      "head": {
+        "x": 33.824,
+        "y": 5
+      }
+    },
+    "W": {
+      "root": {
+        "x": 32.603,
+        "y": 57
+      },
+      "head": {
+        "x": 32.824,
+        "y": 5
+      }
+    },
+    "SW": {
+      "root": {
+        "x": 32.325,
+        "y": 57
+      },
+      "head": {
+        "x": 32.824,
+        "y": 5
+      }
+    }
+  },
+  "crop": null,
+  "provenance": {
+    "composer": "characterComposer",
+    "layers": [
+      "base",
+      "hair:straight_bangs"
+    ],
+    "offsetOverrides": {
+      "N#1": {
+        "dx": 0,
+        "dy": 0
+      },
+      "N#2": {
+        "dx": 0,
+        "dy": 0
+      }
+    },
+    "hairEdits": [
+      {
+        "dir": "SE",
+        "frame": 0,
+        "x": 38,
+        "y": 24,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "SE",
+        "frame": 1,
+        "x": 38,
+        "y": 25,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "SE",
+        "frame": 2,
+        "x": 38,
+        "y": 23,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "SE",
+        "frame": 3,
+        "x": 38,
+        "y": 22,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "SE",
+        "frame": 5,
+        "x": 38,
+        "y": 23,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "E",
+        "frame": 5,
+        "x": 27,
+        "y": 24,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "NE",
+        "frame": 2,
+        "x": 25,
+        "y": 21,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "NE",
+        "frame": 3,
+        "x": 25,
+        "y": 22,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "NE",
+        "frame": 4,
+        "x": 25,
+        "y": 22,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      },
+      {
+        "dir": "NE",
+        "frame": 5,
+        "x": 25,
+        "y": 22,
+        "from": "#8a6f30",
+        "to": "#222034",
+        "reason": "hair tip on the walk silhouette edge -> outline (static silhouette rule)"
+      }
+    ],
+    "remote": null
+  },
+  "outlineExceptions": [
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 19,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 20,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 37,
+      "y": 21,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 52,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 37,
+      "y": 31,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 38,
+      "y": 32,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 39,
+      "y": 33,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    }
+  ],
+  "validation": "WARNING",
+  "frames": [
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.684,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 30.3,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south",
+          "layerFile": "female_straight-bangs_blonde_hair_south.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 174
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 1
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.306,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.684,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.306,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 31.3,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south",
+          "layerFile": "female_straight-bangs_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -2
+          },
+          "pixels": 174
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -2,
+          "score": 0.994
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.786,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.684,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.786,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.3,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south",
+          "layerFile": "female_straight-bangs_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 174
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.994
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.389,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.684,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.389,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 31.3,
+        "y": 11
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south",
+          "layerFile": "female_straight-bangs_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 174
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.994
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.389,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.684,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.389,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.3,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south",
+          "layerFile": "female_straight-bangs_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 174
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.994
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.684,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30.3,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south",
+          "layerFile": "female_straight-bangs_blonde_hair_south.png",
+          "offset": {
+            "dx": 0,
+            "dy": -2
+          },
+          "pixels": 174
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -2,
+          "score": 0.987
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.056,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.056,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 172
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.985
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.63,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.63,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 13
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 3
+          },
+          "pixels": 172
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 3,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 3
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 3,
+          "score": 0.991
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.643,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.643,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 11
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 172
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.991
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.7,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.7,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 172
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.991
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.462,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.462,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 11
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 172
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 1
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.348,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.348,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 11
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 172
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.984
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_south-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.871,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.176,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.871,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": 2,
+            "dy": 2
+          },
+          "pixels": 165
+        }
+      ],
+      "hairPlacement": {
+        "dx": 2,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 2,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 2,
+          "dy": 2,
+          "score": 0.959
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.735,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 33.176,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.735,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": 2,
+            "dy": 2
+          },
+          "pixels": 165
+        }
+      ],
+      "hairPlacement": {
+        "dx": 2,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 2,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 2,
+          "dy": 2,
+          "score": 0.993
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.855,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.855,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 165
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.997
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.638,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.638,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 165
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 1
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.349,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.176,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.349,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": 2,
+            "dy": 2
+          },
+          "pixels": 165
+        }
+      ],
+      "hairPlacement": {
+        "dx": 2,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 2,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 2,
+          "dy": 2,
+          "score": 1
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 37.597,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.176,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 37.597,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 165
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.99
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.7,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.176,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.7,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 217
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.923
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.824,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.176,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.824,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 217
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.993
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.9,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.176,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.9,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 217
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.993
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.342,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.176,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.342,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 217
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.553,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.176,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.553,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 217
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.98
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.113,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.176,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.113,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 217
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.98
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.474,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.19,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.474,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.071,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north",
+          "layerFile": "female_straight-bangs_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 269
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.308,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.19,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.308,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.071,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north",
+          "layerFile": "female_straight-bangs_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 269
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.915
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.607,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.19,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.607,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.071,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north",
+          "layerFile": "female_straight-bangs_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 269
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.915
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.419,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.19,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.419,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.071,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north",
+          "layerFile": "female_straight-bangs_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 269
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.994
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.2,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.19,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.2,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.071,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north",
+          "layerFile": "female_straight-bangs_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 269
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.946
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.962,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.19,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.962,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.071,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north",
+          "layerFile": "female_straight-bangs_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 269
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "file": "female_straight-bangs_black_base_walk_north_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#0",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.3,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.824,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.3,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 217,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_straight-bangs_black_base_walk_north-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#1",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.176,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.824,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.176,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": -1
+          },
+          "pixels": 217,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_straight-bangs_black_base_walk_north-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#2",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.1,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.824,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.1,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": -1
+          },
+          "pixels": 217,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_straight-bangs_black_base_walk_north-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#3",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.658,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.824,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.658,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 217,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_straight-bangs_black_base_walk_north-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#4",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.447,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.824,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.447,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 217,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_straight-bangs_black_base_walk_north-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#5",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.887,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 32.824,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.887,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "female_straight-bangs_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 217,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_straight-bangs_black_base_walk_north-west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#0",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.129,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.824,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.129,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": -2,
+            "dy": 2
+          },
+          "pixels": 165,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -2,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_straight-bangs_black_base_walk_west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#1",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.265,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.824,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.265,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": -2,
+            "dy": 2
+          },
+          "pixels": 165,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -2,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_straight-bangs_black_base_walk_west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#2",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.145,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.145,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 165,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_straight-bangs_black_base_walk_west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#3",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.362,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.362,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 165,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_straight-bangs_black_base_walk_west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#4",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.651,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.824,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.651,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": -2,
+            "dy": 2
+          },
+          "pixels": 165,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -2,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_straight-bangs_black_base_walk_west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#5",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 26.403,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 26.403,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_east",
+          "layerFile": "female_straight-bangs_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 165,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_straight-bangs_black_base_walk_west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#0",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.944,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.944,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 12
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 172,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_straight-bangs_black_base_walk_south-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#1",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.37,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 8
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.37,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 8
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 13
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 3
+          },
+          "pixels": 172,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 3,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_straight-bangs_black_base_walk_south-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#2",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.357,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.357,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 11
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 172,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_straight-bangs_black_base_walk_south-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#3",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.3,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.3,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 10
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 172,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_straight-bangs_black_base_walk_south-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#4",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.538,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.538,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 11
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 172,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_straight-bangs_black_base_walk_south-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#5",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.652,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31.824,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.652,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 11
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:straight_bangs",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_straight-bangs_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "female_straight-bangs_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 172,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_straight-bangs_black_base_walk_south-west_05.png"
+    }
+  ],
+  "recolor": {
+    "method": "palette swap (role-for-role) of the approved Blonde set",
+    "from": "blonde",
+    "to": "black",
+    "sourceMetadata": "approved/female/animations/female_straight-bangs_blonde_walk_metadata.json",
+    "assets": {
+      "S": "female_straight-bangs_black_white-tee-black-shorts_south_walk",
+      "SE": "female_straight-bangs_black_white-tee-black-shorts_south-east_walk",
+      "E": "female_straight-bangs_black_white-tee-black-shorts_east_walk",
+      "NE": "female_straight-bangs_black_white-tee-black-shorts_north-east_walk",
+      "N": "female_straight-bangs_black_white-tee-black-shorts_north_walk",
+      "NW": "female_straight-bangs_black_white-tee-black-shorts_north-west_walk",
+      "W": "female_straight-bangs_black_white-tee-black-shorts_west_walk",
+      "SW": "female_straight-bangs_black_white-tee-black-shorts_south-west_walk"
+    }
+  }
+}

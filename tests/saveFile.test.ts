@@ -205,13 +205,13 @@ test('no gameplay code can write to the browser: only the settings use storage',
   assert.deepEqual(users, ['settings/SettingsStore.ts']);
 });
 
-test('save files keep the Male Side Swept look in every colour (export -> load, unchanged)', () => {
+test('save files keep every hairstyle look in every colour (export -> load, unchanged)', () => {
   withoutStorage(() => {
-    for (const colour of ['blonde', 'black', 'silver', 'brown', 'red']) {
-      const c = newCharacter(`Swept ${colour}`);
-      c.appearance = { gender: 'male', hairstyleId: 'side_swept', hairColorId: colour, outfitId: 'drifter' };
+    for (const [gender, hairstyleId] of [['male', 'side_swept'], ['male', 'mohawk'], ['female', 'straight_bangs']] as const) for (const colour of ['blonde', 'black', 'silver', 'brown', 'red']) {
+      const c = newCharacter(`Look ${colour}`);
+      c.appearance = { gender, hairstyleId, hairColorId: colour, outfitId: 'drifter' };
       const r = parseSave(serializeSave(c, LOCATION));
-      assert.ok(r.ok, `${colour}: ${JSON.stringify(r)}`);
+      assert.ok(r.ok, `${hairstyleId} ${colour}: ${JSON.stringify(r)}`);
       if (r.ok) assert.deepEqual(r.save.profile.appearance, c.appearance);
     }
     // a colour without approved Side Swept art is refused, like any unsupported look

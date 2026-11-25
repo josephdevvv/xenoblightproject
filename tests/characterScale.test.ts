@@ -65,6 +65,10 @@ const PAIRS: [string, string][] = [
   ['male_bald_base', 'male_spike_blonde_base'],
   ['female_bald_base', 'female_straight_bangs_blonde_base'],
   ...['blonde', 'black', 'silver', 'brown', 'red'].flatMap((c): [string, string][] => [['male_bald_drifter', `male_side_swept_${c}_drifter`], ['male_bald_base', `male_side_swept_${c}_base`]]),
+  ...['black', 'silver', 'brown', 'red'].flatMap((c): [string, string][] => [
+    ['male_bald_drifter', `male_spike_${c}_drifter`], ['male_bald_base', `male_spike_${c}_base`],
+    ['female_bald_drifter', `female_straight_bangs_${c}_drifter`], ['female_bald_base', `female_straight_bangs_${c}_base`],
+  ]),
 ];
 
 for (const [baldKey, hairKey] of PAIRS) {

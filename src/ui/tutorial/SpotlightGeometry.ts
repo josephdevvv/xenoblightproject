@@ -20,16 +20,30 @@ export function padRect(r: Rect, pad: number, screen: Size): Rect {
   return { x, y, width: Math.max(0, right - x), height: Math.max(0, bottom - y) };
 }
 
-/** The screen minus `hole`: top, bottom, left, right pieces (never overlapping each other or the hole). */
-export function surround(hole: Rect, screen: Size): [Rect, Rect, Rect, Rect] {
-  const right = hole.x + hole.width;
-  const bottom = hole.y + hole.height;
-  return [
-    { x: 0, y: 0, width: screen.width, height: hole.y },
-    { x: 0, y: bottom, width: screen.width, height: screen.height - bottom },
-    { x: 0, y: hole.y, width: hole.x, height: hole.height },
-    { x: right, y: hole.y, width: screen.width - right, height: hole.height },
-  ];
+/**
+ * The screen minus some holes (the lit target, and e.g. the guide line the step waits for), as rectangles that
+ * never overlap each other or a hole: horizontal bands between the holes' edges, each split around the holes
+ * crossing it. Holes may overlap each other. Empty pieces are left out.
+ */
+export function outside(holes: readonly Rect[], screen: Size): Rect[] {
+  const clip = (v: number, max: number): number => Math.min(max, Math.max(0, v));
+  const hs = holes
+    .map((h) => ({ x0: clip(h.x, screen.width), y0: clip(h.y, screen.height), x1: clip(h.x + h.width, screen.width), y1: clip(h.y + h.height, screen.height) }))
+    .filter((h) => h.x1 > h.x0 && h.y1 > h.y0);
+  const ys = [...new Set([0, screen.height, ...hs.flatMap((h) => [h.y0, h.y1])])].sort((a, b) => a - b);
+  const out: Rect[] = [];
+  for (let i = 0; i + 1 < ys.length; i++) {
+    const [top, bottom] = [ys[i], ys[i + 1]];
+    // the holes crossing this band cover it from top to bottom (their edges are band edges): merge their spans
+    const spans = hs.filter((h) => h.y0 <= top && h.y1 >= bottom).map((h) => [h.x0, h.x1] as const).sort((a, b) => a[0] - b[0]);
+    let x = 0;
+    for (const [x0, x1] of spans) {
+      if (x0 > x) out.push({ x, y: top, width: x0 - x, height: bottom - top });
+      x = Math.max(x, x1);
+    }
+    if (x < screen.width) out.push({ x, y: top, width: screen.width - x, height: bottom - top });
+  }
+  return out;
 }
 
 /** Something of it can be seen and clicked. */
@@ -109,16 +123,24 @@ export function clientToGame(element: Rect, canvas: Rect, game: Size): Rect | nu
   return { x: (element.x - canvas.x) * sx, y: (element.y - canvas.y) * sy, width: element.width * sx, height: element.height * sy };
 }
 
-/** Where a label of `size` goes: below the cutout, else above, else beside it - always on the screen. */
-export function placeLabel(cut: Rect, size: Size, screen: Size, gap = 8): { x: number; y: number } {
+/** The two rectangles share some area. */
+export const overlaps = (a: Rect, b: Rect): boolean => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+/**
+ * Where a label of `size` goes: below the cutout, else above, else beside it - always on the screen, and off the
+ * `avoid` areas (other lit areas, such as the guide line) wherever one of those places allows it.
+ */
+export function placeLabel(cut: Rect, size: Size, screen: Size, gap = 8, avoid: readonly Rect[] = []): { x: number; y: number } {
   const centred = Math.min(Math.max(4, cut.x + cut.width / 2 - size.width / 2), screen.width - size.width - 4);
-  let x = centred;
-  let y: number;
-  if (cut.y + cut.height + gap + size.height <= screen.height - 4) y = cut.y + cut.height + gap;
-  else if (cut.y - gap - size.height >= 4) y = cut.y - gap - size.height;
-  else {
-    y = Math.min(Math.max(4, cut.y), screen.height - size.height - 4);
-    x = cut.x - gap - size.width >= 4 ? cut.x - gap - size.width : cut.x + cut.width + gap;
-  }
-  return { x: Math.round(x), y: Math.round(y) };
+  const besideY = Math.min(Math.max(4, cut.y), screen.height - size.height - 4);
+  const places = [
+    { x: centred, y: cut.y + cut.height + gap },
+    { x: centred, y: cut.y - gap - size.height },
+    { x: cut.x - gap - size.width, y: besideY },
+    { x: cut.x + cut.width + gap, y: besideY },
+  ];
+  const fits = (p: { x: number; y: number }): boolean => p.x >= 4 && p.y >= 4 && p.x + size.width <= screen.width - 4 && p.y + size.height <= screen.height - 4;
+  const clear = (p: { x: number; y: number }): boolean => !avoid.some((a) => overlaps({ ...p, ...size }, a));
+  const at = places.find((p) => fits(p) && clear(p)) ?? places.slice(0, 2).find(fits) ?? (places[2].x >= 4 ? places[2] : places[3]);
+  return { x: Math.round(at.x), y: Math.round(at.y) };
 }

@@ -5,6 +5,8 @@ import { localize } from '../../i18n/phaser';
 import { typo } from '../UITheme';
 import { wrapText } from '../text/wrapText';
 import { uiView } from '../layout/UiLayers';
+import type { Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
+import { rectInContainer } from '../tutorial/SpotlightOverlay';
 
 /** Same flat palette as the Passive Tree window (minimal layer pack). */
 const C = { line: 0xe7e7ee, dim: 0x3a3a45, fill: 0x0e0e12, red: 0xd3424b, name: '#e8dcb8', text: '#e7e7ee' } as const;
@@ -145,6 +147,27 @@ export class DialogueWindow {
   /** Open and dimming everything else (an ordinary conversation, not a tutorial guide line). */
   get isModal(): boolean {
     return this.session !== null && this.hooks.modal !== false;
+  }
+
+  /**
+   * The box of a tutorial guide line on the screen (non-modal: the step waits for a click on it), for the spotlight
+   * to light and leave clickable; null while none is shown.
+   */
+  guideArea(): ScreenRect | null {
+    if (!this.session || this.hooks.modal !== false) return null;
+    return rectInContainer(this.scene, this.panel, { x: 0, y: 0, width: PANEL.width, height: PANEL.height });
+  }
+
+  /** Where the guide line shown now sits (null = none, or an ordinary conversation). */
+  get guidePosition(): 'top' | 'bottom' | null {
+    return this.session && this.hooks.modal === false ? (this.hooks.position ?? 'bottom') : null;
+  }
+
+  /** Moves the guide line shown now to the top or the bottom (kept in its hooks: a UI rebuild reopens it there). */
+  moveGuide(position: 'top' | 'bottom'): void {
+    if (!this.session || this.hooks.modal !== false) return;
+    this.hooks = { ...this.hooks, position };
+    this.placeAt(position === 'top' ? TOP_Y : this.baseY);
   }
 
   /** The conversation open now was opened with these lines (for tutorials that show guide lines). */

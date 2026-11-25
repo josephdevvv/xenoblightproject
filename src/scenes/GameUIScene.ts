@@ -9,6 +9,7 @@ import { DeathOverlay } from '../ui/death/DeathOverlay';
 import { ChoiceDialog } from '../ui/ChoiceDialog';
 import { DialogueWindow } from '../ui/dialogue/DialogueWindow';
 import { rectOfObject, SpotlightOverlay, type SpotlightTarget } from '../ui/tutorial/SpotlightOverlay';
+import { overlaps } from '../ui/tutorial/SpotlightGeometry';
 import { t, type TranslationKey } from '../i18n';
 import { QuestService } from '../quests/QuestService';
 import { equipmentTutorialStep, statusTutorialStep, TUTORIAL_QUEST_02 } from '../quests/TutorialQuest02';
@@ -692,6 +693,31 @@ export class GameUIScene extends Phaser.Scene {
    * another window is open; it comes back by itself afterwards.
    */
   private spotlightTarget(): SpotlightTarget | null {
+    const target = this.stepTarget();
+    // a step that waits for a click on Roland's guide line (or shows one beside its control): the line's box is lit
+    // and clickable with the control - every step, PC and mobile, any UI scale (both are measured where drawn)
+    const dialogue = this.dialogueWindow;
+    if (!target || !dialogue) return target;
+    this.keepGuideOff(target, dialogue);
+    return { ...target, also: () => [dialogue.guideArea()] };
+  }
+
+  /**
+   * The guide line never covers the control the step points at (it is drawn above the HUD and would take its
+   * clicks - e.g. a large UI scale on a phone): it moves to the other edge of the screen when that one is free.
+   */
+  private keepGuideOff(target: SpotlightTarget, dialogue: DialogueWindow): void {
+    const side = dialogue.guidePosition;
+    const control = side ? target.rect() : null;
+    const line = control ? dialogue.guideArea() : null;
+    if (!side || !control || !line || !overlaps(control, line)) return;
+    dialogue.moveGuide(side === 'top' ? 'bottom' : 'top');
+    const moved = dialogue.guideArea();
+    if (moved && overlaps(control, moved)) dialogue.moveGuide(side); // no free edge: it stays where it was
+  }
+
+  /** The control the current tutorial step points at (see spotlightTarget). */
+  private stepTarget(): SpotlightTarget | null {
     if (this.settingsWindow?.isOpen || this.leaveDialog?.isOpen || !this.isPlayerAlive()) return null;
     // the potion training points at controls while its own guide lines are open
     const potion = this.potionSpotlight();

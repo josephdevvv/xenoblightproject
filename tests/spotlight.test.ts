@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { clientToGame, isOnScreen, lerpRect, padRect, placeLabel, sameRect, surround, throughCamera, transformRect, type CameraView, type Rect } from '../src/ui/tutorial/SpotlightGeometry';
+import { clientToGame, isOnScreen, lerpRect, padRect, outside, placeLabel, sameRect, throughCamera, transformRect, type CameraView, type Rect } from '../src/ui/tutorial/SpotlightGeometry';
 
 const SCREENS = [
   { width: 960, height: 480 },
@@ -25,7 +25,7 @@ test('blockers: the whole screen except the target, every pixel exactly once, wh
     for (const t of targets(screen)) {
       if (!isOnScreen(t, screen)) continue;
       const hole = padRect(t, 0, screen);
-      const pieces = surround(hole, screen);
+      const pieces = outside([hole], screen);
       assert.ok(pieces.every((p) => p.width >= 0 && p.height >= 0), JSON.stringify(t));
       const area = pieces.reduce((s, p) => s + p.width * p.height, 0) + hole.width * hole.height;
       assert.equal(area, screen.width * screen.height, JSON.stringify(t));
@@ -152,4 +152,57 @@ test('label: on the screen and never over the cutout', () => {
       assert.equal(overlaps, false, JSON.stringify({ t, p }));
     }
   }
+});
+
+test('two lit areas (the control and the guide line): the blockers cover everything else, every pixel exactly once', () => {
+  const covered = (pieces: Rect[], holes: Rect[], screen: { width: number; height: number }): void => {
+    for (let x = 0.5; x < screen.width; x += 7) {
+      for (let y = 0.5; y < screen.height; y += 5) {
+        const hits = pieces.filter((p) => inside(p, x, y)).length;
+        assert.equal(hits, holes.some((h) => inside(h, x, y)) ? 0 : 1, `(${x}, ${y})`);
+      }
+    }
+    assert.ok(pieces.every((p) => p.width > 0 && p.height > 0), "no empty pieces");
+  };
+  for (const screen of SCREENS) {
+    const ts = [...targets(screen)].filter((t) => isOnScreen(t, screen)).map((t) => padRect(t, 0, screen));
+    for (let i = 0; i + 1 < ts.length; i += 2) {
+      const holes = [ts[i], ts[i + 1]]; // apart, side by side, overlapping, one inside the other - all of them occur
+      covered(outside(holes, screen), holes, screen);
+    }
+    // the usual case: a control on the HUD and the guide line's box at the bottom
+    const pair = [{ x: 700, y: 10, width: 30, height: 20 }, { x: 200, y: screen.height - 90, width: 560, height: 80 }];
+    covered(outside(pair, screen), pair, screen);
+  }
+  // one hole: the same four pieces as before (top, left, right, bottom)
+  assert.equal(outside([{ x: 10, y: 10, width: 20, height: 20 }], { width: 100, height: 100 }).length, 4);
+  assert.deepEqual(outside([], { width: 100, height: 50 }), [{ x: 0, y: 0, width: 100, height: 50 }], 'no hole: one blocker');
+});
+
+test('label: below the cutout, else above, else beside - and off the other lit area when it can be', () => {
+  const screen = { width: 960, height: 480 };
+  const size = { width: 120, height: 20 };
+  const cut = { x: 400, y: 200, width: 40, height: 30 };
+  assert.deepEqual(placeLabel(cut, size, screen, 10), { x: 360, y: 240 }, 'below');
+  // the guide line right below the control: the label goes above
+  const line = { x: 300, y: 235, width: 360, height: 80 };
+  assert.deepEqual(placeLabel(cut, size, screen, 10, [line]), { x: 360, y: 170 });
+  // nowhere free: still on the screen
+  const p = placeLabel(cut, size, screen, 10, [{ x: 0, y: 0, width: 960, height: 480 }]);
+  assert.ok(p.x >= 4 && p.y >= 4 && p.x + size.width <= 956 && p.y + size.height <= 476);
+});
+
+test('every tutorial step lights the open guide line with its control; modal conversations never get a spotlight', () => {
+  const read = (file: string): string => fs.readFileSync(path.join(process.cwd(), file), 'utf8').replace(/\r\n/g, '\n');
+  const ui = read('src/scenes/GameUIScene.ts');
+  assert.match(ui, /private spotlightTarget\(\): SpotlightTarget \| null \{\s*const target = this\.stepTarget\(\);[\s\S]*?this\.keepGuideOff\(target, dialogue\);\s*return \{ \.\.\.target, also: \(\) => \[dialogue\.guideArea\(\)\] \};/);
+  // the line never covers the control (it is drawn above the HUD): the other edge when that one is free
+  assert.match(ui, /if \(!side \|\| !control \|\| !line \|\| !overlaps\(control, line\)\) return;\s*dialogue\.moveGuide\(side === 'top' \? 'bottom' : 'top'\);/);
+  assert.match(ui, /if \(moved && overlaps\(control, moved\)\) dialogue\.moveGuide\(side\);/);
+  const dialogue = read('src/ui/dialogue/DialogueWindow.ts');
+  assert.match(dialogue, /guideArea\(\): ScreenRect \| null \{\s*if \(!this\.session \|\| this\.hooks\.modal !== false\) return null;\s*return rectInContainer\(this\.scene, this\.panel, \{ x: 0, y: 0, width: PANEL\.width, height: PANEL\.height \}\);/, 'the clickable panel, measured where drawn');
+  const overlay = read('src/ui/tutorial/SpotlightOverlay.ts');
+  assert.match(overlay, /const holes = \[hole, \.\.\.extras\.map\(\(r\) => padRect\(r, 0, screen\)\)\];/);
+  assert.match(overlay, /const pieces = outside\(holes, screen\);/, 'blockers around every lit area');
+  assert.match(overlay, /for \(const r of outside\(all, screen\)\) this\.shade\.fillRect/, 'the shade spares every lit area');
 });

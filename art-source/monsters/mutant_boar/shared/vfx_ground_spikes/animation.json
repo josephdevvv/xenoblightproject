@@ -1,0 +1,54 @@
+{
+  "effect": "stomp_ground_spikes",
+  "direction": "radial",
+  "frame_width": 64,
+  "frame_height": 64,
+  "origin_px": [
+    32,
+    38
+  ],
+  "trigger": {
+    "action": "stomp",
+    "frame_1_based": 6
+  },
+  "loop_in_game": false,
+  "frames": [
+    {
+      "frame": 1,
+      "x": 0,
+      "y": 0,
+      "pose": "ground_crack",
+      "duration_ms": 70
+    },
+    {
+      "frame": 2,
+      "x": 64,
+      "y": 0,
+      "pose": "spikes_emerge",
+      "duration_ms": 80
+    },
+    {
+      "frame": 3,
+      "x": 128,
+      "y": 0,
+      "pose": "spikes_peak",
+      "duration_ms": 100
+    },
+    {
+      "frame": 4,
+      "x": 192,
+      "y": 0,
+      "pose": "shards_settle",
+      "duration_ms": 110
+    }
+  ],
+  "frame_count": 4,
+  "sheet": "shared/vfx_ground_spikes/sprite_sheet.png",
+  "frame_paths": [
+    "shared/vfx_ground_spikes/frames/01.png",
+    "shared/vfx_ground_spikes/frames/02.png",
+    "shared/vfx_ground_spikes/frames/03.png",
+    "shared/vfx_ground_spikes/frames/04.png"
+  ],
+  "preview": "shared/vfx_ground_spikes/preview_x4.webp"
+}

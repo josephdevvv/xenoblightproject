@@ -8,6 +8,7 @@ export const MONSTER_GOLD_REWARDS: Readonly<Record<MonsterId, number>> = {
   voidmite: 1,
   mutant_wolf: 3,
   dark_avian: 5,
+  mutant_boar: 7,
 };
 
 /** Gold for one kill of a monster (whole number, never negative; unknown monsters give 0). */

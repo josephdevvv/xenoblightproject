@@ -1,7 +1,8 @@
 /**
  * GLOBAL ATTACK HIT-FRAME RULE (2026-11-22): every player and monster attack animation lands on its
  * FOURTH frame (1-based `impactFrame = 4`, 0-based index 3). The hit event, damage resolution and the
- * on-hit VFX are all synchronised to the moment that frame starts.
+ * on-hit VFX are all synchronised to the moment that frame starts. One exception, by request: the Mutant Boar's
+ * 8-frame Stomp lands on frame 6 (MonsterArt `MUTANT_BOAR_IMPACT_FRAME`) - same synchronisation, later frame.
  *
  * The moment is computed from the animation's own timing (frame durations) - the combat system schedules
  * the hit on its clock from this delay, so animation playback never decides damage (a server can use the

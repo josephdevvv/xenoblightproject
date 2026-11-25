@@ -25,6 +25,7 @@ import {
   STARTER_HAIRSTYLE_IDS,
   STARTER_OUTFIT_ID,
   starterAppearance,
+  starterHairColors,
 } from '../data/StarterCharacters';
 import { CharacterStore } from '../data/CharacterStore';
 import { t, translate, type TranslationKey, type TranslationParams } from '../i18n';
@@ -46,9 +47,9 @@ const PANEL_HEIGHT = 356;
 const HINT: LocalizedMessage = { key: 'creation.nameHint', params: { min: NAME_MIN_LENGTH, max: NAME_MAX_LENGTH } };
 
 /**
- * Character creation: Gender -> Hairstyle -> Name -> Create. The player only picks gender and
- * hairstyle (Bald or that gender's starter hairstyle); hair colour, the Drifter outfit and the
- * Drifter class are fixed by StarterCharacters. The outfit row is a preview, not a choice.
+ * Character creation: Gender -> Hairstyle -> Hair colour -> Name -> Create. The player picks gender, a starter
+ * hairstyle and - when that hairstyle has more than one approved colour (Side Swept) - the hair colour; the
+ * Drifter outfit and class are fixed by StarterCharacters. The outfit row is a preview, not a choice.
  * The preview always shows the single complete sprite sheet resolved for the current selection.
  */
 export class CharacterCreationScene extends Phaser.Scene {
@@ -58,8 +59,12 @@ export class CharacterCreationScene extends Phaser.Scene {
   private previewDirection = DIRECTIONS.indexOf('S');
 
   private genderButtons!: Map<Gender, Button>;
-  /** One button per starter hairstyle slot (Bald + the gender's hairstyle). */
+  /** One button per starter hairstyle slot (Bald + the gender's hairstyles). */
   private hairstyleButtons: Button[] = [];
+  /** One button per selectable hair colour slot (shown only when the hairstyle has several colours). */
+  private hairColorButtons: Button[] = [];
+  /** Shown instead of the colour buttons when the colour is fixed (e.g. Mohawk Blonde, Bald). */
+  private hairColorFixedText!: Phaser.GameObjects.Text;
   private settings!: SettingsWindow;
   /** The message under the name field, kept as a key so it can be re-translated. */
   private message: { text: LocalizedMessage; isError: boolean } = { text: HINT, isError: false };
@@ -83,6 +88,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     // Drop references from the previous run (its objects were destroyed on shutdown).
     this.preview = null;
     this.hairstyleButtons = [];
+    this.hairColorButtons = [];
 
     this.createBackdrop();
     // laid out for 960 x 480 (GAME_WIDTH / GAME_HEIGHT below are its design size): centred in a wider / taller mobile view
@@ -172,10 +178,10 @@ export class CharacterCreationScene extends Phaser.Scene {
     };
 
     // 01 Gender
-    row(150, '01', 'creation.gender');
+    row(146, '01', 'creation.gender');
     this.genderButtons = new Map();
     GENDERS.forEach((g, i) => {
-      const button = new Button(this, 264 + i * 132, 150, {
+      const button = new Button(this, 264 + i * 132, 146, {
         width: 124,
         height: 28,
         label: '',
@@ -184,32 +190,48 @@ export class CharacterCreationScene extends Phaser.Scene {
       this.genderButtons.set(g.id, button);
     });
 
-    // 02 Hairstyle (two choices per gender, labels follow the gender)
-    row(202, '02', 'creation.hairstyle');
-    this.hairstyleButtons = [0, 1].map(
+    // 02 Hairstyle (up to three choices per gender, labels follow the gender)
+    row(192, '02', 'creation.hairstyle');
+    const hairSlots = Math.max(...Object.values(STARTER_HAIRSTYLE_IDS).map((ids) => ids.length));
+    this.hairstyleButtons = Array.from({ length: hairSlots }, (_, slot) => slot).map(
       (slot) =>
-        new Button(this, 264 + slot * 132, 202, {
-          width: 124,
+        new Button(this, 220 + slot * 92, 192, {
+          width: 84,
           height: 28,
           label: '',
           onClick: () => this.selectHairstyle(slot),
         }),
     );
 
-    // 03 Outfit preview: always the Drifter starter outfit (not selectable)
-    row(254, '03', 'creation.outfitPreview');
-    const outfitName = this.add.text(202, 254, '', typo('body', PALETTE.white)).setOrigin(0, 0.5);
+    // 03 Hair colour (buttons when the hairstyle offers several colours, otherwise the fixed colour as text)
+    row(238, '03', 'creation.hairColor');
+    const colorSlots = Math.max(...allStarterAppearances().map((a) => starterHairColors(a.hairstyleId).length));
+    this.hairColorButtons = Array.from({ length: colorSlots }, (_, slot) => slot).map(
+      (slot) =>
+        new Button(this, 204 + slot * 56, 238, {
+          width: 52,
+          height: 24,
+          label: '',
+          role: 'small',
+          onClick: () => this.selectHairColor(slot),
+        }),
+    );
+    this.hairColorFixedText = this.add.text(202, 238, '', typo('body', PALETTE.white)).setOrigin(0, 0.5);
 
-    // 04 Name
-    row(306, '04', 'creation.name');
-    this.nameInput = new TextInputField(this, controlX, 306, {
+    // 04 Outfit preview: always the Drifter starter outfit (not selectable)
+    row(282, '04', 'creation.outfitPreview');
+    const outfitName = this.add.text(202, 282, '', typo('body', PALETTE.white)).setOrigin(0, 0.5);
+
+    // 05 Name
+    row(324, '05', 'creation.name');
+    this.nameInput = new TextInputField(this, controlX, 324, {
       width: 260,
       placeholder: t('creation.namePlaceholder'),
       maxLength: NAME_MAX_LENGTH,
     });
     this.nameInput.onSubmit(() => this.submit());
     this.nameInput.onInput(() => this.showMessage(HINT, false));
-    this.messageText = this.add.text(200, 332, '', typo('small', PALETTE.gray)).setOrigin(0, 0.5);
+    this.messageText = this.add.text(200, 350, '', typo('small', PALETTE.gray)).setOrigin(0, 0.5);
 
     // Create
     this.createButton = new Button(this, 252, 424, {
@@ -283,6 +305,13 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.refreshAll();
   }
 
+  private selectHairColor(slot: number): void {
+    const hairColorId = starterHairColors(this.appearance.hairstyleId)[slot];
+    if (!hairColorId || hairColorId === this.appearance.hairColorId) return;
+    this.appearance = starterAppearance({ gender: this.appearance.gender, hairstyleId: this.appearance.hairstyleId, hairColorId });
+    this.refreshAll();
+  }
+
   private rotatePreview(delta: number): void {
     const n = DIRECTIONS.length;
     this.previewDirection = (this.previewDirection + delta + n) % n;
@@ -297,11 +326,19 @@ export class CharacterCreationScene extends Phaser.Scene {
       button.setVisible(Boolean(id));
       if (id) button.setLabel(labels.hairstyle(id)).setSelected(id === this.appearance.hairstyleId);
     });
+    const colors = starterHairColors(this.appearance.hairstyleId);
+    const choosable = colors.length > 1;
+    this.hairColorButtons.forEach((button, slot) => {
+      const id = colors[slot];
+      button.setVisible(choosable && Boolean(id));
+      if (choosable && id) button.setLabel(labels.hairColor(id)).setSelected(id === this.appearance.hairColorId);
+    });
+    this.hairColorFixedText.setVisible(!choosable).setText(this.appearance.hairColorId === 'none' ? '-' : labels.hairColor(this.appearance.hairColorId));
 
     this.preview?.setAppearance(this.appearance);
     this.spriteIdText.setText(getCharacterSpriteId(this.appearance));
     this.refreshPreviewDirection();
-    // The four starter looks are small: load them all so every switch is instant.
+    // The starter looks are small: load them all so every switch is instant.
     void AssetManager.prefetchStandingSheets(this, allStarterAppearances());
   }
 
@@ -342,7 +379,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.submitting = true;
     this.createButton.setEnabled(false);
     // Every New Game is its own, fresh character - whatever it is called.
-    const character = createCharacterData(name, { gender: this.appearance.gender, hairstyleId: this.appearance.hairstyleId });
+    const character = createCharacterData(name, { gender: this.appearance.gender, hairstyleId: this.appearance.hairstyleId, hairColorId: this.appearance.hairColorId });
     CharacterStatusService.startNew(character);
     CharacterStore.startSession(character);
 

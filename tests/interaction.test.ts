@@ -8,9 +8,9 @@ import { ATTACK_IMPACT_FRAME } from '../src/combat/AttackTiming';
 import { MONSTER_CURSOR } from '../src/ui/world/MonsterCursor';
 import { readPng } from './helpers/png';
 
-test('monster attacks land on the global hit frame 4 (every attack animation has at least 4 frames)', () => {
+test('monster attacks land on the global hit frame 4 (every attack animation has at least 4 frames); the Mutant Boar on frame 6', () => {
   for (const art of Object.keys(MONSTER_ART) as MonsterArtId[]) {
-    assert.equal(MONSTER_ART[art].impactFrame, ATTACK_IMPACT_FRAME, art);
+    assert.equal(MONSTER_ART[art].impactFrame, art === 'mutant_boar' ? 6 : ATTACK_IMPACT_FRAME, art);
     assert.ok(MONSTER_ART[art].meta.actions.attack.frames >= ATTACK_IMPACT_FRAME, `${art}: attack has a frame 4`);
   }
 });

@@ -1,0 +1,49 @@
+{
+  "action": "hit",
+  "direction": "south_west",
+  "frame_width": 64,
+  "frame_height": 64,
+  "ground_y": 55,
+  "impact_frame": 1,
+  "frame_numbering": "1-based",
+  "loop_in_game": false,
+  "frames": [
+    {
+      "frame": 1,
+      "x": 0,
+      "y": 0,
+      "pose": "impact_flinch",
+      "duration_ms": 70
+    },
+    {
+      "frame": 2,
+      "x": 64,
+      "y": 0,
+      "pose": "brace",
+      "duration_ms": 90
+    },
+    {
+      "frame": 3,
+      "x": 128,
+      "y": 0,
+      "pose": "recover",
+      "duration_ms": 80
+    },
+    {
+      "frame": 4,
+      "x": 192,
+      "y": 0,
+      "pose": "idle",
+      "duration_ms": 90
+    }
+  ],
+  "frame_count": 4,
+  "sheet": "south_west/hit/sprite_sheet.png",
+  "frame_paths": [
+    "south_west/hit/frames/01.png",
+    "south_west/hit/frames/02.png",
+    "south_west/hit/frames/03.png",
+    "south_west/hit/frames/04.png"
+  ],
+  "preview": "south_west/hit/preview_x4.webp"
+}

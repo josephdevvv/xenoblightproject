@@ -6,7 +6,7 @@ import type { MonsterArtId } from './art/MonsterArt';
  * (configurable data; the formulas are in combat/CombatRules.ts and use the same stat names as players).
  */
 
-export type MonsterId = 'voidmite' | 'mutant_wolf' | 'dark_avian';
+export type MonsterId = 'voidmite' | 'mutant_wolf' | 'dark_avian' | 'mutant_boar';
 
 /**
  * A flying monster's body is drawn above its ground point: movement, collision, pathfinding, depth and the
@@ -135,6 +135,29 @@ export const MONSTER_DEFINITIONS: Readonly<Record<MonsterId, MonsterDefinition>>
       attackRange: 1.2,
       chaseSpeed: 2.6,
       leashTiles: 10,
+      respawnMs: MONSTER_RESPAWN_DELAY_MS,
+    },
+  },
+  mutant_boar: {
+    id: 'mutant_boar',
+    displayName: 'Mutant Boar',
+    category: 'monster',
+    art: 'mutant_boar',
+    // Zone 4 ground monster on the Mutant Wolf's rules: same footprint (collision), wandering and AI numbers.
+    footprintRadius: 0.35,
+    behavior: { type: 'wander', radiusTiles: 3, speed: 1.3, pauseMs: [1400, 3600] },
+    // Level, Max HP, ATK and HIT as specified; DEF, FLEE, attack speed, reach, chase and leash are the wolf's.
+    combat: {
+      level: 7,
+      maxHp: 100,
+      atk: 42,
+      def: 2,
+      hit: 150,
+      flee: 85,
+      attackIntervalMs: 1900,
+      attackRange: 1.1,
+      chaseSpeed: 2.4,
+      leashTiles: 9,
       respawnMs: MONSTER_RESPAWN_DELAY_MS,
     },
   },

@@ -12,8 +12,8 @@ import { MENU_SLOT } from '../src/ui/hud/HudLayout';
 import { readPng } from './helpers/png';
 import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
-test('rewards: Void Mite 1, Mutant Wolf 3, Dark Avian 5 - every monster has one, kept apart from combat stats', () => {
-  assert.deepEqual([monsterGoldReward('voidmite'), monsterGoldReward('mutant_wolf'), monsterGoldReward('dark_avian')], [1, 3, 5]);
+test('rewards: Void Mite 1, Mutant Wolf 3, Dark Avian 5, Mutant Boar 7 - every monster has one, kept apart from combat stats', () => {
+  assert.deepEqual([monsterGoldReward('voidmite'), monsterGoldReward('mutant_wolf'), monsterGoldReward('dark_avian'), monsterGoldReward('mutant_boar')], [1, 3, 5, 7]);
   for (const id of Object.keys(MONSTER_DEFINITIONS)) assert.ok(id in MONSTER_GOLD_REWARDS, id);
   for (const def of Object.values(MONSTER_DEFINITIONS)) assert.ok(!('gold' in def.combat));
 });

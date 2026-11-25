@@ -61,6 +61,7 @@ export const th = {
     subtitle: 'ไมล์สโตน 01 · ต้นแบบ',
     gender: 'เพศ',
     hairstyle: 'ทรงผม',
+    hairColor: 'สีผม',
     outfitPreview: 'ตัวอย่างชุด',
     name: 'ชื่อ',
     namePlaceholder: 'ใส่ชื่อตัวละคร',

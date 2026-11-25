@@ -59,6 +59,29 @@ test('player combat sheets: metadata matches the PNGs (frames, rows SE/SW/NE/NW,
   }
 });
 
+test('Male Side Swept: combat art for all 5 colours (4 actions + optional unarmed_punch, same timing as the Mohawk set)', () => {
+  const ref = combatSetFor('char_male_mohawk_blonde_drifter')!;
+  for (const c of ['blonde', 'black', 'silver', 'brown', 'red']) {
+    const s = combatSetFor(`char_male_side_swept_${c}_drifter`);
+    assert.ok(s, `side_swept ${c} has combat art`);
+    for (const action of PLAYER_COMBAT_ACTIONS) {
+      assert.equal(s!.actions[action].frames, ref.actions[action].frames, `${c} ${action} frames`);
+      assert.equal(s!.actions[action].frameMs, ref.actions[action].frameMs, `${c} ${action} timing`);
+      assert.equal(s!.actions[action].repeat, ref.actions[action].repeat, `${c} ${action} loop`);
+    }
+    const punch = s!.optional.unarmed_punch;
+    assert.ok(punch, `${c} unarmed_punch exported`);
+    assert.equal(punch!.frames, 8);
+    assert.equal(punch!.frameMs, 100);
+    assert.equal(punch!.repeat, 0);
+    assert.equal(punch!.events.impactFrame, 5);
+    assert.deepEqual(punch!.rows, ['SE', 'SW', 'NE', 'NW']);
+    const img = readPng(path.join(PUBLIC, s!.basePath + punch!.file));
+    assert.deepEqual([img.width, img.height], [512, 256]);
+  }
+  assert.deepEqual(ref.optional, {}, 'the Mohawk export has no optional actions');
+});
+
 test('player combat frames stand on the static canvas root (feet on row 56): no jump between static and combat', () => {
   for (const s of Object.values(PLAYER_COMBAT_SETS)) {
     for (const action of PLAYER_COMBAT_ACTIONS) {

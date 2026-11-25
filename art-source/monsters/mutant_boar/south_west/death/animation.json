@@ -1,0 +1,65 @@
+{
+  "action": "death",
+  "direction": "south_west",
+  "frame_width": 64,
+  "frame_height": 64,
+  "ground_y": 55,
+  "hold_final_frame": true,
+  "frame_numbering": "1-based",
+  "loop_in_game": false,
+  "frames": [
+    {
+      "frame": 1,
+      "x": 0,
+      "y": 0,
+      "pose": "idle",
+      "duration_ms": 70
+    },
+    {
+      "frame": 2,
+      "x": 64,
+      "y": 0,
+      "pose": "forelegs_buckle",
+      "duration_ms": 90
+    },
+    {
+      "frame": 3,
+      "x": 128,
+      "y": 0,
+      "pose": "chest_drops",
+      "duration_ms": 100
+    },
+    {
+      "frame": 4,
+      "x": 192,
+      "y": 0,
+      "pose": "hindlegs_fold",
+      "duration_ms": 110
+    },
+    {
+      "frame": 5,
+      "x": 256,
+      "y": 0,
+      "pose": "head_lowers",
+      "duration_ms": 120
+    },
+    {
+      "frame": 6,
+      "x": 320,
+      "y": 0,
+      "pose": "prone",
+      "duration_ms": 450
+    }
+  ],
+  "frame_count": 6,
+  "sheet": "south_west/death/sprite_sheet.png",
+  "frame_paths": [
+    "south_west/death/frames/01.png",
+    "south_west/death/frames/02.png",
+    "south_west/death/frames/03.png",
+    "south_west/death/frames/04.png",
+    "south_west/death/frames/05.png",
+    "south_west/death/frames/06.png"
+  ],
+  "preview": "south_west/death/preview_x4.webp"
+}

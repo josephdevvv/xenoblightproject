@@ -1,0 +1,3281 @@
+{
+  "schema": "xenoblight-sprite-forge/animation@1",
+  "animation": "walk",
+  "jobId": "job_20261119_111804_486ef9",
+  "character": {
+    "gender": "male",
+    "hairstyle": "spike",
+    "hairColor": "blonde",
+    "outfit": "base_tee_shorts"
+  },
+  "master": {
+    "masterId": "MALE_MASTER",
+    "version": "v002"
+  },
+  "layerRole": "starter-outfit character reference (flattened skin + clothing; not a reusable under-clothing body layer)",
+  "frameSize": {
+    "width": 64,
+    "height": 64
+  },
+  "layout": {
+    "columns": 6,
+    "rows": 8,
+    "order": [
+      "S",
+      "SE",
+      "E",
+      "NE",
+      "N",
+      "NW",
+      "W",
+      "SW"
+    ],
+    "sheet": "male_spike_blonde_walk_8dir_r2.png"
+  },
+  "frameMs": 125,
+  "loop": true,
+  "anchorConvention": "edge coordinates: pixel centre = x + 0.5; root = feet centre at the bottom edge of the lowest solid row (alpha >= 128, lowest 4 rows); head = centre of the top 4 solid rows at the top edge; groundContact = root; hairAnchor = centre of the topmost solid row (scalp top) at its top edge; outfitAnchor = centre of the first row with >= 4 neckline-coloured px (#ffffff/#cbdbfc) at its top edge; mirrored x' = frameWidth - x",
+  "directionPolicy": {
+    "id": "mirror5-v1",
+    "sources": {
+      "S": "original",
+      "SE": "original",
+      "E": "original",
+      "NE": "original",
+      "N": "original",
+      "NW": "mirror(NE)",
+      "W": "mirror(E)",
+      "SW": "mirror(SE)"
+    },
+    "exceptions": []
+  },
+  "masterAnchors": {
+    "S": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 31.4,
+        "y": 2
+      }
+    },
+    "SE": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 33.091,
+        "y": 3
+      }
+    },
+    "E": {
+      "root": {
+        "x": 31.262,
+        "y": 57
+      },
+      "head": {
+        "x": 35,
+        "y": 4
+      }
+    },
+    "NE": {
+      "root": {
+        "x": 32.746,
+        "y": 57
+      },
+      "head": {
+        "x": 33.685,
+        "y": 3
+      }
+    },
+    "N": {
+      "root": {
+        "x": 31,
+        "y": 57
+      },
+      "head": {
+        "x": 31,
+        "y": 2
+      }
+    },
+    "NW": {
+      "root": {
+        "x": 29.882,
+        "y": 57
+      },
+      "head": {
+        "x": 28.741,
+        "y": 3
+      }
+    },
+    "W": {
+      "root": {
+        "x": 31.738,
+        "y": 57
+      },
+      "head": {
+        "x": 27.413,
+        "y": 4
+      }
+    },
+    "SW": {
+      "root": {
+        "x": 32,
+        "y": 57
+      },
+      "head": {
+        "x": 28.909,
+        "y": 3
+      }
+    }
+  },
+  "crop": null,
+  "provenance": {
+    "derivedFrom": "job_20261119_111121_2aba39",
+    "op": "3 audited pixel edits on canonical frames (hair outline 3); mirrors re-flipped",
+    "remote": null
+  },
+  "outlineExceptions": [],
+  "validation": "WARNING",
+  "frames": [
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.955,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.4,
+        "y": 1
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.955,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 1
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south",
+          "layerFile": "male_spike_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 173
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.985
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south_00.png",
+      "revisionAsset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.9,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.4,
+        "y": 0
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.9,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 0
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south",
+          "layerFile": "male_spike_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -2
+          },
+          "pixels": 173
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -2,
+          "score": 0.979
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south_01.png",
+      "revisionAsset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.765,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.4,
+        "y": 1
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.765,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 1
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south",
+          "layerFile": "male_spike_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 173
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.973
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south_02.png",
+      "revisionAsset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.464,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.4,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.464,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south",
+          "layerFile": "male_spike_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 173
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.988
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south_03.png",
+      "revisionAsset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.05,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.4,
+        "y": 1
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.05,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 1
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south",
+          "layerFile": "male_spike_blonde_hair_south.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 173
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.988
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south_04.png",
+      "revisionAsset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.551,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.4,
+        "y": 0
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.551,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30.5,
+        "y": 0
+      },
+      "outfitAnchor": {
+        "x": 30,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south",
+          "layerFile": "male_spike_blonde_hair_south.png",
+          "offset": {
+            "dx": -1,
+            "dy": -2
+          },
+          "pixels": 173
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": -1,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": -1,
+          "dy": -2,
+          "score": 0.979
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south_05.png",
+      "revisionAsset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.114,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.091,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.114,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 34.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 1
+          },
+          "pixels": 143
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 1,
+          "score": 0.913
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.478,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 34.091,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.478,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 28.5,
+        "y": 24
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 143
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.897
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.069,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 34.091,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.069,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 35.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 143
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.908
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.113,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 34.091,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.113,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 35.5,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 143
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.908
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.885,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 34.091,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.885,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 35.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 143
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.905
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.825,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 34.091,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.825,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 143
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.908
+        }
+      },
+      "file": "male_spike_blonde_base_walk_south-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.813,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 36,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.813,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 131
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.991
+        }
+      },
+      "file": "male_spike_blonde_base_walk_east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.219,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 36,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.219,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 131
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.991
+        }
+      },
+      "file": "male_spike_blonde_base_walk_east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.87,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 36,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.87,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 131
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_spike_blonde_base_walk_east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.861,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 36,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.861,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 131
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_spike_blonde_base_walk_east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.709,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 36,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.709,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 131
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.994
+        }
+      },
+      "file": "male_spike_blonde_base_walk_east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.241,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 36,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.241,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 131
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.994
+        }
+      },
+      "file": "male_spike_blonde_base_walk_east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.333,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.685,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.333,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.935
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.685,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.935
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.141,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.685,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.141,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 168
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.476,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.685,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.476,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 168
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.773,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.685,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.773,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 35,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.935
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.391,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.685,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.391,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 35,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.932
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north",
+          "layerFile": "male_spike_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 234
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.993
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.109,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.109,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north",
+          "layerFile": "male_spike_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 234
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.963
+        }
+      },
+      "pixelEdits": 1,
+      "file": "male_spike_blonde_base_walk_north_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.75,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north",
+          "layerFile": "male_spike_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 234
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "pixelEdits": 1,
+      "file": "male_spike_blonde_base_walk_north_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north",
+          "layerFile": "male_spike_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 234
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 26.891,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 26.891,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north",
+          "layerFile": "male_spike_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 234
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 1
+        }
+      },
+      "file": "male_spike_blonde_base_walk_north_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.75,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north",
+          "layerFile": "male_spike_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 234
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.993
+        }
+      },
+      "pixelEdits": 1,
+      "file": "male_spike_blonde_base_walk_north_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#0",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.667,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.315,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.667,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_spike_blonde_base_walk_north-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#1",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.315,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 33.5,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_spike_blonde_base_walk_north-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#2",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.859,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.315,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.859,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 168,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_spike_blonde_base_walk_north-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#3",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.524,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.315,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.524,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 168,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_spike_blonde_base_walk_north-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#4",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.227,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.315,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.227,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 29,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 33,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_spike_blonde_base_walk_north-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#5",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.609,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.315,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.609,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 29,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 33.5,
+        "y": 20
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_north-east",
+          "layerFile": "male_spike_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 168,
+          "mirroredFrom": "NE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_spike_blonde_base_walk_north-west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#0",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.187,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 28,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.187,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 131,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_spike_blonde_base_walk_west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#1",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.781,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 28,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.781,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 131,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_spike_blonde_base_walk_west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#2",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.13,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 28,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.13,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 131,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_spike_blonde_base_walk_west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#3",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.139,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 28,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.139,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 131,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_spike_blonde_base_walk_west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#4",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.291,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 28,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.291,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 131,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_spike_blonde_base_walk_west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#5",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.759,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 28,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.759,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_east",
+          "layerFile": "male_spike_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 131,
+          "mirroredFrom": "E"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_spike_blonde_base_walk_west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#0",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.886,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.909,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.886,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 1
+          },
+          "pixels": 143,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_spike_blonde_base_walk_south-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#1",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.522,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.909,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.522,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 28.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 35.5,
+        "y": 24
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 143,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_spike_blonde_base_walk_south-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#2",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.931,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 29.909,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.931,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 28.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 143,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_spike_blonde_base_walk_south-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#3",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.887,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 29.909,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.887,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 28.5,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": -1
+          },
+          "pixels": 143,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -1,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_spike_blonde_base_walk_south-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#4",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.115,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 29.909,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.115,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 28.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 143,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_spike_blonde_base_walk_south-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#5",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.175,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.909,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.175,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 28.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:spike",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_spike_blonde_white-tee-black-shorts_south-east",
+          "layerFile": "male_spike_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 143,
+          "mirroredFrom": "SE"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_spike_blonde_base_walk_south-west_05.png"
+    }
+  ],
+  "revision": {
+    "revision": 2,
+    "previousSheet": "male_spike_blonde_walk_8dir.png",
+    "previousMetadata": "male_spike_blonde_walk_metadata.json",
+    "record": "male_south_walk_face_fix_r2.json",
+    "note": "User: \"UPDATE MALE SOUTH WALK FACES\" - corrected South walk face pixels from references/walk/male/male_south_walk_face_reference_20261121.png (11 px, S1/S2/S5)",
+    "changedDirections": {
+      "S": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2",
+        "previousAsset": "male_spike_blonde_white-tee-black-shorts_south_walk",
+        "pixels": 11,
+        "frames": [
+          1,
+          2,
+          5
+        ]
+      }
+    },
+    "sheetSha256": "cd1b4b279b2d6248fef9dd2c945d8243ccf93572f7639f60bc481a46faecacde"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "action": "stomp",
+  "direction": "south_east",
+  "frame_width": 64,
+  "frame_height": 64,
+  "ground_y": 55,
+  "impact_frame": 6,
+  "frame_numbering": "1-based",
+  "frames": [
+    {
+      "frame": 1,
+      "x": 0,
+      "y": 0,
+      "pose": "idle",
+      "duration_ms": 90
+    },
+    {
+      "frame": 2,
+      "x": 64,
+      "y": 0,
+      "pose": "crouch",
+      "duration_ms": 100
+    },
+    {
+      "frame": 3,
+      "x": 128,
+      "y": 0,
+      "pose": "lift",
+      "duration_ms": 90
+    },
+    {
+      "frame": 4,
+      "x": 192,
+      "y": 0,
+      "pose": "raised",
+      "duration_ms": 130
+    },
+    {
+      "frame": 5,
+      "x": 256,
+      "y": 0,
+      "pose": "downstroke",
+      "duration_ms": 60
+    },
+    {
+      "frame": 6,
+      "x": 320,
+      "y": 0,
+      "pose": "stomp_contact",
+      "duration_ms": 110
+    },
+    {
+      "frame": 7,
+      "x": 384,
+      "y": 0,
+      "pose": "rebound",
+      "duration_ms": 100
+    },
+    {
+      "frame": 8,
+      "x": 448,
+      "y": 0,
+      "pose": "recover",
+      "duration_ms": 110
+    }
+  ],
+  "loop_in_game": false,
+  "frame_count": 8,
+  "sheet": "south_east/stomp/sprite_sheet.png",
+  "frame_paths": [
+    "south_east/stomp/frames/01.png",
+    "south_east/stomp/frames/02.png",
+    "south_east/stomp/frames/03.png",
+    "south_east/stomp/frames/04.png",
+    "south_east/stomp/frames/05.png",
+    "south_east/stomp/frames/06.png",
+    "south_east/stomp/frames/07.png",
+    "south_east/stomp/frames/08.png"
+  ],
+  "preview": "south_east/stomp/preview_x4.webp"
+}

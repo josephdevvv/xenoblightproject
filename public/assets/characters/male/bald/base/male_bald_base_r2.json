@@ -1,0 +1,152 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-21T00:38:53.911Z",
+  "key": "male_bald_base",
+  "displayName": {
+    "en": "Male Bald (base)",
+    "th": "ชาย หัวโล้น (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "bald",
+    "hairColorId": "none",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "bald",
+    "hairColor": "none",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_male_bald_none_basic",
+  "aliasSpriteIds": [
+    "char_male_bald_blonde_basic",
+    "char_male_bald_black_basic",
+    "char_male_bald_silver_basic",
+    "char_male_bald_brown_basic",
+    "char_male_bald_red_basic"
+  ],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/male/bald/base/male_bald_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "322087ecc9d26644f774cc3c0ce9e93ecab88fa3838de13d37c205979848e57a",
+    "directions": {
+      "S": {
+        "asset": "male_bald_none_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "E": {
+        "asset": "male_bald_none_white-tee-black-shorts_east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NE": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "N": {
+        "asset": "male_bald_none_white-tee-black-shorts_north",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NW": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "W": {
+        "asset": "male_bald_none_white-tee-black-shorts_west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SW": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/male/bald/base/male_bald_base_walk_8dir_r2.png",
+    "metadata": "assets/characters/male/bald/base/male_bald_base_walk_metadata_r2.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "cc5bf725a2e9fe73e489afe0d7d784b2c67998883b7fa794c8abd5786a42fc99",
+    "directions": {
+      "S": {
+        "asset": "male_bald_none_white-tee-black-shorts_south_walk_r2",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_bald_none_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_bald_none_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_bald_none_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_bald_none_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_bald_none_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 0
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

@@ -1,4 +1,9 @@
 import maleSpikeBlondeDrifter from '../../../public/assets/characters/male/spike_blonde/drifter/combat/male_spike_blonde_drifter_combat.json';
+import maleSideSweptBlondeDrifter from '../../../public/assets/characters/male/side_swept_blonde/drifter/combat/male_side_swept_blonde_drifter_combat.json';
+import maleSideSweptBlackDrifter from '../../../public/assets/characters/male/side_swept_black/drifter/combat/male_side_swept_black_drifter_combat.json';
+import maleSideSweptSilverDrifter from '../../../public/assets/characters/male/side_swept_silver/drifter/combat/male_side_swept_silver_drifter_combat.json';
+import maleSideSweptBrownDrifter from '../../../public/assets/characters/male/side_swept_brown/drifter/combat/male_side_swept_brown_drifter_combat.json';
+import maleSideSweptRedDrifter from '../../../public/assets/characters/male/side_swept_red/drifter/combat/male_side_swept_red_drifter_combat.json';
 import impactVfx from '../../../public/assets/vfx/player/combat/impact.json';
 import type { ActionDirection } from '../../core/Direction';
 
@@ -14,6 +19,12 @@ import type { ActionDirection } from '../../core/Direction';
 
 export type PlayerCombatAction = 'combat_idle' | 'dagger_thrust' | 'self_heal_cast' | 'hit_reaction';
 export const PLAYER_COMBAT_ACTIONS: readonly PlayerCombatAction[] = ['combat_idle', 'dagger_thrust', 'self_heal_cast', 'hit_reaction'];
+/**
+ * Optional actions: loaded (sheet + per-facing animations) when the appearance's export has them, never required.
+ * unarmed_punch = the Drifter unarmed basic attack (Male Side Swept exports); not used by gameplay yet.
+ */
+export type PlayerOptionalCombatAction = 'unarmed_punch';
+export const PLAYER_OPTIONAL_COMBAT_ACTIONS: readonly PlayerOptionalCombatAction[] = ['unarmed_punch'];
 
 export interface PlayerCombatSheet {
   file: string;
@@ -36,6 +47,8 @@ export interface PlayerCombatSet {
   /** Folder under /public. */
   basePath: string;
   actions: Record<PlayerCombatAction, PlayerCombatSheet>;
+  /** Optional actions present in this export. */
+  optional: Partial<Record<PlayerOptionalCombatAction, PlayerCombatSheet>>;
 }
 
 interface CombatExport {
@@ -47,25 +60,30 @@ interface CombatExport {
 
 function fromExport(e: CombatExport): PlayerCombatSet {
   const actions = {} as Record<PlayerCombatAction, PlayerCombatSheet>;
+  const optional: Partial<Record<PlayerOptionalCombatAction, PlayerCombatSheet>> = {};
   for (const action of PLAYER_COMBAT_ACTIONS) {
     const a = e.actions[action];
     if (!a) throw new Error(`${e.key}: combat export has no "${action}"`);
     actions[action] = { file: a.file, frameWidth: a.frameWidth, frameHeight: a.frameHeight, frames: a.frames, rows: a.rows as ActionDirection[], frameMs: a.frameMs, repeat: a.repeat, events: a.events };
   }
-  return { key: e.key, spriteId: e.spriteId, basePath: e.basePath, actions };
+  for (const action of PLAYER_OPTIONAL_COMBAT_ACTIONS) {
+    const a = e.actions[action];
+    if (a) optional[action] = { file: a.file, frameWidth: a.frameWidth, frameHeight: a.frameHeight, frames: a.frames, rows: a.rows as ActionDirection[], frameMs: a.frameMs, repeat: a.repeat, events: a.events };
+  }
+  return { key: e.key, spriteId: e.spriteId, basePath: e.basePath, actions, optional };
 }
 
 /** Combat sets by character sprite id. */
 export const PLAYER_COMBAT_SETS: Readonly<Record<string, PlayerCombatSet>> = Object.fromEntries(
-  [maleSpikeBlondeDrifter as CombatExport].map((e) => [e.spriteId, fromExport(e)]),
+  [maleSpikeBlondeDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
 );
 
 export function combatSetFor(spriteId: string): PlayerCombatSet | null {
   return PLAYER_COMBAT_SETS[spriteId] ?? null;
 }
 
-export const playerCombatSheetKey = (set: PlayerCombatSet, action: PlayerCombatAction): string => `player.${set.key}.${action}`;
-export const playerCombatAnimKey = (set: PlayerCombatSet, action: PlayerCombatAction, facing: ActionDirection): string => `player.${set.key}.${action}.${facing}`;
+export const playerCombatSheetKey = (set: PlayerCombatSet, action: PlayerCombatAction | PlayerOptionalCombatAction): string => `player.${set.key}.${action}`;
+export const playerCombatAnimKey = (set: PlayerCombatSet, action: PlayerCombatAction | PlayerOptionalCombatAction, facing: ActionDirection): string => `player.${set.key}.${action}.${facing}`;
 
 /** The shared grayscale on-hit VFX (Sprite Forge VFX library), as exported. */
 export const PLAYER_IMPACT_VFX = {

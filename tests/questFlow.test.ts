@@ -255,7 +255,7 @@ test('Void Mite quest rules: order, kills only while hunting, capped; restore re
 
 test('kill credit: monster EXP unchanged and separate from the quest; another character is independent', () => {
   withoutStorage(() => {
-    assert.deepEqual({ ...MONSTER_EXP_REWARDS }, { voidmite: 20, mutant_wolf: 32, dark_avian: 54 }, 'monster EXP unchanged (the vulture added)');
+    assert.deepEqual({ ...MONSTER_EXP_REWARDS }, { voidmite: 20, mutant_wolf: 32, dark_avian: 54, mutant_boar: 60 }, 'monster EXP unchanged (the vulture and the boar added)');
     const { c, off } = session('Hunter');
     daggerWorn(c);
     turnIn02(c);

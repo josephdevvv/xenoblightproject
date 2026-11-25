@@ -55,6 +55,7 @@ export const en: Messages = {
     subtitle: 'Milestone 01 · Prototype',
     gender: 'Gender',
     hairstyle: 'Hairstyle',
+    hairColor: 'Hair Colour',
     outfitPreview: 'Outfit Preview',
     name: 'Name',
     namePlaceholder: 'Enter character name',

@@ -1,0 +1,404 @@
+{
+  "id": "mutant_boar",
+  "name": "Mutant Boar",
+  "nameTh": null,
+  "rows": [
+    "SE",
+    "SW",
+    "NE",
+    "NW"
+  ],
+  "actions": {
+    "idle": {
+      "file": "idle.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 1,
+      "anchors": {
+        "SE": {
+          "x": 32,
+          "y": 56
+        },
+        "SW": {
+          "x": 32,
+          "y": 56
+        },
+        "NE": {
+          "x": 32,
+          "y": 57
+        },
+        "NW": {
+          "x": 32,
+          "y": 57
+        }
+      },
+      "feet": {
+        "SE": [
+          55
+        ],
+        "SW": [
+          55
+        ],
+        "NE": [
+          55
+        ],
+        "NW": [
+          55
+        ]
+      }
+    },
+    "walk": {
+      "file": "walk.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 6,
+      "anchors": {
+        "SE": {
+          "x": 32,
+          "y": 59
+        },
+        "SW": {
+          "x": 32,
+          "y": 59
+        },
+        "NE": {
+          "x": 32,
+          "y": 59
+        },
+        "NW": {
+          "x": 32,
+          "y": 59
+        }
+      },
+      "feet": {
+        "SE": [
+          58,
+          58,
+          58,
+          58,
+          58,
+          58
+        ],
+        "SW": [
+          58,
+          58,
+          58,
+          58,
+          58,
+          58
+        ],
+        "NE": [
+          58,
+          58,
+          58,
+          58,
+          58,
+          58
+        ],
+        "NW": [
+          58,
+          58,
+          58,
+          58,
+          58,
+          58
+        ]
+      }
+    },
+    "attack": {
+      "file": "attack.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 8,
+      "anchors": {
+        "SE": {
+          "x": 32,
+          "y": 56
+        },
+        "SW": {
+          "x": 32,
+          "y": 56
+        },
+        "NE": {
+          "x": 32,
+          "y": 57
+        },
+        "NW": {
+          "x": 32,
+          "y": 57
+        }
+      },
+      "feet": {
+        "SE": [
+          55,
+          55,
+          55,
+          55,
+          55,
+          55,
+          55,
+          55
+        ],
+        "SW": [
+          55,
+          55,
+          55,
+          55,
+          55,
+          55,
+          55,
+          55
+        ],
+        "NE": [
+          55,
+          56,
+          56,
+          56,
+          56,
+          56,
+          56,
+          55
+        ],
+        "NW": [
+          55,
+          56,
+          56,
+          56,
+          56,
+          56,
+          56,
+          55
+        ]
+      }
+    },
+    "hit": {
+      "file": "hit.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 4,
+      "anchors": {
+        "SE": {
+          "x": 32,
+          "y": 56
+        },
+        "SW": {
+          "x": 32,
+          "y": 56
+        },
+        "NE": {
+          "x": 32,
+          "y": 57
+        },
+        "NW": {
+          "x": 32,
+          "y": 57
+        }
+      },
+      "feet": {
+        "SE": [
+          55,
+          55,
+          55,
+          55
+        ],
+        "SW": [
+          55,
+          55,
+          55,
+          55
+        ],
+        "NE": [
+          56,
+          56,
+          56,
+          55
+        ],
+        "NW": [
+          56,
+          56,
+          56,
+          55
+        ]
+      }
+    },
+    "death": {
+      "file": "death.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 6,
+      "anchors": {
+        "SE": {
+          "x": 32,
+          "y": 56
+        },
+        "SW": {
+          "x": 32,
+          "y": 56
+        },
+        "NE": {
+          "x": 32,
+          "y": 57
+        },
+        "NW": {
+          "x": 32,
+          "y": 57
+        }
+      },
+      "feet": {
+        "SE": [
+          55,
+          55,
+          55,
+          55,
+          55,
+          55
+        ],
+        "SW": [
+          55,
+          55,
+          55,
+          55,
+          55,
+          55
+        ],
+        "NE": [
+          55,
+          56,
+          56,
+          56,
+          56,
+          56
+        ],
+        "NW": [
+          55,
+          56,
+          56,
+          56,
+          56,
+          56
+        ]
+      }
+    }
+  },
+  "vfx": {
+    "file": "vfx_attack.png",
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "frames": 4,
+    "origins": {
+      "SE": {
+        "x": 32,
+        "y": 32
+      },
+      "SW": {
+        "x": 32,
+        "y": 32
+      },
+      "NE": {
+        "x": 32,
+        "y": 32
+      },
+      "NW": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "offsets": {
+      "SE": {
+        "x": 0,
+        "y": 0
+      },
+      "SW": {
+        "x": 0,
+        "y": 0
+      },
+      "NE": {
+        "x": 0,
+        "y": 0
+      },
+      "NW": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  "qa": {
+    "specks": [
+      "idle NE frame 1: speck at (51, 12)",
+      "idle NE frame 1: speck at (49, 10)",
+      "idle NE frame 1: speck at (5, 30)",
+      "idle NE frame 1: speck at (54, 48)",
+      "idle NE frame 1: speck at (42, 54)",
+      "idle NW frame 1: speck at (11, 12)",
+      "idle NW frame 1: speck at (14, 10)",
+      "idle NW frame 1: speck at (58, 30)",
+      "idle NW frame 1: speck at (9, 48)",
+      "idle NW frame 1: speck at (21, 54)",
+      "walk SE frame 1: speck at (14, 13)",
+      "walk SE frame 2: speck at (17, 10)",
+      "walk SE frame 3: speck at (14, 9)",
+      "walk SE frame 3: speck at (57, 15)",
+      "walk SE frame 5: speck at (14, 10)",
+      "walk SE frame 6: speck at (17, 10)",
+      "walk SE frame 6: speck at (24, 56)",
+      "walk SW frame 1: speck at (49, 13)",
+      "walk SW frame 2: speck at (46, 10)",
+      "walk SW frame 3: speck at (49, 9)",
+      "walk SW frame 3: speck at (6, 15)",
+      "walk SW frame 5: speck at (49, 10)",
+      "walk SW frame 6: speck at (46, 10)",
+      "walk SW frame 6: speck at (39, 56)",
+      "walk NE frame 2: speck at (9, 12)",
+      "walk NE frame 3: speck at (55, 4)",
+      "walk NE frame 3: speck at (51, 6)",
+      "walk NE frame 3: speck at (38, 46)",
+      "walk NE frame 5: speck at (10, 7)",
+      "walk NW frame 2: speck at (54, 12)",
+      "walk NW frame 3: speck at (8, 4)",
+      "walk NW frame 3: speck at (12, 6)",
+      "walk NW frame 3: speck at (25, 46)",
+      "walk NW frame 5: speck at (52, 7)",
+      "attack NE frame 1: speck at (51, 12)",
+      "attack NE frame 1: speck at (49, 10)",
+      "attack NE frame 1: speck at (5, 30)",
+      "attack NE frame 1: speck at (54, 48)",
+      "attack NE frame 1: speck at (42, 54)",
+      "attack NE frame 8: speck at (51, 12)",
+      "attack NE frame 8: speck at (49, 10)",
+      "attack NE frame 8: speck at (5, 30)",
+      "attack NE frame 8: speck at (54, 48)",
+      "attack NE frame 8: speck at (42, 54)",
+      "attack NW frame 1: speck at (11, 12)",
+      "attack NW frame 1: speck at (14, 10)",
+      "attack NW frame 1: speck at (58, 30)",
+      "attack NW frame 1: speck at (9, 48)",
+      "attack NW frame 1: speck at (21, 54)",
+      "attack NW frame 8: speck at (11, 12)",
+      "attack NW frame 8: speck at (14, 10)",
+      "attack NW frame 8: speck at (58, 30)",
+      "attack NW frame 8: speck at (9, 48)",
+      "attack NW frame 8: speck at (21, 54)",
+      "hit NE frame 4: speck at (51, 12)",
+      "hit NE frame 4: speck at (49, 10)",
+      "hit NE frame 4: speck at (5, 30)",
+      "hit NE frame 4: speck at (54, 48)",
+      "hit NE frame 4: speck at (42, 54)",
+      "hit NW frame 4: speck at (11, 12)",
+      "hit NW frame 4: speck at (14, 10)",
+      "hit NW frame 4: speck at (58, 30)",
+      "hit NW frame 4: speck at (9, 48)",
+      "hit NW frame 4: speck at (21, 54)",
+      "death NE frame 1: speck at (51, 12)",
+      "death NE frame 1: speck at (49, 10)",
+      "death NE frame 1: speck at (5, 30)",
+      "death NE frame 1: speck at (54, 48)",
+      "death NE frame 1: speck at (42, 54)",
+      "death NW frame 1: speck at (11, 12)",
+      "death NW frame 1: speck at (14, 10)",
+      "death NW frame 1: speck at (58, 30)",
+      "death NW frame 1: speck at (9, 48)",
+      "death NW frame 1: speck at (21, 54)"
+    ],
+    "notes": []
+  }
+}

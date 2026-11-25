@@ -1,0 +1,149 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-25T11:01:57.982Z",
+  "key": "male_side_swept_blonde_base",
+  "displayName": {
+    "en": "Male Side Swept Blonde (base)",
+    "th": "ชาย แสกปัด บลอนด์ (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "side_swept",
+    "hairColorId": "blonde",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "side_swept",
+    "hairColor": "blonde",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_male_side_swept_blonde_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/male/side_swept_blonde/base/male_side_swept_blonde_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "ab5735cc1c48074c3cced2638d1228f50194e1691e0cb72ac01ea077f0d928d3",
+    "directions": {
+      "S": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_south-east",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_east",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_north-east",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_north",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_north-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_south-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/male/side_swept_blonde/base/male_side_swept_blonde_base_walk_8dir.png",
+    "metadata": "assets/characters/male/side_swept_blonde/base/male_side_swept_blonde_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "32932c8a8cef22d21e0238a83252e6df4bcbfec6aa1be7f2f3117bf901ce68c9",
+    "directions": {
+      "S": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_side-swept_blonde_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 0
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

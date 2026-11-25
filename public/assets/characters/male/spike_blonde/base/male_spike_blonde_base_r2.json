@@ -1,0 +1,147 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-21T00:38:53.963Z",
+  "key": "male_spike_blonde_base",
+  "displayName": {
+    "en": "Male Mohawk Blonde (base)",
+    "th": "ชาย หัวไก่ บลอนด์ (พื้นฐาน)"
+  },
+  "alias": "Mohawk Blonde = Sprite Forge spike / blonde (game hairstyle id \"mohawk\", forge gameId \"mohawk\")",
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "mohawk",
+    "hairColorId": "blonde",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "spike",
+    "hairColor": "blonde",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_male_mohawk_blonde_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/male/spike_blonde/base/male_spike_blonde_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "087eeb7677ac8f7ae27098b53079bfbad7d3a6b540efa51e72672ab040e6c3cf",
+    "directions": {
+      "S": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_south-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "E": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NE": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_north-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "N": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_north",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NW": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_north-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "W": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SW": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_south-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/male/spike_blonde/base/male_spike_blonde_base_walk_8dir_r2.png",
+    "metadata": "assets/characters/male/spike_blonde/base/male_spike_blonde_base_walk_metadata_r2.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "cd1b4b279b2d6248fef9dd2c945d8243ccf93572f7639f60bc481a46faecacde",
+    "directions": {
+      "S": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_south_walk_r2",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_spike_blonde_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 0
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

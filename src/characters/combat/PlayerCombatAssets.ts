@@ -1,10 +1,21 @@
 import type Phaser from 'phaser';
 import { GameServices } from '../../systems/GameServices';
-import { combatSetFor, PLAYER_COMBAT_ACTIONS, PLAYER_IMPACT_VFX, playerCombatAnimKey, playerCombatSheetKey, type PlayerCombatSet } from './PlayerCombatArt';
+import {
+  combatSetFor,
+  PLAYER_COMBAT_ACTIONS,
+  PLAYER_IMPACT_VFX,
+  PLAYER_OPTIONAL_COMBAT_ACTIONS,
+  playerCombatAnimKey,
+  playerCombatSheetKey,
+  type PlayerCombatAction,
+  type PlayerCombatSet,
+  type PlayerCombatSheet,
+  type PlayerOptionalCombatAction,
+} from './PlayerCombatArt';
 
 /**
  * Player combat textures and animations: the shared on-hit impact VFX and, when the appearance has exported
- * combat art, its four combat sheets.
+ * combat art, its four combat sheets (plus optional ones such as unarmed_punch when exported).
  *
  * Lifecycle (ResourceCacheManager rules):
  *  - the scene OWNS the textures from before loading starts until it shuts down (`owner`, released with
@@ -50,10 +61,13 @@ function impactSheet(): Sheet {
   };
 }
 
-/** The 4 sheets of a combat set with their per-facing animations (rows / frames / timing / loop from its metadata). */
+/** The sheets of a combat set (4 required + the optional ones it has) with their per-facing animations (rows / frames / timing / loop from its metadata). */
 function combatSheets(set: PlayerCombatSet): Sheet[] {
-  return PLAYER_COMBAT_ACTIONS.map((action) => {
-    const sheet = set.actions[action];
+  const entries: [PlayerCombatAction | PlayerOptionalCombatAction, PlayerCombatSheet][] = [
+    ...PLAYER_COMBAT_ACTIONS.map((a) => [a, set.actions[a]] as [PlayerCombatAction, PlayerCombatSheet]),
+    ...PLAYER_OPTIONAL_COMBAT_ACTIONS.filter((a) => set.optional[a]).map((a) => [a, set.optional[a]!] as [PlayerOptionalCombatAction, PlayerCombatSheet]),
+  ];
+  return entries.map(([action, sheet]) => {
     const key = playerCombatSheetKey(set, action);
     return {
       key,

@@ -34,18 +34,18 @@ function walkingDistance(from: { col: number; row: number }): number[][] {
 }
 
 /** The zone each species lives in. */
-const ZONE_OF = { voidmite: 'zone1_start', mutant_wolf: 'zone2_street', dark_avian: 'zone3_plaza' } as const;
+const ZONE_OF = { voidmite: ['zone1_start'], mutant_wolf: ['zone2_street'], dark_avian: ['zone3_plaza'], mutant_boar: ['zone4_housing', 'zone4_avenue'] } as const;
 
-test('Ashen Crossroads: exactly 20 Void Mites in Zone 1, 20 Mutant Wolves in Zone 2, 20 Dark Avians in Zone 3 - 60 in all', () => {
+test('Ashen Crossroads: exactly 20 Void Mites in Zone 1, 20 Mutant Wolves in Zone 2, 20 Dark Avians in Zone 3, 20 Mutant Boars in Zone 4 - 80 in all', () => {
   const count = (id: string) => points.filter((p) => p.monster === id).length;
-  assert.deepEqual([count('voidmite'), count('mutant_wolf'), count('dark_avian'), points.length], [20, 20, 20, 60]);
-  assert.deepEqual(new Set(points.map((p) => p.monster)), new Set(['voidmite', 'mutant_wolf', 'dark_avian']), 'no other species');
+  assert.deepEqual([count('voidmite'), count('mutant_wolf'), count('dark_avian'), count('mutant_boar'), points.length], [20, 20, 20, 20, 80]);
+  assert.deepEqual(new Set(points.map((p) => p.monster)), new Set(['voidmite', 'mutant_wolf', 'dark_avian', 'mutant_boar']), 'no other species');
+  assert.deepEqual([zone('zone4_housing'), zone('zone4_avenue')], [{ col: 0, row: 21, w: 19, h: 21, surface: undefined }, { col: 19, row: 21, w: 11, h: 21, surface: undefined }]);
   assert.deepEqual(zone('zone3_plaza'), { col: 0, row: 42, w: 30, h: 20, surface: undefined });
   assert.deepEqual(zone('zone1_start'), { col: 0, row: 90, w: 30, h: 30, surface: undefined });
   assert.deepEqual(zone('zone2_street'), { col: 0, row: 62, w: 30, h: 28, surface: undefined });
   for (const p of points) {
-    const z = zone(ZONE_OF[p.monster]);
-    assert.ok(inRect(z, p.col, p.row), `${p.monster} (${p.col}, ${p.row}) in its zone`);
+    assert.ok(ZONE_OF[p.monster].some((id) => inRect(zone(id), p.col, p.row)), `${p.monster} (${p.col}, ${p.row}) in its zone`);
   }
   assert.equal(new Set(points.map((p) => `${p.col},${p.row}`)).size, points.length, 'no two on one tile');
 });
@@ -53,7 +53,7 @@ test('Ashen Crossroads: exactly 20 Void Mites in Zone 1, 20 Mutant Wolves in Zon
 test('every spawn point: walkable for the monster, not blocked, not in or beside a building, not on a road, spread out', () => {
   const footprints = D.structures.map((s) => {
     const b = STRUCTURE_BLUEPRINTS[s.type];
-    return { minX: s.col, minY: s.row, maxX: s.col + b.width, maxY: s.row + b.height };
+    return { minX: s.col, minY: s.row, maxX: s.col + b.width, maxY: s.row + b.height, enterable: b.enterable };
   });
   for (const p of points) {
     const at = `${p.monster} (${p.col}, ${p.row})`;
@@ -61,7 +61,11 @@ test('every spawn point: walkable for the monster, not blocked, not in or beside
     assert.ok(p.col >= 1 && p.col <= D.cols - 2, `${at}: not on the map edge`);
     const r = MONSTER_DEFINITIONS[p.monster].footprintRadius + 0.1;
     assert.ok(map.isAreaFree({ minX: p.col + 0.5 - r, minY: p.row + 0.5 - r, maxX: p.col + 0.5 + r, maxY: p.row + 0.5 + r }), `${at}: room for its footprint`);
-    for (const f of footprints) assert.ok(!(p.col >= f.minX - 1 && p.col < f.maxX + 1 && p.row >= f.minY - 1 && p.row < f.maxY + 1), `${at}: clear of buildings and their doorways`);
+    // Zone 4 is dense: a boar may stand right beside sealed rubble (no doorway); every house with a way in keeps its ring
+    for (const f of footprints) {
+      const ring = p.monster === 'mutant_boar' && !f.enterable ? 0 : 1;
+      assert.ok(!(p.col >= f.minX - ring && p.col < f.maxX + ring && p.row >= f.minY - ring && p.row < f.maxY + ring), `${at}: clear of buildings and their doorways`);
+    }
     if (p.monster === 'dark_avian') {
       // the paved plaza is Zone 3's open ground; its streets and exits (and the tile beside them) stay clear
       const street = D.paths.filter((q) => q.surface !== 'plaza');

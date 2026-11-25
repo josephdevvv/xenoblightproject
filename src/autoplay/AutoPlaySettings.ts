@@ -25,6 +25,12 @@ export interface AutoPlayRecovery {
 export interface AutoPlaySettings {
   /** Monster types it hunts. */
   monsters: readonly MonsterId[];
+  /**
+   * Every monster type that existed when these settings were made / last loaded. A type added to the game later
+   * (e.g. the Mutant Boar) is hunted by default once - added to `monsters` on load - and can then be unticked for
+   * good. Older records have none: they knew the first three monsters.
+   */
+  knownMonsters?: readonly MonsterId[];
   /** Priority of the hotbar's attack skills (first = used first). Skills not listed follow in hotbar order. */
   skillOrder: readonly SkillId[];
   /** Hotbar skills Auto Play must not use. */
@@ -46,10 +52,13 @@ export const RECOVERY_DEFAULTS = { hpPotion: 30, spRecovery: 30, healSkill: 50 }
 export const AUTO_POTION_PERCENT = { ...AUTO_RECOVERY_PERCENT, default: RECOVERY_DEFAULTS.hpPotion } as const;
 
 const MONSTER_IDS = Object.keys(MONSTER_DEFINITIONS) as MonsterId[];
+/** The monster types of records saved before `knownMonsters` existed. */
+const LEGACY_KNOWN_MONSTERS: readonly MonsterId[] = ['voidmite', 'mutant_wolf', 'dark_avian'];
 
 export function createAutoPlaySettings(): AutoPlaySettings {
   return {
     monsters: [...MONSTER_IDS],
+    knownMonsters: [...MONSTER_IDS],
     skillOrder: [],
     skillsOff: [],
     retaliate: true,
@@ -111,6 +120,8 @@ export function sanitizeAutoPlay(raw: unknown): { settings: AutoPlaySettings; re
     return { enabled: bool(r.enabled, fallback.enabled, `${key}.enabled`), percent: percent(r.percent, fallback.percent, `${key}.percent`) };
   };
   const isMonster = (v: unknown): v is MonsterId => typeof v === 'string' && v in MONSTER_DEFINITIONS;
+  // monster types added to the game since this record was saved: hunted by default (the player can untick them)
+  const known: readonly MonsterId[] = !Array.isArray(d.monsters) ? MONSTER_IDS : Array.isArray(d.knownMonsters) ? d.knownMonsters.filter(isMonster) : LEGACY_KNOWN_MONSTERS;
   const range = record(d.range);
   const mode: AutoPlayRangeMode = range.mode === 'map' || range.mode === 'radius' ? range.mode : base.range.mode;
   const radius = typeof range.radius === 'number' ? snap(range.radius, AUTO_RADIUS) : base.range.radius;
@@ -128,7 +139,8 @@ export function sanitizeAutoPlay(raw: unknown): { settings: AutoPlaySettings; re
 
   return {
     settings: {
-      monsters: list('monsters', isMonster, base.monsters),
+      monsters: unique([...list('monsters', isMonster, base.monsters), ...MONSTER_IDS.filter((id) => !known.includes(id))]),
+      knownMonsters: [...MONSTER_IDS],
       skillOrder: list('skillOrder', isSkillId, base.skillOrder),
       skillsOff: list('skillsOff', isSkillId, base.skillsOff),
       retaliate: bool(d.retaliate, base.retaliate, 'retaliate'),

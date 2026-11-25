@@ -1,0 +1,3211 @@
+{
+  "schema": "xenoblight-sprite-forge/animation@1",
+  "animation": "walk",
+  "character": {
+    "gender": "male",
+    "hairstyle": "side_swept",
+    "hairColor": "black",
+    "outfit": "base_tee_shorts"
+  },
+  "status": "approved",
+  "approvedBy": "user (chat: \"Approve all\")",
+  "layout": {
+    "columns": 6,
+    "rows": 8,
+    "order": [
+      "S",
+      "SE",
+      "E",
+      "NE",
+      "N",
+      "NW",
+      "W",
+      "SW"
+    ],
+    "sheet": "male_side-swept_black_walk_8dir.png"
+  },
+  "frameMs": 125,
+  "loop": true,
+  "anchorConvention": "edge coordinates: pixel centre = x + 0.5; root = feet centre at the bottom edge of the lowest solid row (alpha >= 128, lowest 4 rows); head = centre of the top 4 solid rows at the top edge; groundContact = root; hairAnchor = centre of the topmost solid row (scalp top) at its top edge; outfitAnchor = centre of the first row with >= 4 neckline-coloured px (#ffffff/#cbdbfc) at its top edge; mirrored x' = frameWidth - x",
+  "directionPolicy": {
+    "id": "mirror5-v1",
+    "sources": {
+      "S": "original",
+      "SE": "original",
+      "E": "original",
+      "NE": "original",
+      "N": "original",
+      "NW": "mirror(NE)",
+      "W": "mirror(E)",
+      "SW": "mirror(SE)"
+    },
+    "exceptions": []
+  },
+  "layerRole": "starter-outfit character reference (flattened skin + clothing; not a reusable under-clothing body layer)",
+  "provenance": {
+    "construction": "approved male bald base walk (latest rev) + side-swept hair layer (over)",
+    "hairLayerJob": "job_20261125_105058_53d82e",
+    "record": "approved/male/animations/male_side-swept_walk_drifter_sets_approved.json",
+    "templates": "candidates/male/job_20261125_105058_53d82e/male_side-swept_blonde_base_walk_metadata.json"
+  },
+  "sheetSha256": "c4676a6e58efd1e9fd0d54470ebb726cf83713b1bbfa435c0ef1c4ef6b8511e5",
+  "outlineExceptions": [],
+  "frames": [
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.955,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.647,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.955,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk_r2",
+          "frame": 0
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south",
+          "layerFile": "male_side-swept_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 116,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.985
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.9,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.647,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.9,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk_r2",
+          "frame": 1
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south",
+          "layerFile": "male_side-swept_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -2
+          },
+          "pixels": 116,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -2,
+          "score": 0.982
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.765,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.647,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.765,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk_r2",
+          "frame": 2
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south",
+          "layerFile": "male_side-swept_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 116,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.982
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.464,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.647,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.464,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk_r2",
+          "frame": 3
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south",
+          "layerFile": "male_side-swept_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 116,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.988
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.05,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.647,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.05,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 31,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk_r2",
+          "frame": 4
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south",
+          "layerFile": "male_side-swept_blonde_hair_south.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 116,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.988
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.551,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.647,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.551,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south_walk_r2",
+          "frame": 5
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south",
+          "layerFile": "male_side-swept_blonde_hair_south.png",
+          "offset": {
+            "dx": -1,
+            "dy": -2
+          },
+          "pixels": 116,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": -1,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": -1,
+          "dy": -2,
+          "score": 0.985
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.114,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.47,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.114,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-east",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 1
+          },
+          "pixels": 109,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 1,
+          "score": 0.913
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.478,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.47,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.478,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 28.5,
+        "y": 24
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-east",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 109,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.897
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.069,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.47,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.069,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-east",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 109,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.908
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.113,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.47,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.113,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-east",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 109,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.908
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.885,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 33.47,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.885,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-east",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 109,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.905
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.825,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 33.47,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.825,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 33,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 29,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-east",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 109,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.908
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_south-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.813,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.113,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.813,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 34,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_east",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.991
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.219,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.113,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.219,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 34,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_east",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.991
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.87,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.113,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.87,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 34,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_east",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.861,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 34.113,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.861,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 34,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_east",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.709,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 34.113,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.709,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 34,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_east",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.994
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.241,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.113,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.241,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 34,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_east",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.994
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.333,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.762,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.333,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-east",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.935
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.762,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-east",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.935
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.141,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.762,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.141,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-east",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 179,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.476,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.762,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.476,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-east",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 179,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.773,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.762,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.773,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-east",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.935
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.391,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 31.762,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.391,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-east",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 0.932
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.833,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29.9,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north",
+          "layerFile": "male_side-swept_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 185,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.993
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.109,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.833,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.109,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 29.9,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north",
+          "layerFile": "male_side-swept_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 185,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.963
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.833,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.75,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29.9,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north",
+          "layerFile": "male_side-swept_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 185,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.833,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29.9,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north",
+          "layerFile": "male_side-swept_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 185,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.997
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 26.891,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.833,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 26.891,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 29.9,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north",
+          "layerFile": "male_side-swept_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 185,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 1
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.75,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.833,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.75,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 29.9,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 30.5,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north",
+          "layerFile": "male_side-swept_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 185,
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.993
+        }
+      },
+      "file": "male_side-swept_blonde_base_walk_north_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#0",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.667,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.238,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.667,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-west",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_side-swept_blonde_base_walk_north-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#1",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.238,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-west",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_side-swept_blonde_base_walk_north-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#2",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.859,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.238,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.859,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-west",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 179,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_side-swept_blonde_base_walk_north-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#3",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.524,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 32.238,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.524,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 9
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-west",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 179,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_side-swept_blonde_base_walk_north-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#4",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.227,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 32.238,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.227,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-west",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_side-swept_blonde_base_walk_north-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#5",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.609,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 32.238,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.609,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 32.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 32,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_north-west",
+          "layerFile": "male_side-swept_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 179,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "male_side-swept_blonde_base_walk_north-west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#0",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.188,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.887,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.188,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_west",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_side-swept_blonde_base_walk_west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#1",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.781,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.887,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.781,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_west",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_side-swept_blonde_base_walk_west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#2",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.13,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.887,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.13,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_west",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_side-swept_blonde_base_walk_west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#3",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.139,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.887,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.139,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_west",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_side-swept_blonde_base_walk_west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#4",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.291,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 29.887,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.291,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 30,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_west",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_side-swept_blonde_base_walk_west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#5",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.759,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.887,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.759,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 30,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 31.5,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_west",
+          "layerFile": "male_side-swept_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 119,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "E"
+      },
+      "file": "male_side-swept_blonde_base_walk_west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#0",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.886,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 31.53,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.886,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 32,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-west",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 0,
+            "dy": 1
+          },
+          "pixels": 109,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_side-swept_blonde_base_walk_south-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#1",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.522,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.53,
+        "y": 7
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.522,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 7
+      },
+      "outfitAnchor": {
+        "x": 35.5,
+        "y": 24
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-west",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 109,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_side-swept_blonde_base_walk_south-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#2",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.931,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.53,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.931,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-west",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 109,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_side-swept_blonde_base_walk_south-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#3",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.887,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.53,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.887,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 21
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-west",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": -1
+          },
+          "pixels": 109,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -1,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_side-swept_blonde_base_walk_south-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#4",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.115,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.53,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.115,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 22
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-west",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 109,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_side-swept_blonde_base_walk_south-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#5",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.175,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.53,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.175,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 23
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "male_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:side_swept",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "male_side-swept_black_white-tee-black-shorts_south-west",
+          "layerFile": "male_side-swept_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 109,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> black"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "male_side-swept_blonde_base_walk_south-west_05.png"
+    }
+  ]
+}

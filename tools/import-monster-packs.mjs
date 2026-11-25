@@ -1,5 +1,6 @@
 // Imports the delivered monster packs (art-source/monsters/<id>/, exactly as supplied: per-direction
-// horizontal sheets + README + manifest, or - layout 'frames' - one PNG per frame in <action>/frames/<direction>/)
+// horizontal sheets + README + manifest, or - layout 'frames' - one PNG per frame in <action>/frames/<direction>/,
+// or - layout 'directionFirst' - <direction>/<action>/sprite_sheet.png with an animation.json beside it)
 // into game-ready files:
 //
 //   public/assets/monsters/<id>/<action>.png      one sheet per action: rows SE, SW, NE, NW; columns = frames
@@ -52,6 +53,21 @@ const PACKS = {
     actions: { idle: '01_idle_4dir', walk: '02_flight_4dir', attack: '04_attack_mouth_vfx_4dir', hit: '05_hit_4dir', death: '06_death_4dir' },
     frames: { idle: 1, walk: 4, attack: 6, hit: 4, death: 6, vfx: 3 },
     vfx: { folder: '07_stomp_impact_vfx_4dir', placement: 'target' },
+  },
+  // Mutant Boar, delivered as "Mutant_Boar_Complete_4Dir_Pack": <direction>/<action>/sprite_sheet.png (64x64 cells),
+  // each with an animation.json whose ground_y is the feet row of that action and facing - Idle, Walk and the rest
+  // differ (walk 58, idle 55 / 56), so every action is anchored on its own ground line (groundFromMetadata). The
+  // attack is the 8-frame Stomp (contact on frame 6, see MonsterArt); the 4-frame ground-spike VFX is one shared
+  // sheet for every facing (sharedVfx), drawn on the target like every monster's impact.
+  mutant_boar: {
+    source: 'art-source/monsters/mutant_boar',
+    layout: 'directionFirst',
+    name: 'Mutant Boar',
+    nameTh: null,
+    actions: { idle: 'idle', walk: 'walk', attack: 'stomp', hit: 'hit', death: 'death' },
+    frames: { idle: 1, walk: 6, attack: 8, hit: 4, death: 6, vfx: 4 },
+    groundFromMetadata: true,
+    vfx: { folder: 'shared/vfx_ground_spikes', placement: 'target', sharedVfx: true },
   },
 };
 
@@ -120,6 +136,11 @@ function writePng(file, { w, h, px }) {
 // Frame analysis
 // ------------------------------------------------------------------------------------------------
 function sheetFor(packRoot, folder, dirName) {
+  // layout 'directionFirst': <direction>/<action>/sprite_sheet.png (a shared sheet: <folder>/sprite_sheet.png)
+  const directionFirst = path.join(packRoot, dirName, folder, 'sprite_sheet.png');
+  if (fs.existsSync(directionFirst)) return readPng(directionFirst);
+  const shared = path.join(packRoot, folder, 'sprite_sheet.png');
+  if (fs.existsSync(shared)) return readPng(shared);
   // layout 'frames': numbered single-frame PNGs, joined left to right in their order, pixels unchanged
   const framesDir = path.join(packRoot, folder, 'frames', dirName);
   if (fs.existsSync(framesDir)) {
@@ -215,6 +236,8 @@ function mouth(img, fx, cw, ch, dir, box, fy = 0) {
 for (const [id, pack] of Object.entries(PACKS)) {
   const src = path.join(ROOT, pack.source);
   const manifestFile = fs.readdirSync(src).find((n) => n.endsWith('manifest.json'));
+  /** directionFirst packs: the delivered animation.json of an action and facing. */
+  const animationJson = (folder, dirName) => JSON.parse(fs.readFileSync(path.join(src, dirName, folder, 'animation.json'), 'utf8'));
   const manifest = manifestFile ? JSON.parse(fs.readFileSync(path.join(src, manifestFile), 'utf8')) : { name: pack.name, name_th: pack.nameTh };
   const meta = { id, name: manifest.name, nameTh: manifest.name_th ?? null, rows: DIRS.map(([d]) => d), actions: {}, vfx: null, qa: { specks: [], notes: [] } };
 
@@ -239,7 +262,12 @@ for (const [id, pack] of Object.entries(PACKS)) {
       const info = Array.from({ length: frames }, (_, f) => analyse(s, f * cw, cw, ch));
       feet[dir] = info.map((i) => i.feet);
       for (const [f, i] of info.entries()) for (const [x, y] of i.specks) meta.qa.specks.push(`${action} ${dir} frame ${f + 1}: speck at (${x}, ${y})`);
-      if (cw === cellW && ch === cellH) {
+      if (pack.groundFromMetadata) {
+        // the pack's own ground line for this action and facing: the root is the row below the feet
+        const groundY = animationJson(folder, DIRS[row][1]).ground_y;
+        if (!Number.isInteger(groundY)) throw new Error(`${id}/${action}/${dir}: no ground_y`);
+        anchors[dir] = { x: cw / 2, y: groundY + 1 };
+      } else if (cw === cellW && ch === cellH) {
         anchors[dir] = { ...root };
       } else {
         // Different cell size: align the first frame's feet and body centre with the idle frame.
@@ -277,6 +305,7 @@ for (const [id, pack] of Object.entries(PACKS)) {
     const offsets = {};
     const origins = {};
     if (v.placement === 'target') {
+      // (a sharedVfx pack: the one sheet is copied unchanged into every facing's row)
       // an impact burst drawn on the target's body at runtime: no attacker-relative placement
       for (const [dir] of DIRS) { offsets[dir] = { x: 0, y: 0 }; origins[dir] = { x: cw / 2, y: ch / 2 }; }
     } else if (v.placement === 'cell') {

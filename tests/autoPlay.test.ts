@@ -37,7 +37,8 @@ test('settings: defaults, steps (radius 4-18 by 1, every threshold 5-95 by 5), r
   const d = createAutoPlaySettings();
   assert.deepEqual([d.retaliate, d.counterAttackers, d.range], [true, true, { mode: 'radius', radius: 10 }]);
   assert.deepEqual(d.recovery, { hpPotion: { enabled: true, percent: 30 }, spRecovery: { enabled: false, percent: 30 }, healSkill: { enabled: true, percent: 50, skillId: null } });
-  assert.deepEqual(d.monsters, ['voidmite', 'mutant_wolf', 'dark_avian']);
+  assert.deepEqual(d.monsters, ['voidmite', 'mutant_wolf', 'dark_avian', 'mutant_boar']);
+  assert.deepEqual(d.knownMonsters, ['voidmite', 'mutant_wolf', 'dark_avian', 'mutant_boar']);
   assert.deepEqual([AUTO_RADIUS.min, AUTO_RADIUS.max, AUTO_RADIUS.step, AUTO_RECOVERY_PERCENT.min, AUTO_RECOVERY_PERCENT.max, AUTO_RECOVERY_PERCENT.step], [4, 18, 1, 5, 95, 5]);
   assert.deepEqual([snap(2, AUTO_RADIUS), snap(30, AUTO_RADIUS), snap(9.6, AUTO_RADIUS), snap(33, AUTO_RECOVERY_PERCENT), snap(0, AUTO_RECOVERY_PERCENT), snap(NaN, AUTO_RADIUS)], [4, 18, 10, 35, 5, 4]);
   assert.deepEqual(sanitizeAutoPlay(undefined), { settings: d, repaired: [] });
@@ -51,7 +52,9 @@ test('settings: defaults, steps (radius 4-18 by 1, every threshold 5-95 by 5), r
     recovery: { hpPotion: { enabled: false, percent: 33 }, spRecovery: { enabled: true, percent: 120 }, healSkill: { enabled: 'no', percent: 70, skillId: 'fireball' } },
   });
   assert.deepEqual(s, {
-    monsters: ['voidmite'],
+    // an older record (no knownMonsters): the Mutant Boar, new since then, is hunted by default
+    monsters: ['voidmite', 'mutant_boar'],
+    knownMonsters: ['voidmite', 'mutant_wolf', 'dark_avian', 'mutant_boar'],
     skillOrder: ['drifter_heal'],
     skillsOff: [],
     retaliate: false,
@@ -391,4 +394,22 @@ test('stop wiring: switching Auto Play off clears target, swing, skill and path 
   const combat = fs.readFileSync(path.join(process.cwd(), 'src/combat/CombatSystem.ts'), 'utf8');
   const clear = combat.slice(combat.indexOf('  clearTarget(): void {'));
   assert.match(clear.slice(0, 500), /this\.queuedSkill = null;[\s\S]*this\.pendingHits = \[\];/, 'the queued skill and the pending swing go with the target');
+});
+
+test('Auto Combat: the Mutant Boar is in the selection - new characters hunt it, older saves get it once, an untick sticks', () => {
+  assert.ok(createAutoPlaySettings().monsters.includes('mutant_boar'), 'new characters');
+  // a save from before the boar (no knownMonsters): the player's own choice is kept and the boar added
+  assert.deepEqual(sanitizeAutoPlay({ monsters: ['mutant_wolf'] }).settings.monsters, ['mutant_wolf', 'mutant_boar']);
+  assert.deepEqual(sanitizeAutoPlay({ monsters: [] }).settings.monsters, ['mutant_boar'], 'even when nothing else was ticked');
+  // a save that already knows the boar: unticked stays unticked, ticked stays ticked
+  assert.deepEqual(sanitizeAutoPlay({ monsters: ['voidmite'], knownMonsters: ['voidmite', 'mutant_wolf', 'dark_avian', 'mutant_boar'] }).settings.monsters, ['voidmite']);
+  assert.deepEqual(sanitizeAutoPlay({ monsters: ['mutant_boar'], knownMonsters: ['voidmite', 'mutant_wolf', 'dark_avian', 'mutant_boar'] }).settings.monsters, ['mutant_boar']);
+  // through a real save / load
+  const c = newCharacter('Boar');
+  AutoPlayService.update(c, (s) => ({ ...s, monsters: s.monsters.filter((m) => m !== 'mutant_boar') }));
+  assert.ok(!saveAndLoad(c).autoPlay!.monsters.includes('mutant_boar'), 'unticked by the player: stays off after loading');
+  // the window lists the monster types of the map: Ashen Crossroads now has four, the layout has room for them
+  const ui = fs.readFileSync(path.join(process.cwd(), 'src/scenes/GameUIScene.ts'), 'utf8');
+  assert.match(ui, /const monsterTypes = \[\.\.\.new Set\(\(MONSTER_SPAWNS\[game\.map\.definition\.id\] \?\? \[\]\)\.map\(\(p\) => p\.monster\)\)\];/);
+  assert.equal(autoPlayLayout(AUTO_WINDOW.width + 40, AUTO_WINDOW.height + 40, 4).monsterCards.length, 4);
 });

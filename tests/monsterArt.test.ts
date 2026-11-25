@@ -7,7 +7,7 @@ import { MONSTER_DEFINITIONS } from '../src/monsters/MonsterDefinition';
 import { readPng, type Rgba } from './helpers/png';
 
 const PUBLIC = path.join(process.cwd(), 'public');
-const SOURCE: Record<MonsterArtId, { dir: string; folders: Record<string, string>; vfx: string; frames?: true }> = {
+const SOURCE: Record<MonsterArtId, { dir: string; folders: Record<string, string>; vfx: string; frames?: true; directionFirst?: true }> = {
   void_mite: {
     dir: 'art-source/monsters/void_mite',
     folders: { idle: 'Idle', walk: 'Walk', attack: 'Attack_Stomp', hit: 'Hit_Reaction', death: 'Death_Fall' },
@@ -24,12 +24,23 @@ const SOURCE: Record<MonsterArtId, { dir: string; folders: Record<string, string
     vfx: '07_stomp_impact_vfx_4dir',
     frames: true,
   },
+  mutant_boar: {
+    dir: 'art-source/monsters/mutant_boar',
+    folders: { idle: 'idle', walk: 'walk', attack: 'stomp', hit: 'hit', death: 'death' },
+    vfx: 'shared/vfx_ground_spikes',
+    directionFirst: true,
+  },
 };
 /** Actions the import tool rescales to the idle body size (delivered at the wrong scale). */
 const RESCALED: Partial<Record<MonsterArtId, string[]>> = { void_mite: ['death'] };
 const PACK_DIRS = { SE: 'south_east', SW: 'south_west', NE: 'north_east', NW: 'north_west' } as const;
 
 function packSheet(id: MonsterArtId, folder: string, facing: keyof typeof PACK_DIRS): Rgba {
+  if (SOURCE[id].directionFirst) {
+    // <direction>/<action>/sprite_sheet.png, or one shared sheet for every facing
+    const own = path.join(process.cwd(), SOURCE[id].dir, PACK_DIRS[facing], folder, 'sprite_sheet.png');
+    return readPng(fs.existsSync(own) ? own : path.join(process.cwd(), SOURCE[id].dir, folder, 'sprite_sheet.png'));
+  }
   if (SOURCE[id].frames) {
     // one PNG per frame: the delivered frames side by side, in their order
     const dir = path.join(process.cwd(), SOURCE[id].dir, folder, 'frames', PACK_DIRS[facing]);
@@ -197,4 +208,38 @@ test('void_mite: death frames are back at the idle body scale (were drawn ~1.43x
     assert.ok(Math.abs(b.h - a.h) <= 3, `${facing}: death frame 1 is ${b.h}px tall, idle ${a.h}px`);
     assert.ok(Math.abs(b.w - a.w) <= 6, `${facing}: death frame 1 is ${b.w}px wide, idle ${a.w}px`);
   });
+});
+
+test('Mutant Boar: Zone 4 ground monster - specified stats, the Mutant Wolf\'s movement / collision / AI rules, stomp hits on frame 6', () => {
+  const b = MONSTER_DEFINITIONS.mutant_boar;
+  const w = MONSTER_DEFINITIONS.mutant_wolf;
+  assert.deepEqual([b.id, b.displayName, b.art, b.category], ['mutant_boar', 'Mutant Boar', 'mutant_boar', 'monster']);
+  assert.deepEqual([b.combat.level, b.combat.maxHp, b.combat.atk, b.combat.hit, b.combat.respawnMs], [7, 100, 42, 150, 5000]);
+  assert.equal(b.flight, undefined, 'ground');
+  assert.equal(b.footprintRadius, w.footprintRadius, 'same collision');
+  assert.deepEqual(b.behavior, w.behavior, 'same wandering');
+  const { level: _l1, maxHp: _h1, atk: _a1, hit: _x1, ...rest } = b.combat;
+  const { level: _l2, maxHp: _h2, atk: _a2, hit: _x2, ...wolfRest } = w.combat;
+  assert.deepEqual(rest, wolfRest, 'DEF, FLEE, attack speed, reach, chase, leash, respawn: the wolf\'s');
+  assert.deepEqual([w.combat.level, w.combat.maxHp, w.combat.atk, w.combat.hit], [3, 45, 23, 200], 'Mutant Wolf unchanged');
+  const art = MONSTER_ART.mutant_boar;
+  assert.deepEqual(MONSTER_ACTIONS.map((a) => art.meta.actions[a].frames), [1, 6, 8, 4, 6]);
+  assert.equal(art.impactFrame, 6, 'damage on the Stomp\'s 6th frame (1-based)');
+  assert.deepEqual(art.timing, MONSTER_ART.mutant_wolf.timing, 'the wolf\'s playback rules');
+  assert.deepEqual(art.hitTintFrames, MONSTER_ART.mutant_wolf.hitTintFrames);
+  // the pack's own ground lines: walk frames stand 3 px lower in their cell than idle
+  const pack = (dir: string, action: string) => JSON.parse(fs.readFileSync(path.join(process.cwd(), 'art-source/monsters/mutant_boar', dir, action, 'animation.json'), 'utf8'));
+  for (const [facing, dir] of Object.entries(PACK_DIRS)) {
+    for (const [action, folder] of Object.entries(SOURCE.mutant_boar.folders)) {
+      assert.equal(art.meta.actions[action as keyof typeof art.meta.actions].anchors[facing as keyof typeof PACK_DIRS].y, pack(dir, folder).ground_y + 1, `${action} ${facing}: on the pack's ground line`);
+    }
+    assert.equal(pack(dir, 'stomp').impact_frame, art.impactFrame, 'the pack names the same contact frame');
+  }
+  // the shared 4-frame ground-spike VFX, copied unchanged into every facing's row
+  const vfx = readPng(path.join(PUBLIC, art.basePath, art.meta.vfx.file));
+  const src = readPng(path.join(process.cwd(), 'art-source/monsters/mutant_boar/shared/vfx_ground_spikes/sprite_sheet.png'));
+  for (let row = 0; row < 4; row++) {
+    const bytes = src.width * src.height * 4;
+    assert.ok(Buffer.from(vfx.data.buffer, vfx.data.byteOffset + row * bytes, bytes).equals(Buffer.from(src.data)), `VFX row ${row}`);
+  }
 });

@@ -13,6 +13,7 @@ import {
   STARTER_CLASS_ID,
   STARTER_HAIRSTYLE_IDS,
   starterAppearance,
+  starterHairColors,
   starterHairstyles,
 } from '../src/data/StarterCharacters';
 import { initLanguage, setLanguage } from '../src/i18n';
@@ -32,16 +33,20 @@ function pngSize(file: string): { width: number; height: number } {
   return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
 }
 
-test('exactly two hairstyles per gender, Bald first', () => {
-  assert.deepEqual(STARTER_HAIRSTYLE_IDS, { male: ['bald', 'mohawk'], female: ['bald', 'straight_bangs'] });
-  assert.deepEqual(starterHairstyles('male').map((h) => h.id), ['bald', 'mohawk']);
+test('starter hairstyles per gender, Bald first (male: + Mohawk, Side Swept)', () => {
+  assert.deepEqual(STARTER_HAIRSTYLE_IDS, { male: ['bald', 'mohawk', 'side_swept'], female: ['bald', 'straight_bangs'] });
+  assert.deepEqual(starterHairstyles('male').map((h) => h.id), ['bald', 'mohawk', 'side_swept']);
   assert.deepEqual(starterHairstyles('female').map((h) => h.id), ['bald', 'straight_bangs']);
 });
 
-test('exactly the four required starter appearances', () => {
+test('exactly the required starter appearances (Side Swept in all 5 colours)', () => {
+  assert.deepEqual(starterHairColors('side_swept'), ['blonde', 'black', 'silver', 'brown', 'red']);
+  assert.deepEqual(starterHairColors('mohawk'), ['blonde']);
+  assert.deepEqual(starterHairColors('bald'), ['none']);
   assert.deepEqual(allStarterAppearances(), [
     { gender: 'male', hairstyleId: 'bald', hairColorId: 'none', outfitId: 'drifter' },
     { gender: 'male', hairstyleId: 'mohawk', hairColorId: 'blonde', outfitId: 'drifter' },
+    ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'side_swept', hairColorId: c, outfitId: 'drifter' })),
     { gender: 'female', hairstyleId: 'bald', hairColorId: 'none', outfitId: 'drifter' },
     { gender: 'female', hairstyleId: 'straight_bangs', hairColorId: 'blonde', outfitId: 'drifter' },
   ]);
@@ -51,6 +56,7 @@ test('each starter resolves to approved Drifter sheets that exist on disk', () =
   const expected: Record<string, string> = {
     char_male_bald_none_drifter: 'male/bald/drifter/male_bald_drifter',
     char_male_mohawk_blonde_drifter: 'male/spike_blonde/drifter/male_spike_blonde_drifter',
+    ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_male_side_swept_${c}_drifter`, `male/side_swept_${c}/drifter/male_side_swept_${c}_drifter`])),
     char_female_bald_none_drifter: 'female/bald/drifter/female_bald_drifter',
     char_female_straight_bangs_blonde_drifter: 'female/straight_bangs_blonde/drifter/female_straight_bangs_blonde_drifter',
   };
@@ -61,7 +67,8 @@ test('each starter resolves to approved Drifter sheets that exist on disk', () =
     assert.ok(isApprovedCharacterSprite(id), `${id} approved`);
     const base = `assets/characters/${expected[id]}`;
     assert.equal(entry.standing, `${base}_static_8dir.png`);
-    assert.equal(entry.walk, `${base}_walk_8dir.png`);
+    // walk sheets may be a Sprite Forge revision (<key>_walk_8dir_rN.png), e.g. the r2 Male South walk face fix
+    assert.match(entry.walk!, new RegExp(`^${base}_walk_8dir(_r\\d+)?\\.png$`));
     assert.deepEqual(pngSize(path.join(PUBLIC, entry.standing)), { width: 256, height: 128 }, `${id} static`);
     assert.deepEqual(pngSize(path.join(PUBLIC, entry.walk!)), { width: 384, height: 512 }, `${id} walk`);
   }
@@ -70,7 +77,7 @@ test('each starter resolves to approved Drifter sheets that exist on disk', () =
 test('the game animation contract matches the exported metadata (8 dirs, 6 frames, 125 ms)', () => {
   for (const appearance of allStarterAppearances()) {
     const entry = CHARACTER_SPRITE_MANIFEST[getCharacterSpriteId(appearance)];
-    const info = JSON.parse(fs.readFileSync(path.join(PUBLIC, entry.walk!.replace('_walk_8dir.png', '.json')), 'utf8'));
+    const info = JSON.parse(fs.readFileSync(path.join(PUBLIC, entry.walk!.replace(/_walk_8dir(_r\d+)?\.png$/, '$1.json')), 'utf8'));
     assert.deepEqual(info.static.sheet.order, ['S', 'SE', 'E', 'NE', 'N', 'NW', 'W', 'SW']);
     for (const [i, d] of info.static.sheet.order.entries()) assert.equal(CHARACTER_DIRECTION_FRAMES[d as keyof typeof CHARACTER_DIRECTION_FRAMES], i);
     const meta = JSON.parse(fs.readFileSync(path.join(PUBLIC, info.walk.metadata), 'utf8'));
@@ -97,6 +104,11 @@ test('new characters are always Drifters with the fixed hair colour', () => {
   assert.deepEqual(c.appearance, { gender: 'male', hairstyleId: 'mohawk', hairColorId: 'blonde', outfitId: 'drifter' });
   assert.equal(c.classId, STARTER_CLASS_ID);
   assert.equal(c.classId, 'drifter');
+  // Side Swept: the chosen colour is kept when it is one of its 5 approved colours, otherwise its default (blonde).
+  assert.equal(createCharacterData('Sora', { gender: 'male', hairstyleId: 'side_swept', hairColorId: 'red' }).appearance.hairColorId, 'red');
+  assert.equal(createCharacterData('Sora', { gender: 'male', hairstyleId: 'side_swept', hairColorId: 'green' }).appearance.hairColorId, 'blonde');
+  assert.equal(createCharacterData('Sora', { gender: 'male', hairstyleId: 'side_swept' }).appearance.hairColorId, 'blonde');
+  assert.equal(createCharacterData('Bob', { gender: 'male', hairstyleId: 'bald', hairColorId: 'red' }).appearance.hairColorId, 'none');
   const bald = createCharacterData('Bob', { gender: 'female', hairstyleId: 'bald' });
   assert.deepEqual(bald.appearance, { gender: 'female', hairstyleId: 'bald', hairColorId: 'none', outfitId: 'drifter' });
   assert.equal(createDefaultAppearance().outfitId, 'drifter');
@@ -124,6 +136,19 @@ test('profiles: saved appearance + class persist and existing characters are res
   assert.equal(loaded.profile.classId, 'drifter');
   assert.equal(CharacterProfileStore.loadLastPlayed(store)?.name, 'Kaito');
   assert.equal(store.data[LAST_CHARACTER_KEY], 'Kaito');
+
+  // Side Swept in every colour: saved, loaded and restored unchanged, and it resolves to its approved art.
+  for (const c of starterHairColors('side_swept')) {
+    const ss = createCharacterData(`Side ${c}`, { gender: 'male', hairstyleId: 'side_swept', hairColorId: c });
+    assert.equal(CharacterProfileStore.save({ name: ss.name, appearance: ss.appearance, classId: ss.classId, createdAt: ss.createdAt }, store), true);
+    const back = CharacterProfileStore.load(`side ${c}`, store);
+    assert.equal(back.kind, 'loaded');
+    if (back.kind !== 'loaded') return;
+    assert.deepEqual(back.profile.appearance, { gender: 'male', hairstyleId: 'side_swept', hairColorId: c, outfitId: 'drifter' });
+    const again = restoreCharacterData(back.profile);
+    assert.deepEqual(again.appearance, back.profile.appearance);
+    assert.ok(isApprovedCharacterSprite(getCharacterSpriteId(again.appearance)), `side_swept ${c} has approved art`);
+  }
 
   // An existing character with a different class / outfit is restored as saved (not re-defaulted).
   const legacy = { name: 'Old', appearance: { gender: 'female' as const, hairstyleId: 'bob', hairColorId: 'red', outfitId: 'adventurer' }, classId: 'vanguard', createdAt: 123 };
@@ -154,5 +179,13 @@ test('creation labels exist in Thai (default) and English', () => {
     [t('creation.gender'), labels.gender('male'), labels.gender('female'), t('creation.hairstyle'), labels.hairstyle('bald'), labels.hairstyle('mohawk'), labels.hairstyle('straight_bangs'), t('creation.outfitPreview'), labels.outfit('drifter')],
     ['Gender', 'Male', 'Female', 'Hairstyle', 'Bald', 'Mohawk', 'Straight Bangs', 'Outfit Preview', 'Drifter'],
   );
+  setLanguage('th');
+});
+
+test('hair colour row labels exist in Thai (default) and English', () => {
+  initLanguage(memoryStorage());
+  assert.deepEqual([t('creation.hairColor'), labels.hairstyle('side_swept'), labels.hairColor('silver')], ['สีผม', 'แสกปัด', 'เงิน/ขาว']);
+  setLanguage('en');
+  assert.deepEqual([t('creation.hairColor'), labels.hairstyle('side_swept'), labels.hairColor('silver')], ['Hair Colour', 'Side Swept', 'Silver']);
   setLanguage('th');
 });

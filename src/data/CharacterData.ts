@@ -92,15 +92,15 @@ export function createDefaultAppearance(): CharacterAppearance {
 }
 
 /**
- * Creates a NEW character. Only gender and hairstyle come from the player; hair colour, outfit and
- * class are fixed by the starter rules (StarterCharacters.ts) - whatever else the caller passes is
- * ignored, and an unavailable gender / hairstyle is replaced by a supported one.
+ * Creates a NEW character. Gender, hairstyle and (where the hairstyle offers several) hair colour come from
+ * the player; outfit and class are fixed by the starter rules (StarterCharacters.ts) - whatever else the
+ * caller passes is ignored, and an unavailable gender / hairstyle / colour is replaced by a supported one.
  */
 export function createCharacterData(name: string, choice: StarterChoice): CharacterData {
   return {
     id: newCharacterId(),
     name,
-    appearance: starterAppearance({ gender: choice.gender, hairstyleId: choice.hairstyleId }),
+    appearance: starterAppearance({ gender: choice.gender, hairstyleId: choice.hairstyleId, hairColorId: choice.hairColorId }),
     classId: STARTER_CLASS_ID,
     createdAt: Date.now(),
     status: createInitialStatus(),

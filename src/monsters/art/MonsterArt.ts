@@ -1,5 +1,6 @@
 import { ATTACK_IMPACT_FRAME } from '../../combat/AttackTiming';
 import darkAvian from './dark_avian.generated.json';
+import mutantBoar from './mutant_boar.generated.json';
 import mutantWolf from './mutant_wolf.generated.json';
 import voidMite from './void_mite.generated.json';
 
@@ -56,12 +57,15 @@ export interface MonsterArt {
   /** Folder under /public. */
   basePath: string;
   timing: Record<MonsterAction, MonsterActionTiming>;
-  /** 1-based attack frame on which the hit lands (global rule: frame 4). Damage and VFX happen here. */
+  /** 1-based attack frame on which the hit lands (global rule: frame 4; the Mutant Boar's Stomp: 6). Damage and VFX happen here. */
   impactFrame: number;
   vfxFrameRate: number;
   /** 1-based hit-reaction frames tinted red to show damage. */
   hitTintFrames: readonly number[];
 }
+
+/** The Mutant Boar's Stomp hits on its 6th frame (1-based; the pack's stomp_contact frame). */
+export const MUTANT_BOAR_IMPACT_FRAME = 6;
 
 /** Multiplicative red: outlines stay dark, transparency is untouched. */
 export const HIT_TINT = 0xff5050;
@@ -109,6 +113,23 @@ export const MONSTER_ART = {
     },
     impactFrame: ATTACK_IMPACT_FRAME,
     vfxFrameRate: 12,
+    hitTintFrames: [1, 2],
+  },
+  // The Mutant Wolf's playback rules (rates, loops, red hit frames) on the boar's own clips: walk 6, the 8-frame
+  // Stomp, hit 4, death 6 (holds its last pose). Its stomp lands on frame 6 (the pack's stomp_contact frame) - the
+  // one exception to the global frame-4 rule; the 4-frame ground-spike burst plays on the target then.
+  mutant_boar: {
+    meta: mutantBoar as MonsterArtMeta,
+    basePath: 'assets/monsters/mutant_boar/',
+    timing: {
+      idle: { frameRate: 1, repeat: -1 },
+      walk: { frameRate: 10, repeat: -1 },
+      attack: { frameRate: 12, repeat: 0 },
+      hit: { frameRate: 12, repeat: 0 },
+      death: { frameRate: 8, repeat: 0 },
+    },
+    impactFrame: MUTANT_BOAR_IMPACT_FRAME,
+    vfxFrameRate: 14,
     hitTintFrames: [1, 2],
   },
 } as const satisfies Record<string, MonsterArt>;

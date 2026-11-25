@@ -1,0 +1,58 @@
+{
+  "action": "walk",
+  "direction": "north_east",
+  "loop_in_game": true,
+  "frame_width": 64,
+  "frame_height": 64,
+  "ground_y": 58,
+  "frame_numbering": "1-based",
+  "frames": [
+    {
+      "frame": 1,
+      "x": 0,
+      "y": 0,
+      "duration_ms": 110
+    },
+    {
+      "frame": 2,
+      "x": 64,
+      "y": 0,
+      "duration_ms": 110
+    },
+    {
+      "frame": 3,
+      "x": 128,
+      "y": 0,
+      "duration_ms": 110
+    },
+    {
+      "frame": 4,
+      "x": 192,
+      "y": 0,
+      "duration_ms": 110
+    },
+    {
+      "frame": 5,
+      "x": 256,
+      "y": 0,
+      "duration_ms": 110
+    },
+    {
+      "frame": 6,
+      "x": 320,
+      "y": 0,
+      "duration_ms": 110
+    }
+  ],
+  "frame_count": 6,
+  "sheet": "north_east/walk/sprite_sheet.png",
+  "frame_paths": [
+    "north_east/walk/frames/01.png",
+    "north_east/walk/frames/02.png",
+    "north_east/walk/frames/03.png",
+    "north_east/walk/frames/04.png",
+    "north_east/walk/frames/05.png",
+    "north_east/walk/frames/06.png"
+  ],
+  "preview": "north_east/walk/preview_x4.webp"
+}

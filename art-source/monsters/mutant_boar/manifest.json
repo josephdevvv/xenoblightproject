@@ -1,0 +1,140 @@
+{
+  "name": "Mutant Boar",
+  "frame_size": [
+    64,
+    64
+  ],
+  "directions": {
+    "south_east": {
+      "idle": {
+        "frame_count": 1,
+        "sheet": "south_east/idle/sprite_sheet.png",
+        "metadata": "south_east/idle/animation.json"
+      },
+      "walk": {
+        "frame_count": 6,
+        "sheet": "south_east/walk/sprite_sheet.png",
+        "metadata": "south_east/walk/animation.json"
+      },
+      "stomp": {
+        "frame_count": 8,
+        "sheet": "south_east/stomp/sprite_sheet.png",
+        "metadata": "south_east/stomp/animation.json"
+      },
+      "hit": {
+        "frame_count": 4,
+        "sheet": "south_east/hit/sprite_sheet.png",
+        "metadata": "south_east/hit/animation.json"
+      },
+      "death": {
+        "frame_count": 6,
+        "sheet": "south_east/death/sprite_sheet.png",
+        "metadata": "south_east/death/animation.json"
+      }
+    },
+    "south_west": {
+      "idle": {
+        "frame_count": 1,
+        "sheet": "south_west/idle/sprite_sheet.png",
+        "metadata": "south_west/idle/animation.json"
+      },
+      "walk": {
+        "frame_count": 6,
+        "sheet": "south_west/walk/sprite_sheet.png",
+        "metadata": "south_west/walk/animation.json"
+      },
+      "stomp": {
+        "frame_count": 8,
+        "sheet": "south_west/stomp/sprite_sheet.png",
+        "metadata": "south_west/stomp/animation.json"
+      },
+      "hit": {
+        "frame_count": 4,
+        "sheet": "south_west/hit/sprite_sheet.png",
+        "metadata": "south_west/hit/animation.json"
+      },
+      "death": {
+        "frame_count": 6,
+        "sheet": "south_west/death/sprite_sheet.png",
+        "metadata": "south_west/death/animation.json"
+      }
+    },
+    "north_east": {
+      "idle": {
+        "frame_count": 1,
+        "sheet": "north_east/idle/sprite_sheet.png",
+        "metadata": "north_east/idle/animation.json"
+      },
+      "walk": {
+        "frame_count": 6,
+        "sheet": "north_east/walk/sprite_sheet.png",
+        "metadata": "north_east/walk/animation.json"
+      },
+      "stomp": {
+        "frame_count": 8,
+        "sheet": "north_east/stomp/sprite_sheet.png",
+        "metadata": "north_east/stomp/animation.json"
+      },
+      "hit": {
+        "frame_count": 4,
+        "sheet": "north_east/hit/sprite_sheet.png",
+        "metadata": "north_east/hit/animation.json"
+      },
+      "death": {
+        "frame_count": 6,
+        "sheet": "north_east/death/sprite_sheet.png",
+        "metadata": "north_east/death/animation.json"
+      }
+    },
+    "north_west": {
+      "idle": {
+        "frame_count": 1,
+        "sheet": "north_west/idle/sprite_sheet.png",
+        "metadata": "north_west/idle/animation.json"
+      },
+      "walk": {
+        "frame_count": 6,
+        "sheet": "north_west/walk/sprite_sheet.png",
+        "metadata": "north_west/walk/animation.json"
+      },
+      "stomp": {
+        "frame_count": 8,
+        "sheet": "north_west/stomp/sprite_sheet.png",
+        "metadata": "north_west/stomp/animation.json"
+      },
+      "hit": {
+        "frame_count": 4,
+        "sheet": "north_west/hit/sprite_sheet.png",
+        "metadata": "north_west/hit/animation.json"
+      },
+      "death": {
+        "frame_count": 6,
+        "sheet": "north_west/death/sprite_sheet.png",
+        "metadata": "north_west/death/animation.json"
+      }
+    }
+  },
+  "idle_sheet": {
+    "path": "shared/idle_4dir_sheet_256x64.png",
+    "left_to_right": [
+      "south_west",
+      "south_east",
+      "north_west",
+      "north_east"
+    ]
+  },
+  "shared_vfx": {
+    "frame_count": 4,
+    "sheet": "shared/vfx_ground_spikes/sprite_sheet.png",
+    "metadata": "shared/vfx_ground_spikes/animation.json",
+    "origin_px": [
+      32,
+      38
+    ],
+    "trigger": {
+      "action": "stomp",
+      "frame_1_based": 6
+    }
+  },
+  "individual_png_frames": 104
+}

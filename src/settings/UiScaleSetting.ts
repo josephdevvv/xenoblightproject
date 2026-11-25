@@ -1,9 +1,11 @@
-import { clampUiScale } from '../ui/layout/UiScale';
+import { isTouchMode } from '../platform/DeviceMode';
+import { clampUiScale, defaultUiScale } from '../ui/layout/UiScale';
 import { browserStorage, loadSettings, saveSettings, type SettingsStorage } from './SettingsStore';
 
 /**
- * The in-game UI scale (percent, 100-150, step 5): saved with the other player settings (the language), read once and
- * kept in memory; a change is saved and announced at once (the in-game UI rebuilds at the new size - no reload).
+ * The in-game UI scale (percent, from 100, step 5): the player's choice, saved with the other player settings (the
+ * language), or - never chosen - the default of the platform detected at startup (mobile 120 %, desktop 100 %). Read
+ * once and kept in memory; a change is saved and announced at once (the in-game UI rebuilds at the new size - no reload).
  */
 let current: number | null = null;
 let storage: SettingsStorage | null | undefined;
@@ -16,11 +18,11 @@ export function useUiScaleStorage(store: SettingsStorage | null): void {
 }
 
 export function getUiScale(): number {
-  if (current === null) current = loadSettings(storage === undefined ? browserStorage() : storage).uiScale;
+  if (current === null) current = loadSettings(storage === undefined ? browserStorage() : storage).uiScale ?? defaultUiScale(isTouchMode());
   return current;
 }
 
-/** Sets, saves and announces a new scale (snapped to a step, 100-150). Returns the value now in use. */
+/** Sets, saves (as the player's own choice) and announces a new scale (snapped to a step). Returns the value now in use. */
 export function setUiScale(percent: number): number {
   const next = clampUiScale(percent);
   if (next === getUiScale()) return next;

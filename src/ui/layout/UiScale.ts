@@ -1,6 +1,6 @@
 /**
- * In-game UI scale (pure, unit-tested). The player picks it in the in-game Settings: 100 % by default (the UI as it
- * was), in steps of 5, with no upper limit; the world, the characters and the camera never change. The in-game UI is
+ * In-game UI scale (pure, unit-tested). The player picks it in the in-game Settings; until they do, the platform's
+ * default applies (desktop 100 % - the UI as it was - mobile 120 %). In steps of 5, with no upper limit; the world, the characters and the camera never change. The in-game UI is
  * drawn by two zoomed cameras (UiLayers):
  *
  *  - the HUD layer (status block, quest tracker, minimap, menu, hotbar, banners, notices, touch controls) zooms by
@@ -12,6 +12,13 @@
  * HUD_SPACE is the room the HUD's pieces need side by side: up to that scale they never touch each other.
  */
 export const UI_SCALE = { min: 100, step: 5, default: 100 } as const;
+
+/** The scale used until the player picks one: by the platform detected at startup (DeviceMode). */
+export const DEFAULT_UI_SCALE = { desktop: 100, touch: 120 } as const;
+
+export function defaultUiScale(touch: boolean): number {
+  return touch ? DEFAULT_UI_SCALE.touch : DEFAULT_UI_SCALE.desktop;
+}
 
 /** The room (UI pixels) each layer's layout needs: the HUD's pieces side by side, the largest window with margins. */
 export const HUD_SPACE = {

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { test } from 'node:test';
-import { clampUiScale, HUD_SPACE, layerSpace, UI_SCALE, uiZooms, WINDOW_SPACE } from '../src/ui/layout/UiScale';
+import { clampUiScale, DEFAULT_UI_SCALE, defaultUiScale, HUD_SPACE, layerSpace, UI_SCALE, uiZooms, WINDOW_SPACE } from '../src/ui/layout/UiScale';
+import { initDeviceMode } from '../src/platform/DeviceMode';
 import { desktopGameSize, mobileGameSize } from '../src/platform/MobileViewport';
 import { inventoryLayout } from '../src/ui/inventory/InventoryLayout';
 import { statusLayout } from '../src/ui/status/StatusLayout';
@@ -137,15 +138,23 @@ test('desktop resolution: the game fills the browser window at the world scale i
   }
 });
 
-test('UI scale setting: saved with the language, survives a reload, a language change keeps it; bad records fall back to 100', () => {
+test('UI scale setting: saved with the language, survives a reload, a language change keeps it; bad records = never chosen', () => {
   const store = memory();
-  assert.equal(loadSettings(store).uiScale, 100, 'nothing saved yet');
+  assert.equal(loadSettings(store).uiScale, null, 'nothing saved yet: the platform default');
   saveSettings({ language: 'en', uiScale: 135 }, store);
   assert.deepEqual(loadSettings(store), { language: 'en', uiScale: 135 });
+  saveSettings({ language: 'en', uiScale: 100 }, store);
+  assert.equal(loadSettings(store).uiScale, 100, 'a chosen 100 stays 100 (also on mobile)');
+  saveSettings({ language: 'en', uiScale: null }, store);
+  assert.ok(!('uiScale' in JSON.parse(store.data.get('xenoblight.settings.v1')!)), 'never chosen: nothing written');
   store.data.set('xenoblight.settings.v1', JSON.stringify({ version: 1, language: 'th', uiScale: 'huge' }));
-  assert.equal(loadSettings(store).uiScale, 100);
+  assert.equal(loadSettings(store).uiScale, null);
   store.data.set('xenoblight.settings.v1', JSON.stringify({ version: 1, language: 'th' }));
-  assert.equal(loadSettings(store).uiScale, 100, 'older records');
+  assert.equal(loadSettings(store).uiScale, null, 'older records');
+  store.data.set('xenoblight.settings.v1', JSON.stringify({ version: 1, language: 'th', uiScale: 100 }));
+  assert.equal(loadSettings(store).uiScale, null, 'version 1 wrote the old default 100 with every save: not a choice');
+  store.data.set('xenoblight.settings.v1', JSON.stringify({ version: 1, language: 'th', uiScale: 135 }));
+  assert.equal(loadSettings(store).uiScale, 135, 'a custom version 1 scale is kept');
 
   const s2 = memory();
   useUiScaleStorage(s2);
@@ -191,4 +200,52 @@ test('UI scale wiring: in-game Settings only; two zoomed UI cameras + a screen c
   // desktop: the window's size is followed
   assert.match(read('src/main.ts'), /else attachDesktopViewport\(game\);/);
   assert.match(read('src/platform/DesktopViewport.ts'), /game\.scale\.setGameSize\(next\.width, next\.height\)/);
+});
+
+test('UI scale default by platform: mobile 120 %, desktop 100 %, until the player picks one - a saved choice wins', () => {
+  assert.deepEqual(DEFAULT_UI_SCALE, { desktop: 100, touch: 120 });
+  assert.deepEqual([defaultUiScale(false), defaultUiScale(true)], [100, 120]);
+  const env = (mobile: boolean) => ({ search: mobile ? '?mobile=1' : '?mobile=0', maxTouchPoints: 0, coarsePointer: false, userAgent: '' });
+  try {
+    for (const [mobile, want] of [[false, 100], [true, 120]] as const) {
+      initDeviceMode(env(mobile));
+      const store = memory();
+      useUiScaleStorage(store);
+      assert.equal(getUiScale(), want, `${mobile ? 'mobile' : 'desktop'}: default`);
+      // a language change saves the settings - the scale stays unchosen (still the platform default)
+      initLanguage(store);
+      setLanguage('en');
+      useUiScaleStorage(store);
+      assert.equal(getUiScale(), want);
+      setLanguage('th');
+      // old version 1 record (100 written automatically): the platform default
+      store.data.set('xenoblight.settings.v1', JSON.stringify({ version: 1, language: 'th', uiScale: 100 }));
+      useUiScaleStorage(store);
+      assert.equal(getUiScale(), want);
+      // the player's choice is kept, whatever the platform
+      for (const chosen of [100, 110, 135, 200]) {
+        useUiScaleStorage(store);
+        setUiScale(chosen);
+        useUiScaleStorage(store);
+        assert.equal(getUiScale(), chosen, `${mobile ? 'mobile' : 'desktop'}: chosen ${chosen}`);
+      }
+    }
+  } finally {
+    initDeviceMode(env(false));
+    useUiScaleStorage(null);
+    setLanguage('th');
+  }
+});
+
+test('mobile default 120 %: every mobile view keeps the HUD pieces their room, windows inside, nothing past the edges', () => {
+  for (const v of VIEWS.filter((x) => x.touch)) {
+    const z = uiZooms(v, DEFAULT_UI_SCALE.touch);
+    assert.equal(z.hud, 1.2);
+    const hud = layerSpace(v, z.hud);
+    assert.ok(hud.width >= HUD_SPACE.touch.width && hud.height >= HUD_SPACE.touch.height, `${v.label}: HUD room ${hud.width} x ${hud.height}`);
+    const win = layerSpace(v, z.windows);
+    assert.ok(win.width >= WINDOW_SPACE.width && win.height >= WINDOW_SPACE.height, `${v.label}: windows fit`);
+  }
+  const ui = read('src/settings/UiScaleSetting.ts');
+  assert.match(ui, /\.uiScale \?\? defaultUiScale\(isTouchMode\(\)\)/, 'detected platform, read once at startup');
 });

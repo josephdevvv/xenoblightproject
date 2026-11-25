@@ -8,8 +8,12 @@ import { clampUiScale, UI_SCALE } from '../ui/layout/UiScale';
  */
 export interface PlayerSettings {
   language: Language;
-  /** In-game UI scale, percent (100-150, step 5). Older records have none: 100. */
-  uiScale: number;
+  /**
+   * In-game UI scale the player chose (percent, from 100, step 5), or null = never chosen: the platform default
+   * applies (UiScale `defaultUiScale`). Version 1 records wrote 100 - the only default then - with every save, so a
+   * stored 100 there counts as never chosen.
+   */
+  uiScale: number | null;
 }
 
 export const SETTINGS_STORAGE_KEY = 'xenoblight.settings.v1';
@@ -21,7 +25,7 @@ export interface SettingsStorage {
 }
 
 export function defaultSettings(): PlayerSettings {
-  return { language: DEFAULT_LANGUAGE, uiScale: UI_SCALE.default };
+  return { language: DEFAULT_LANGUAGE, uiScale: null };
 }
 
 export function browserStorage(): SettingsStorage | null {
@@ -42,7 +46,11 @@ export function loadSettings(storage: SettingsStorage | null = browserStorage())
     if (typeof data === 'object' && data !== null && isLanguage((data as { language?: unknown }).language)) {
       settings.language = (data as { language: Language }).language;
     }
-    if (typeof data === 'object' && data !== null && 'uiScale' in data) settings.uiScale = clampUiScale((data as { uiScale?: unknown }).uiScale);
+    if (typeof data === 'object' && data !== null) {
+      const { uiScale, version } = data as { uiScale?: unknown; version?: unknown };
+      const chosen = typeof uiScale === 'number' && Number.isFinite(uiScale) && !(version === 1 && uiScale === UI_SCALE.default);
+      if (chosen) settings.uiScale = clampUiScale(uiScale);
+    }
   } catch {
     // Unreadable record: keep the defaults (it is overwritten on the next save).
   }
@@ -53,7 +61,10 @@ export function loadSettings(storage: SettingsStorage | null = browserStorage())
 export function saveSettings(settings: PlayerSettings, storage: SettingsStorage | null = browserStorage()): boolean {
   if (!storage) return false;
   try {
-    storage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ version: 1, language: settings.language, uiScale: clampUiScale(settings.uiScale) }));
+    const record = settings.uiScale === null
+      ? { version: 2, language: settings.language }
+      : { version: 2, language: settings.language, uiScale: clampUiScale(settings.uiScale) };
+    storage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(record));
     return true;
   } catch {
     return false;

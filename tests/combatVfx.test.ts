@@ -79,7 +79,24 @@ test('Male Side Swept: combat art for all 5 colours (4 actions + optional unarme
     const img = readPng(path.join(PUBLIC, s!.basePath + punch!.file));
     assert.deepEqual([img.width, img.height], [512, 256]);
   }
-  assert.deepEqual(ref.optional, {}, 'the Mohawk export has no optional actions');
+  assert.deepEqual(Object.keys(ref.optional), ['unarmed_punch'], 'the Mohawk Blonde r2 export adds unarmed_punch');
+});
+
+test('Mohawk and Straight Bangs: combat art for all 5 colours (Straight Bangs also exports its 1-frame combat_stance)', () => {
+  for (const c of ['blonde', 'black', 'silver', 'brown', 'red']) {
+    const m = combatSetFor(`char_male_mohawk_${c}_drifter`), f = combatSetFor(`char_female_straight_bangs_${c}_drifter`);
+    assert.ok(m, `mohawk ${c}`);
+    assert.ok(f, `straight_bangs ${c}`);
+    for (const s of [m!, f!]) {
+      for (const action of PLAYER_COMBAT_ACTIONS) assert.ok(fs.existsSync(path.join(PUBLIC, s.basePath + s.actions[action].file)), `${s.key} ${action}`);
+      assert.equal(s.optional.unarmed_punch?.events.impactFrame, 5, `${s.key} punch`);
+      assert.equal(s.actions.dagger_thrust.events.impactFrame, 5);
+      assert.equal(s.actions.self_heal_cast.events.castFrame, 5);
+      assert.equal(s.actions.hit_reaction.events.reactionFrame, 2);
+    }
+    assert.equal(f!.optional.combat_stance?.frames, 1);
+    assert.equal(m!.optional.combat_stance, undefined);
+  }
 });
 
 test('player combat frames stand on the static canvas root (feet on row 56): no jump between static and combat', () => {

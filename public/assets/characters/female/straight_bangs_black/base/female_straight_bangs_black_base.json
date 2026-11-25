@@ -1,0 +1,149 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-25T11:29:31.876Z",
+  "key": "female_straight_bangs_black_base",
+  "displayName": {
+    "en": "Female Straight Bangs Black (base)",
+    "th": "หญิง หน้าม้าตรง ดำ (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "female",
+    "hairstyleId": "straight_bangs",
+    "hairColorId": "black",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "straight_bangs",
+    "hairColor": "black",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_female_straight_bangs_black_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/female/straight_bangs_black/base/female_straight_bangs_black_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "878338ff780f1d787e9474f18ac3f8c579d9a70d4e89cc852bec598fc85161d0",
+    "directions": {
+      "S": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_south-east",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_east",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_north-east",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_north",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_north-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_south-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/female/straight_bangs_black/base/female_straight_bangs_black_base_walk_8dir.png",
+    "metadata": "assets/characters/female/straight_bangs_black/base/female_straight_bangs_black_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "e22aac844a6edfa6afc336de08c00df9610e903bc1c6bc75da13998f302062c8",
+    "directions": {
+      "S": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_straight-bangs_black_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 7
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { TileBox } from '../world/structures/StructureLayer';
 import { actionDirectionFromGroundVector, directionFromGroundVector, type ActionDirection, type Direction } from '../core/Direction';
 import type { Point } from '../core/types';
+import type { PlayerAttackClip } from '../combat/WeaponAttackClip';
 import type { CharacterView } from '../characters/CharacterView';
 import type { IsometricMap } from '../world/IsometricMap';
 import { Pathfinder } from '../world/navigation/Pathfinder';
@@ -24,8 +25,12 @@ export type PlayerAction = 'attack' | 'hit' | 'cast' | 'death';
  * the target). Replace with an implementation that plays the 4-direction clips once the art arrives.
  */
 export interface PlayerActionAnimations {
-  /** Returns true when it played an animation for the action. `timeScale`: playback speed (attacks follow ASPD). */
-  play(action: PlayerAction, facing: ActionDirection, timeScale?: number): boolean;
+  /**
+   * Returns true when it played an animation for the action. `timeScale`: playback speed (attacks follow ASPD).
+   * `attackClip`: which attack animation a swing plays (Unarmed Punch with an empty weapon slot) - the same clip the
+   * combat system timed the hit on.
+   */
+  play(action: PlayerAction, facing: ActionDirection, timeScale?: number, attackClip?: PlayerAttackClip): boolean;
   /** Stops every action clip (interrupted attack, death, respawn). */
   reset?(): void;
 }

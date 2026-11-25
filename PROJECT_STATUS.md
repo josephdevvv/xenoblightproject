@@ -285,7 +285,7 @@ level 50+ mutation subclasses.
 **Registry / loading**
 - `SpriteForgeCharacters.ts`: 10 variants appended (now 18); the existing entries are unchanged.
 - `PlayerCombatArt.ts`: the 5 Side Swept combat sets are registered.
-- `unarmed_punch` is a new optional action: its sheet and per-facing animations load when an export has it. It is not used by gameplay yet.
+- `unarmed_punch` is a new optional action: its sheet and per-facing animations load when an export has it. **Used since 2026-11-26:** every swing (basic attack and Power Thrust, manual and Auto Combat - one path, `CombatSystem.playerAttack`) picks its clip from the weapon slot at that moment (`combat/WeaponAttackClip`: empty = `unarmed_punch`, dagger = `dagger_thrust`; equip / unequip counts from the next swing). The same clip times the hit (`playerImpactDelayMs` / `playerSwingMs` take it): frame 4, 300 ms - the punch has the thrust's 8 x 100 ms in all 15 sets. An export without the punch keeps its thrust; appearances without combat art (Bald) keep the standing frame.
 
 **Character creation**
 - Male hairstyles: Bald, Mohawk, Side Swept.
@@ -310,3 +310,39 @@ level 50+ mutation subclasses.
 - Every exported sheet loaded at the expected size.
 - All 10 walk sheets loop 6 frames in 8 directions.
 - All 100 combat animations (5 colours × 5 actions × 4 facings) play their full frame count and complete.
+
+## Mohawk (Spike) and Straight Bangs in every hair colour (Sprite Forge export, 2026-11-26)
+
+**Exported art** (approved, unchanged)
+- Male Mohawk (forge Spike) in black, silver, brown and red, plus female Straight Bangs in black, silver, brown and red, each in base and Drifter (16 new variants).
+- Each variant: static 8-direction sheet, walk 6x8 at 125 ms plus walk metadata, and an info JSON.
+- Drifter combat sets:
+  - Mohawk in all 5 colours: `combat_idle`, `dagger_thrust`, `self_heal_cast`, `hit_reaction`, `unarmed_punch`.
+    - Blonde gets a revision `male_spike_blonde_drifter_combat_r2.json`: the same 4 sheets (byte-identical) plus `unarmed_punch.png`. The r1 JSON stays on disk.
+  - Straight Bangs in all 5 colours: the 5 actions plus the 1-frame `combat_stance`.
+- Forge exporters:
+  - `export_game_characters.mjs --only ... --append-registry`;
+  - `export_game_combat.mjs`, which takes `GENDER=female` and `--revision rN`.
+
+**Registry / loading**
+- `SpriteForgeCharacters.ts`: 16 variants appended (34 in total); existing entries unchanged, Side Swept included.
+- `PlayerCombatArt.ts`: 15 combat sets (Mohawk ×5, Straight Bangs ×5, Side Swept ×5).
+- Optional actions are now `unarmed_punch` and `combat_stance`.
+
+**Character creation:** Mohawk and Straight Bangs offer the 5-colour row (like Side Swept); Bald stays "-".
+
+**Save / Load:** every hairstyle with hair in every colour round-trips through profiles and save files, and an unsupported colour is still refused.
+
+**Tests:** 471/471, plus typecheck and build. New or updated:
+- starter colours;
+- profile and save-file round trips for all 3 hairstyles;
+- 34 registry variants;
+- body/scale pairs vs bald for the new colours;
+- combat sets and events;
+- the combat cache lifecycle counts the optional sheets.
+
+**Verified in the dev server**
+- Creation preview of Mohawk and Straight Bangs in all 5 colours.
+- All 20 new static / walk sheets load at the expected size, and every walk row loops 6 frames in 8 directions.
+- All 220 combat clips (Mohawk 5 × 5 actions × 4 facings, Straight Bangs 5 × 6 actions × 4 facings) play their full frame count and complete.
+- A female Straight Bangs Red character entered the game: walk played, and all 32 of its animations were registered.

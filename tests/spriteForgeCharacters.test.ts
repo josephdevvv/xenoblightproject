@@ -16,14 +16,15 @@ function pngSize(file: string): { width: number; height: number } {
   return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
 }
 
-test('Sprite Forge exports: 18 approved variants, each resolvable by appearance', () => {
-  assert.equal(SPRITE_FORGE_CHARACTER_VARIANTS.length, 18);
+test('Sprite Forge exports: 34 approved variants, each resolvable by appearance', () => {
+  assert.equal(SPRITE_FORGE_CHARACTER_VARIANTS.length, 34);
   const keys = SPRITE_FORGE_CHARACTER_VARIANTS.map((v) => v.key).sort();
   assert.deepEqual(keys, [
-    'female_bald_base', 'female_bald_drifter', 'female_straight_bangs_blonde_base', 'female_straight_bangs_blonde_drifter',
+    'female_bald_base', 'female_bald_drifter',
+    ...['black', 'blonde', 'brown', 'red', 'silver'].flatMap((c) => [`female_straight_bangs_${c}_base`, `female_straight_bangs_${c}_drifter`]),
     'male_bald_base', 'male_bald_drifter',
     ...['black', 'blonde', 'brown', 'red', 'silver'].flatMap((c) => [`male_side_swept_${c}_base`, `male_side_swept_${c}_drifter`]),
-    'male_spike_blonde_base', 'male_spike_blonde_drifter',
+    ...['black', 'blonde', 'brown', 'red', 'silver'].flatMap((c) => [`male_spike_${c}_base`, `male_spike_${c}_drifter`]),
   ]);
   for (const v of SPRITE_FORGE_CHARACTER_VARIANTS) {
     const id = getCharacterSpriteId({ ...v.appearance });

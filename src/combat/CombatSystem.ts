@@ -12,6 +12,7 @@ import { DamageNumbers } from './DamageNumbers';
 import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
 import { PLAYER_IMPACT_VFX } from '../characters/combat/PlayerCombatArt';
 import { monsterVfxAnimKey, monsterVfxKey } from '../monsters/art/MonsterArt';
+import { attackClipFor, equippedWeaponType } from './WeaponAttackClip';
 import { PLAYER_ATTACKS, playerImpactDelayMs, playerSwingMs, swingTimeScale, type PlayerAttackDefinition, type PlayerAttackId } from './PlayerAttacks';
 import type { AttackVfxLayer, VfxTarget } from './vfx/AttackVfxLayer';
 import { spriteHitAnchor } from './vfx/HitAnchor';
@@ -301,7 +302,8 @@ export class CombatSystem {
   }
 
   /**
-   * Starts a swing: the attack animation (dagger_thrust, or the standing frame for appearances without
+   * Starts a swing: the attack animation (Unarmed Punch with an empty weapon slot, the weapon's own clip otherwise -
+   * read at every swing, so equipping / unequipping counts at once; the standing frame for appearances without
    * combat art) and a pending hit at the animation's hit frame (frame 4), timed on the combat clock from the
    * animation's metadata - playback never decides damage. A queued skill replaces this swing.
    */
@@ -314,10 +316,12 @@ export class CombatSystem {
     if (id && activate && !activate()) id = null; // not enough SP / on cooldown by now: a basic swing
     const attack = PLAYER_ATTACKS[id ?? 'basic'];
     this.lastCombatAt = this.elapsed;
+    // the clip follows the weapon slot right now; its own timing places the hit frame
+    const clip = attackClipFor(equippedWeaponType(this.character.inventory));
     // ASPD: a swing longer than the attack interval plays faster, its hit frame (and so the damage) with it
-    const speed = swingTimeScale(playerSwingMs(this.spriteId, attack), stats.attackIntervalMs);
-    this.player.actions.play('attack', this.player.actionFacingTowards(target.position), speed);
-    this.pendingHits.push({ target, attack, at: this.elapsed + playerImpactDelayMs(this.spriteId, attack) / speed });
+    const speed = swingTimeScale(playerSwingMs(this.spriteId, attack, clip), stats.attackIntervalMs);
+    this.player.actions.play('attack', this.player.actionFacingTowards(target.position), speed, clip);
+    this.pendingHits.push({ target, attack, at: this.elapsed + playerImpactDelayMs(this.spriteId, attack, clip) / speed });
   }
 
   private resolvePendingHits(): void {

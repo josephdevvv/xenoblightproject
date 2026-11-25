@@ -4,17 +4,22 @@ import type { PlayerAction, PlayerActionAnimations } from '../../player/PlayerCo
 import { bodyNormalizeFor } from '../CharacterBodyMetrics';
 import { CHARACTER_CANVAS_ROOT, CHARACTER_FRAME_HEIGHT, CHARACTER_FRAME_WIDTH } from '../CharacterSheetLayout';
 import type { CharacterView } from '../CharacterView';
-import { playerCombatAnimKey, type PlayerCombatAction, type PlayerCombatSet } from './PlayerCombatArt';
+import type { PlayerAttackClip } from '../../combat/WeaponAttackClip';
+import { playerCombatAnimKey, type PlayerCombatAction, type PlayerCombatSet, type PlayerOptionalCombatAction } from './PlayerCombatArt';
+
+type Clip = PlayerCombatAction | PlayerOptionalCombatAction;
 
 /** 8-way facing -> the 4 combat facings (combat sheets have SE, SW, NE, NW). */
 const FOUR_WAY: Record<Direction, ActionDirection> = { N: 'NE', NE: 'NE', E: 'SE', SE: 'SE', S: 'SW', SW: 'SW', W: 'NW', NW: 'NW' };
 
-const CLIP_FOR: Partial<Record<PlayerAction, PlayerCombatAction>> = { attack: 'dagger_thrust', hit: 'hit_reaction', cast: 'self_heal_cast' };
+/** Non-attack actions (the attack clip comes with each swing). */
+const CLIP_FOR: Partial<Record<PlayerAction, PlayerCombatAction>> = { hit: 'hit_reaction', cast: 'self_heal_cast' };
 
 /**
  * The player's combat clips on the character sprite (implements the PlayerController action hook):
  *   - combat_idle loops while in combat and standing,
- *   - dagger_thrust for attacks (basic and the Lv.1 skill), self_heal_cast for casts,
+ *   - the attack clip the combat system picked (unarmed_punch with an empty weapon slot, dagger_thrust with a
+ *     dagger; basic and the Lv.1 skill), self_heal_cast for casts,
  *   - hit_reaction when hit - never cutting off an attack or a cast (the red flash still shows).
  * One-shots return to the combat stance. Walking hands the sprite back to the CharacterAnimator (walk
  * cycle), so the 8-direction walk / static art is untouched. Frames share the static canvas root (32, 57)
@@ -22,7 +27,7 @@ const CLIP_FOR: Partial<Record<PlayerAction, PlayerCombatAction>> = { attack: 'd
  * Visual only: hit timing / damage are decided by the combat system, never by this playback.
  */
 export class PlayerCombatAnimator implements PlayerActionAnimations {
-  private acting: PlayerCombatAction | null = null;
+  private acting: Clip | null = null;
   private stance = false;
   private facing: ActionDirection = 'SE';
   private inCombat = false;
@@ -34,8 +39,9 @@ export class PlayerCombatAnimator implements PlayerActionAnimations {
     view.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.onComplete, this);
   }
 
-  play(action: PlayerAction, facing: ActionDirection, timeScale = 1): boolean {
-    const clip = CLIP_FOR[action];
+  play(action: PlayerAction, facing: ActionDirection, timeScale = 1, attackClip: PlayerAttackClip = 'dagger_thrust'): boolean {
+    // an export without unarmed_punch keeps its dagger_thrust (the hit was timed on that clip then, see PlayerAttacks)
+    const clip: Clip | undefined = action === 'attack' ? (attackClip === 'unarmed_punch' && !this.set.optional.unarmed_punch ? 'dagger_thrust' : attackClip) : CLIP_FOR[action];
     if (!clip) return false;
     if (clip === 'hit_reaction' && this.acting && this.acting !== 'hit_reaction') return false;
     this.facing = facing;
@@ -46,7 +52,7 @@ export class PlayerCombatAnimator implements PlayerActionAnimations {
   }
 
   /** The clip playing now (null = none). */
-  getActing(): PlayerCombatAction | null {
+  getActing(): Clip | null {
     return this.acting;
   }
 
@@ -76,7 +82,7 @@ export class PlayerCombatAnimator implements PlayerActionAnimations {
     this.release();
   }
 
-  private show(clip: PlayerCombatAction, timeScale = 1): void {
+  private show(clip: Clip, timeScale = 1): void {
     const sprite = this.view.sprite;
     this.view.animator.setHeld(true);
     const normalize = bodyNormalizeFor(this.view.getTextureKey()) ?? 1;

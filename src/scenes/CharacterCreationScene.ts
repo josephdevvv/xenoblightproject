@@ -48,7 +48,7 @@ const HINT: LocalizedMessage = { key: 'creation.nameHint', params: { min: NAME_M
 
 /**
  * Character creation: Gender -> Hairstyle -> Hair colour -> Name -> Create. The player picks gender, a starter
- * hairstyle and - when that hairstyle has more than one approved colour (Side Swept) - the hair colour; the
+ * hairstyle and - when that hairstyle has more than one approved colour (Mohawk, Side Swept, Straight Bangs) - the hair colour; the
  * Drifter outfit and class are fixed by StarterCharacters. The outfit row is a preview, not a choice.
  * The preview always shows the single complete sprite sheet resolved for the current selection.
  */

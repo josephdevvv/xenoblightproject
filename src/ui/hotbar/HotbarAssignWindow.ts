@@ -6,11 +6,12 @@ import { localize } from '../../i18n/phaser';
 import { entryIcon } from './hotbarIcons';
 import { drawOutline, drawPanelFrame, drawSlotFrame, INV_COLORS } from '../inventory/inventoryTheme';
 import { FrameButton } from '../passiveTree/PassiveTreeWindow';
-import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
+import type { Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
+import { rectInContainer } from '../tutorial/SpotlightOverlay';
 import { fitText } from '../text/fitText';
 import { typo } from '../UITheme';
 import { hotbarAssignLayout, PAD, TITLE } from './HotbarAssignLayout';
-import { uiView, windowCamera } from '../layout/UiLayers';
+import { uiView } from '../layout/UiLayers';
 
 /**
  * "Assign Hotkey": which of the hotbar slots 1-8 a consumable goes on. Shows what every slot holds now (the
@@ -75,9 +76,8 @@ export class HotbarAssignWindow {
   /** The slot grid on the screen (tutorial spotlight target), while open. */
   slotArea(): ScreenRect | null {
     if (!this.isOpen) return null;
-    const [wx, wy] = this.layout.window;
     const [x, y, width, height] = this.layout.slotArea;
-    return throughCamera({ x: wx + x, y: wy + y, width, height }, windowCamera(this.scene));
+    return rectInContainer(this.scene, this.root, { x, y, width, height });
   }
 
   /** `name`: the item's / skill's name in the current language (the hint line). */

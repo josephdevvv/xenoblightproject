@@ -46,14 +46,59 @@ export function lerpRect(a: Rect, b: Rect, t: number): Rect {
   return { x: at(a.x, b.x), y: at(a.y, b.y), width: at(a.width, b.width), height: at(a.height, b.height) };
 }
 
-/** A rectangle in a scene's coordinates -> screen pixels (camera position, scroll and zoom). */
-export function throughCamera(r: Rect, camera: { x: number; y: number; zoom: number; worldView: { x: number; y: number } }): Rect {
+/** The camera fields that place what it draws (a Phaser camera has them all). */
+export interface CameraView {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Zoom pivot, 0-1 of the camera size (the in-game UI cameras zoom from their top-left: 0). */
+  originX: number;
+  originY: number;
+  scrollX: number;
+  scrollY: number;
+  zoomX: number;
+  zoomY: number;
+}
+
+/**
+ * A rectangle in a scene's coordinates -> screen pixels, exactly as the camera draws it (and hit-tests clicks):
+ * Phaser's camera matrix is translate(round(x + ox), round(y + oy)) . zoom . translate(-ox, -oy), applied after the
+ * scroll, with o = origin x size. (Not `worldView`: that is centred on the camera whatever its origin, so a UI
+ * camera zoomed from its top-left corner would put every spotlight off its control at any UI scale but 100 %.)
+ */
+export function throughCamera(r: Rect, camera: CameraView): Rect {
+  const ox = camera.width * camera.originX;
+  const oy = camera.height * camera.originY;
   return {
-    x: camera.x + (r.x - camera.worldView.x) * camera.zoom,
-    y: camera.y + (r.y - camera.worldView.y) * camera.zoom,
-    width: r.width * camera.zoom,
-    height: r.height * camera.zoom,
+    x: Math.floor(camera.x + ox + 0.5) + (r.x - camera.scrollX - ox) * camera.zoomX,
+    y: Math.floor(camera.y + oy + 0.5) + (r.y - camera.scrollY - oy) * camera.zoomY,
+    width: r.width * camera.zoomX,
+    height: r.height * camera.zoomY,
   };
+}
+
+/** 2D affine transform (a b c d e f, as Phaser's TransformMatrix): x' = a x + c y + e, y' = b x + d y + f. */
+export interface Affine {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+}
+
+/** The box around a rectangle after a transform (a container's world transform: position, scale, rotation, parents). */
+export function transformRect(r: Rect, m: Affine): Rect {
+  const xs: number[] = [];
+  const ys: number[] = [];
+  for (const [x, y] of [[r.x, r.y], [r.x + r.width, r.y], [r.x, r.y + r.height], [r.x + r.width, r.y + r.height]]) {
+    xs.push(m.a * x + m.c * y + m.e);
+    ys.push(m.b * x + m.d * y + m.f);
+  }
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
 }
 
 /** A DOM element's client rectangle -> game-canvas pixels (window size, FIT scaling, browser zoom). */

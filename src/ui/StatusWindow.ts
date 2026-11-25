@@ -15,8 +15,9 @@ import { statusLayout, type SecondaryKey, type StatRowLayout } from './status/St
 import { fitText } from './text/fitText';
 import type { TypographyRole } from './text/Typography';
 import { typo } from './UITheme';
-import { throughCamera, type Rect as ScreenRect } from './tutorial/SpotlightGeometry';
-import { uiView, windowCamera } from './layout/UiLayers';
+import type { Rect as ScreenRect } from './tutorial/SpotlightGeometry';
+import { rectInContainer } from './tutorial/SpotlightOverlay';
+import { uiView } from './layout/UiLayers';
 
 /** A value that the selected (not yet confirmed) points would change. */
 const PREVIEW_COLOR = '#ffd27a';
@@ -68,6 +69,7 @@ export class StatusWindow {
   private shownHp = -1;
   private open = false;
   /** Screen rectangles the Status tutorial points at: the six stat rows with their + buttons, and CONFIRM. */
+  /** Tutorial spotlight areas in the window's own coordinates (measured through its container when asked). */
   private readonly tutorialAreas: { stats: Rect; confirm: Rect };
 
   /** `currentHp` / `currentSp`: HP / SP now (combat); the maximum when absent. */
@@ -87,9 +89,8 @@ export class StatusWindow {
     const rows = L.stats.map((s) => s.rect);
     const left = Math.min(...rows.map((r) => r[0]));
     const top = Math.min(...rows.map((r) => r[1]));
-    const stats: Rect = [wx + left, wy + top, Math.max(...rows.map((r) => r[0] + r[2])) - left, Math.max(...rows.map((r) => r[1] + r[3])) - top];
-    const c = L.buttons.confirm;
-    this.tutorialAreas = { stats, confirm: [wx + c[0], wy + c[1], c[2], c[3]] };
+    const stats: Rect = [left, top, Math.max(...rows.map((r) => r[0] + r[2])) - left, Math.max(...rows.map((r) => r[1] + r[3])) - top];
+    this.tutorialAreas = { stats, confirm: L.buttons.confirm };
 
     // 1. Chrome; a window-sized zone keeps clicks on empty areas inside.
     this.root.add(scene.add.zone(0, 0, ww, wh).setOrigin(0, 0).setInteractive());
@@ -206,7 +207,7 @@ export class StatusWindow {
   tutorialArea(part: 'stats' | 'confirm'): ScreenRect | null {
     if (!this.open) return null;
     const [x, y, width, height] = this.tutorialAreas[part];
-    return throughCamera({ x, y, width, height }, windowCamera(this.scene));
+    return rectInContainer(this.scene, this.root, { x, y, width, height });
   }
 
   show(): void {

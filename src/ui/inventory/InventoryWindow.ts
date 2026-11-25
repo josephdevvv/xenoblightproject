@@ -10,11 +10,12 @@ import { EquipmentPanel } from './EquipmentPanel';
 import { InventoryGridPanel } from './InventoryGridPanel';
 import { inventoryLayout, type InventoryLayout } from './InventoryLayout';
 import { drawOutline, drawPanelFrame, INV_COLORS } from './inventoryTheme';
-import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
+import type { Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
+import { rectInContainer } from '../tutorial/SpotlightOverlay';
 import { ItemDetailPanel } from './ItemDetailPanel';
 import { GoldDisplay } from '../hud/GoldDisplay';
 import { GOLD_DISPLAY } from '../hud/GoldIcon';
-import { uiView, windowCamera } from '../layout/UiLayers';
+import { uiView } from '../layout/UiLayers';
 
 /**
  * After EQUIP the same button says UNEQUIP (and the other way round): further clicks are ignored for a moment,
@@ -152,9 +153,8 @@ export class InventoryWindow {
   /** The item description panel on the screen (tutorial spotlight target), while the window is open. */
   detailArea(): ScreenRect | null {
     if (!this.open) return null;
-    const [wx, wy] = this.layout.window;
     const [x, y, width, height] = this.layout.panels.detail;
-    return throughCamera({ x: wx + x, y: wy + y, width, height }, windowCamera(this.scene));
+    return rectInContainer(this.scene, this.root, { x, y, width, height });
   }
 
   /** Shows the selection again (e.g. after the item's quantity changed elsewhere). */

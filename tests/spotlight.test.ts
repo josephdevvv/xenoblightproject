@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { clientToGame, isOnScreen, lerpRect, padRect, placeLabel, sameRect, surround, throughCamera, type Rect } from '../src/ui/tutorial/SpotlightGeometry';
+import fs from 'node:fs';
+import path from 'node:path';
+import { clientToGame, isOnScreen, lerpRect, padRect, placeLabel, sameRect, surround, throughCamera, transformRect, type CameraView, type Rect } from '../src/ui/tutorial/SpotlightGeometry';
 
 const SCREENS = [
   { width: 960, height: 480 },
@@ -65,11 +67,56 @@ test('no usable target: nothing to light', () => {
   assert.equal(isOnScreen({ x: -4, y: 479, width: 5, height: 5 }, s), true, 'one visible pixel is enough');
 });
 
-test('camera: scroll, zoom and viewport offset are followed', () => {
+const cam = (over: Partial<CameraView> = {}): CameraView => ({ x: 0, y: 0, width: 960, height: 480, originX: 0.5, originY: 0.5, scrollX: 0, scrollY: 0, zoomX: 1, zoomY: 1, ...over });
+
+test('camera: scroll, zoom, zoom pivot and viewport offset are followed exactly as Phaser draws', () => {
   const r = { x: 100, y: 60, width: 20, height: 10 };
-  const camera = { x: 0, y: 0, zoom: 1, worldView: { x: 0, y: 0 } };
-  assert.deepEqual(throughCamera(r, camera), r);
-  assert.deepEqual(throughCamera(r, { x: 5, y: 7, zoom: 2, worldView: { x: 90, y: 50 } }), { x: 25, y: 27, width: 40, height: 20 });
+  assert.deepEqual(throughCamera(r, cam()), r);
+  // the in-game UI cameras zoom from their top-left: a HUD point (x, y) is drawn at (x, y) x zoom
+  for (const zoom of [1, 1.2, 1.25, 1.5, 2, 3]) {
+    assert.deepEqual(throughCamera(r, cam({ originX: 0, originY: 0, zoomX: zoom, zoomY: zoom })), { x: 100 * zoom, y: 60 * zoom, width: 20 * zoom, height: 10 * zoom }, `zoom ${zoom}`);
+  }
+  // a centred pivot (Phaser default): the middle of the camera stays put
+  assert.deepEqual(throughCamera({ x: 480, y: 240, width: 0, height: 0 }, cam({ zoomX: 2, zoomY: 2 })), { x: 480, y: 240, width: 0, height: 0 });
+  // scroll and a viewport offset
+  assert.deepEqual(throughCamera(r, cam({ x: 5, y: 7, originX: 0, originY: 0, scrollX: 90, scrollY: 50, zoomX: 2, zoomY: 2 })), { x: 25, y: 27, width: 40, height: 20 });
+});
+
+test('regression: a UI camera zoomed from its top-left - the spotlight lands on the control at every UI scale', () => {
+  // at 150 % on a 960 x 720 view Phaser reports worldView (160, 120) for such a camera: using it put the Status
+  // button's spotlight at (472, -165) instead of (712.5, 15) - off the screen
+  const button = { x: 475, y: 10, width: 17, height: 13 };
+  const hud = cam({ width: 960, height: 720, originX: 0, originY: 0, zoomX: 1.5, zoomY: 1.5 });
+  assert.deepEqual(throughCamera(button, hud), { x: 712.5, y: 15, width: 25.5, height: 19.5 });
+});
+
+test('container transform: position, scale and parents are all applied to an area inside a window', () => {
+  const r = { x: 10, y: 20, width: 30, height: 40 };
+  assert.deepEqual(transformRect(r, { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }), r);
+  assert.deepEqual(transformRect(r, { a: 1, b: 0, c: 0, d: 1, e: 100, f: 50 }), { x: 110, y: 70, width: 30, height: 40 }, "moved window");
+  assert.deepEqual(transformRect(r, { a: 2, b: 0, c: 0, d: 2, e: 100, f: 50 }), { x: 120, y: 90, width: 60, height: 80 }, "scaled (e.g. a parent at 2x)");
+  assert.deepEqual(transformRect(r, { a: -1, b: 0, c: 0, d: 1, e: 0, f: 0 }), { x: -40, y: 20, width: 30, height: 40 }, "flipped: still a proper box");
+});
+
+test('every tutorial step measures its target where it is drawn now: no stored window coordinates', () => {
+  const read = (f: string): string => fs.readFileSync(path.join(process.cwd(), f), 'utf8').replace(/\r\n/g, '\n');
+  const overlay = read('src/ui/tutorial/SpotlightOverlay.ts');
+  assert.match(overlay, /throughCamera\(transformRect\(local, container\.getWorldTransformMatrix\(\)\), cameraOf\(scene, container\)\)/);
+  assert.match(overlay, /const b = object\.getBounds\(\);/, 'controls: their rendered bounds, parents included');
+  for (const f of ['src/ui/StatusWindow.ts', 'src/ui/inventory/InventoryWindow.ts', 'src/ui/hotbar/HotbarAssignWindow.ts', 'src/ui/autoplay/AutoPlayWindow.ts']) {
+    const src = read(f);
+    assert.match(src, /rectInContainer\(this\.scene, this\.root, \{ x, y, width, height \}\)/, `${f}: measured through its container`);
+    assert.doesNotMatch(src, /throughCamera\(|wx \+ x|wy \+ y|wx \+ c\[0\]/, `${f}: no window position baked in`);
+  }
+  assert.doesNotMatch(read('src/ui/tutorial/SpotlightGeometry.ts'), /worldView\.[xy]/, 'never the centred worldView');
+  // the rectangle is read every frame (it follows UI scale changes, resizes, rotations and layout changes)
+  assert.match(overlay, /const rect = target\?\.rect\(\) \?\? null;/);
+  const ui = read('src/scenes/GameUIScene.ts');
+  assert.match(ui, /this\.spotlightOverlay\?\.update\(delta, this\.spotlightTarget\(\)\);/);
+  // the label: screen layer (above every window), at the HUD's UI scale, placed beside the cutout in screen pixels
+  assert.match(overlay, /setData\(UI_LAYER_KEY, 'screen'\);/);
+  assert.match(overlay, /this\.label\.setScale\(z\)\.setData\(TEXT_RESOLUTION_KEY, z\);/);
+  assert.match(overlay, /this\.label\.setPosition\(at\.x, at\.y\);/);
 });
 
 test('DOM targets: window size, FIT scaling, letterboxing and browser zoom are followed', () => {

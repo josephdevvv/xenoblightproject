@@ -18,6 +18,8 @@ export type UiLayer = 'hud' | 'windows' | 'screen';
 
 /** Data key for an explicit layer (the spotlight's objects). */
 export const UI_LAYER_KEY = 'uiLayer';
+/** Data key for a text's own render resolution (a text scaled up on its layer, e.g. the spotlight label). */
+export const TEXT_RESOLUTION_KEY = 'uiTextResolution';
 
 interface Layers {
   cameras: Record<UiLayer, Phaser.Cameras.Scene2D.Camera>;
@@ -81,11 +83,6 @@ export function cameraOf(scene: Phaser.Scene, object: Phaser.GameObjects.GameObj
   return L ? L.cameras[layerOf(object)] : scene.cameras.main;
 }
 
-/** The camera that draws the windows (their spotlight areas are measured through it). */
-export function windowCamera(scene: Phaser.Scene): Phaser.Cameras.Scene2D.Camera {
-  return registry.get(scene)?.cameras.windows ?? scene.cameras.main;
-}
-
 /** A pointer in an object's layer coordinates. */
 export function pointerIn(scene: Phaser.Scene, object: Phaser.GameObjects.GameObject, pointer: Phaser.Input.Pointer): Phaser.Math.Vector2 {
   return cameraOf(scene, object).getWorldPoint(pointer.x, pointer.y);
@@ -110,7 +107,8 @@ export function assignUiLayers(scene: Phaser.Scene): void {
 
 function sharpenText(o: Phaser.GameObjects.GameObject, zoom: number): void {
   if (o instanceof Phaser.GameObjects.Text) {
-    if (o.style.resolution !== zoom) o.setResolution(zoom);
+    const resolution = (o.getData(TEXT_RESOLUTION_KEY) as number | undefined) ?? zoom;
+    if (o.style.resolution !== resolution) o.setResolution(resolution);
   } else if (o instanceof Phaser.GameObjects.Container) {
     for (const child of o.list) sharpenText(child, zoom);
   }

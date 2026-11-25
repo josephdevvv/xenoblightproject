@@ -20,9 +20,10 @@ import type { Rect } from '../passiveTree/PassiveTreeLayout';
 import { FrameButton } from '../passiveTree/PassiveTreeWindow';
 import { fitText } from '../text/fitText';
 import { typo } from '../UITheme';
-import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
+import type { Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
+import { rectInContainer } from '../tutorial/SpotlightOverlay';
 import { autoPlayLayout, dropIndex, RECOVERY_ROWS, sliderValue, sliderX, SKILL_SLOT, type AutoPlayLayout } from './AutoPlayLayout';
-import { uiView, windowCamera } from '../layout/UiLayers';
+import { uiView } from '../layout/UiLayers';
 
 type RecoveryKey = keyof AutoPlayRecovery;
 
@@ -211,9 +212,8 @@ export class AutoPlayWindow {
   /** A settings panel on the screen (Auto Combat tutorial spotlight target), while open. */
   tutorialArea(key: 'monsters' | 'skills' | 'options' | 'range' | 'recovery'): ScreenRect | null {
     if (!this.open) return null;
-    const [wx, wy] = this.layout.window;
     const [x, y, width, height] = this.layout.panels[key];
-    return throughCamera({ x: wx + x, y: wy + y, width, height }, windowCamera(this.scene));
+    return rectInContainer(this.scene, this.root, { x, y, width, height });
   }
 
   /** START / STOP (tutorial spotlight target), while open. */

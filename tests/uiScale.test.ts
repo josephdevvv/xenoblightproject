@@ -188,7 +188,7 @@ test('UI scale wiring: in-game Settings only; two zoomed UI cameras + a screen c
   assert.match(ui, /const \{ x, y \} = pointerIn\(this, o, pointer\);/, 'the world is not clicked through scaled UI');
   const layers = read('src/ui/layout/UiLayers.ts');
   assert.match(layers, /o\.cameraFilter = \(ids\.hud \| ids\.windows \| ids\.screen\) & ~ids\[layer\];/);
-  assert.match(layers, /if \(o\.style\.resolution !== zoom\) o\.setResolution\(zoom\);/, 'text stays sharp when scaled');
+  assert.match(layers, /const resolution = \(o\.getData\(TEXT_RESOLUTION_KEY\) as number \| undefined\) \?\? zoom;\s*if \(o\.style\.resolution !== resolution\) o\.setResolution\(resolution\);/, 'text stays sharp when scaled (its layer\'s zoom, or its own scale)');
   assert.match(layers, /scene\.events\.on\(Phaser\.Scenes\.Events\.PRE_RENDER, assign\);/, 'assigned before every frame is drawn');
   // the world scene is never touched: no zoom, no UI layers
   assert.doesNotMatch(read('src/scenes/GameScene.ts'), /installUiLayers|setZoom\(/);

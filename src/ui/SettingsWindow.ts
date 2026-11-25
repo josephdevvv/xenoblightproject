@@ -5,11 +5,15 @@ import { localize } from '../i18n/phaser';
 import { Button } from './Button';
 import { createPanel, setPanelTitle } from './Panel';
 import { typo } from './UITheme';
+import { UI_SCALE } from './layout/UiScale';
+import { uiView } from './layout/UiLayers';
 
 const WIDTH = 320;
 const HEIGHT = 140;
 /** Extra height for the Save Game row and its message. */
 const SAVE_HEIGHT = 62;
+/** Extra height for the UI Scale row (in game only). */
+const SCALE_HEIGHT = 50;
 
 export interface SettingsWindowOptions {
   depth: number;
@@ -20,6 +24,11 @@ export interface SettingsWindowOptions {
   closeKey?: TranslationKey;
   /** In game: adds the Save Game button. Returns whether the download was started. */
   onSaveGame?: () => boolean;
+  /**
+   * In game only: the UI Scale row (100-150 %, step 5). `set` applies and saves it at once; `limit` is the largest
+   * scale this screen can show (the row says so when the choice is above it).
+   */
+  uiScale?: { value: () => number; set: (percent: number) => void; limit: () => number };
 }
 
 /**
@@ -38,8 +47,9 @@ export class SettingsWindow {
     scene: Phaser.Scene,
     private readonly options: SettingsWindowOptions,
   ) {
-    const { width: sw, height: sh } = scene.scale;
-    const height = HEIGHT + (options.onSaveGame ? SAVE_HEIGHT : 0);
+    const { width: sw, height: sh } = uiView(scene, 'windows');
+    const scaleRow = options.uiScale ? SCALE_HEIGHT : 0;
+    const height = HEIGHT + scaleRow + (options.onSaveGame ? SAVE_HEIGHT : 0);
     const x = Math.round((sw - WIDTH) / 2);
     const y = Math.round((sh - height) / 2);
     this.blocker = scene.add.rectangle(0, 0, sw, sh, 0x000000, 0.55).setOrigin(0, 0).setScrollFactor(0).setDepth(options.depth).setInteractive();
@@ -59,11 +69,31 @@ export class SettingsWindow {
       this.panel.add(button);
       this.languageButtons.set(language, button);
     });
+    // UI Scale (in game): - 100 % +, a step of 5 per click, applied at once
+    let scaleLabel: Phaser.GameObjects.Text | null = null;
+    let refreshScale = (): void => undefined;
+    const { uiScale } = options;
+    if (uiScale) {
+      scaleLabel = scene.add.text(20, 116, '', typo('label', PALETTE.silver));
+      const value = scene.add.text(196, 128, '', typo('label', PALETTE.white)).setOrigin(0.5);
+      const note = scene.add.text(WIDTH / 2, 146, '', typo('small', PALETTE.slate)).setOrigin(0.5, 0);
+      const minus = new Button(scene, 140, 128, { width: 36, height: 24, label: '-', onClick: () => uiScale.set(uiScale.value() - UI_SCALE.step) });
+      const plus = new Button(scene, 252, 128, { width: 36, height: 24, label: '+', onClick: () => uiScale.set(uiScale.value() + UI_SCALE.step) });
+      this.panel.add([scaleLabel, value, note, minus, plus]);
+      refreshScale = () => {
+        const v = uiScale.value();
+        const limit = uiScale.limit();
+        value.setText(`${v}%`);
+        note.setText(v > limit ? t('settings.uiScaleLimit', { percent: limit }) : '');
+        minus.setEnabled?.(v > UI_SCALE.min);
+        plus.setEnabled?.(v < UI_SCALE.max);
+      };
+    }
     let save: Button | null = null;
     const { onSaveGame } = options;
     if (onSaveGame) {
-      save = new Button(scene, WIDTH / 2, 124, { width: WIDTH - 40, height: 28, label: '', variant: 'primary', onClick: () => this.showSaved(onSaveGame()) });
-      this.saveMessage = scene.add.text(WIDTH / 2, 144, '', typo('small', PALETTE.silver)).setOrigin(0.5, 0);
+      save = new Button(scene, WIDTH / 2, 124 + scaleRow, { width: WIDTH - 40, height: 28, label: '', variant: 'primary', onClick: () => this.showSaved(onSaveGame()) });
+      this.saveMessage = scene.add.text(WIDTH / 2, 144 + scaleRow, '', typo('small', PALETTE.silver)).setOrigin(0.5, 0);
       this.panel.add([save, this.saveMessage]);
     }
     const close = new Button(scene, WIDTH - 20 - 48, height - 18, { width: 96, height: 22, label: '', role: 'small', onClick: () => this.close() });
@@ -76,6 +106,8 @@ export class SettingsWindow {
         button.setLabel(t(`language.${language}`)).setSelected(language === getLanguage());
       }
       close.setLabel(t(options.closeKey ?? 'common.close'));
+      scaleLabel?.setText(t('settings.uiScaleLabel'));
+      refreshScale();
       save?.setLabel(t('settings.saveGame'));
       this.showSaved(this.saved);
     });

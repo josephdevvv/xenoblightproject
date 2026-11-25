@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { typo } from '../UITheme';
+import { cameraOf, layerZoom, UI_LAYER_KEY } from '../layout/UiLayers';
 import { clientToGame, isOnScreen, lerpRect, padRect, placeLabel, sameRect, surround, throughCamera, type Rect } from './SpotlightGeometry';
 
 export interface SpotlightTarget {
@@ -47,14 +48,16 @@ export class SpotlightOverlay {
     private readonly scene: Phaser.Scene,
     depth: number,
   ) {
-    this.shade = scene.add.graphics().setDepth(depth).setVisible(false);
-    this.pulse = scene.add.graphics().setDepth(depth + 1).setVisible(false);
-    this.label = scene.add.text(0, 0, '', typo('label', '#e7e7ee')).setBackgroundColor('#0e0e12').setPadding(8, 3, 8, 3).setDepth(depth + 2).setVisible(false);
+    // in-game UI layers (UiLayers): the shade and its blockers in screen pixels (the hole may be around a HUD or a
+    // window control, each zoomed by its own UI scale); the label with the HUD, so it scales like the rest of the UI
+    this.shade = scene.add.graphics().setDepth(depth).setVisible(false).setData(UI_LAYER_KEY, 'screen');
+    this.pulse = scene.add.graphics().setDepth(depth + 1).setVisible(false).setData(UI_LAYER_KEY, 'screen');
+    this.label = scene.add.text(0, 0, '', typo('label', '#e7e7ee')).setBackgroundColor('#0e0e12').setPadding(8, 3, 8, 3).setDepth(depth + 2).setVisible(false).setData(UI_LAYER_KEY, 'hud');
     // Interactive once, for good: only the hit area changes later. (Phaser loses an object whose input is
     // removed and set again within one frame.) Half open: the pixel next to the hole belongs to the target.
     const contains = (area: Phaser.Geom.Rectangle, x: number, y: number): boolean => x >= 0 && y >= 0 && x < area.width && y < area.height;
     this.blockers = Array.from({ length: 4 }, () => {
-      const b = scene.add.rectangle(0, 0, 1, 1, 0x000000, 0.01).setOrigin(0, 0).setDepth(depth + 3).setVisible(false);
+      const b = scene.add.rectangle(0, 0, 1, 1, 0x000000, 0.01).setOrigin(0, 0).setDepth(depth + 3).setVisible(false).setData(UI_LAYER_KEY, 'screen');
       b.setInteractive(new Phaser.Geom.Rectangle(0, 0, 1, 1), contains);
       b.input!.enabled = false;
       return b;
@@ -141,8 +144,10 @@ export class SpotlightOverlay {
       this.pulse.clear();
       outline(this.pulse, rect, 2, 1);
       outline(this.pulse, rect, 3, 0.45);
-      const at = placeLabel(rect, { width: this.label.width, height: this.label.height }, screen, 10);
-      this.label.setPosition(at.x, at.y);
+      // the label is drawn by the HUD camera (zoom z): placed in screen pixels, positioned in HUD pixels
+      const z = layerZoom(this.scene, 'hud');
+      const at = placeLabel(rect, { width: this.label.width * z, height: this.label.height * z }, screen, 10);
+      this.label.setPosition(Math.round(at.x / z), Math.round(at.y / z));
     }
     this.shade.setAlpha(this.alpha);
     this.label.setAlpha(this.alpha);
@@ -168,7 +173,8 @@ export function rectOfObject(scene: Phaser.Scene, object: (Phaser.GameObjects.Ga
     if ((o as Phaser.GameObjects.Zone).visible === false) return null;
   }
   const b = object.getBounds();
-  return throughCamera({ x: b.x, y: b.y, width: b.width, height: b.height }, scene.cameras.main);
+  // through the camera that draws it (in-game: the HUD or the window layer, each with its own UI scale)
+  return throughCamera({ x: b.x, y: b.y, width: b.width, height: b.height }, cameraOf(scene, object));
 }
 
 /** Screen rectangle of a DOM element over the game canvas; null while it is hidden. */

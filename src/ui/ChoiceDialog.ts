@@ -5,6 +5,7 @@ import { FrameButton } from './passiveTree/PassiveTreeWindow';
 import type { Rect } from './passiveTree/PassiveTreeLayout';
 import { wrapText } from './text/wrapText';
 import { typo } from './UITheme';
+import { uiView } from './layout/UiLayers';
 
 export interface DialogChoice {
   label: string;
@@ -44,7 +45,7 @@ export class ChoiceDialog {
   show({ title, lines, choices }: DialogContent): void {
     this.close();
     const { scene } = this;
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const blocker = scene.add.rectangle(0, 0, sw, sh, 0x000000, 0.65).setOrigin(0, 0).setScrollFactor(0).setDepth(this.depth).setInteractive();
 
     const text = scene.add.text(PAD, 48, '', typo('body', PALETTE.pale)).setLineSpacing(2);

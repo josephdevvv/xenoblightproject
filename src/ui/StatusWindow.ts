@@ -16,6 +16,7 @@ import { fitText } from './text/fitText';
 import type { TypographyRole } from './text/Typography';
 import { typo } from './UITheme';
 import { throughCamera, type Rect as ScreenRect } from './tutorial/SpotlightGeometry';
+import { uiView, windowCamera } from './layout/UiLayers';
 
 /** A value that the selected (not yet confirmed) points would change. */
 const PREVIEW_COLOR = '#ffd27a';
@@ -77,7 +78,7 @@ export class StatusWindow {
     private readonly currentHp: () => number = () => Number.POSITIVE_INFINITY,
     private readonly currentSp: () => number = () => Number.POSITIVE_INFINITY,
   ) {
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const L = statusLayout(sw, sh);
     const [wx, wy, ww, wh] = L.window;
     this.draft = new StatAllocationDraft(character.status);
@@ -205,7 +206,7 @@ export class StatusWindow {
   tutorialArea(part: 'stats' | 'confirm'): ScreenRect | null {
     if (!this.open) return null;
     const [x, y, width, height] = this.tutorialAreas[part];
-    return throughCamera({ x, y, width, height }, this.scene.cameras.main);
+    return throughCamera({ x, y, width, height }, windowCamera(this.scene));
   }
 
   show(): void {

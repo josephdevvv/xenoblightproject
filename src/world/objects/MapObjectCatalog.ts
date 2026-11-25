@@ -99,9 +99,9 @@ export const MAP_OBJECTS: Readonly<Record<ObjectTextureId, MapObjectSpec>> = {
       { x: 4.55, y: 3.4, w: 0.85, h: 0.9 },
     ],
   }),
-  // the cottage at the back of its front yard
-  dk_ruin_cottage: onLot(5, 5, { walls: { x: 0, y: 0, w: 3.55, h: 2.75 } }),
-  dk_ruin_shell: solid(5, 5, true),
+  // the cottage at the back of its plot, standing on the ground (its raised yard block was trimmed off the art); the
+  // open ground in front of its door is walkable
+  dk_ruin_cottage: onLot(5, 5, { walls: { x: 0, y: 0, w: 4.1, h: 3.3 } }),
   // only the stall's stone base collides (crates, posts, the drape; it is offset from the 2 x 1 footprint); it never
   // fades - the open canopy hides little, and its image is mostly empty air
   dk_market_stall: { ...solid(2, 1), ground: { walls: { x: 0.42, y: -0.09, w: 1.41, h: 1.3 } } },

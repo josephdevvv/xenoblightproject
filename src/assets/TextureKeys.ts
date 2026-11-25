@@ -57,7 +57,6 @@ export const TextureKeys = {
     dk_house_intact: 'obj_dk_house_intact',
     dk_ruin_burned: 'obj_dk_ruin_burned',
     dk_ruin_cottage: 'obj_dk_ruin_cottage',
-    dk_ruin_shell: 'obj_dk_ruin_shell',
     dk_market_stall: 'obj_dk_market_stall',
     dk_well: 'obj_dk_well',
     dk_barricade: 'obj_dk_barricade',

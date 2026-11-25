@@ -156,7 +156,7 @@ test('ground collision: a house on a walkable lot blocks only its walls\' base (
   assert.ok(!free(burned.col + 0.65, burned.row + 4.55), 'a boulder');
   // the cottage's front yard is open ground up to its door
   const cottage = map.objects.find((p) => p.type === 'dk_ruin_cottage')!;
-  for (const y of [3.2, 4, 4.6]) assert.ok(free(cottage.col + 1.5, cottage.row + y), 'the front yard');
+  for (const y of [3.75, 4.3, 4.8]) assert.ok(free(cottage.col + 2.3, cottage.row + y), 'the open ground in front of its door');
   // props and other buildings never stand on a lot (it stays reserved)
   assert.throws(() => new MapLayout({ ...DAWNKEEP, objects: [...DAWNKEEP.objects, { type: 'crate', col: burned.col + 5, row: burned.row + 5 }] }), /overlaps another object/);
 });
@@ -195,6 +195,13 @@ test('town layout: blocks between streets; every house\'s door opens onto a stre
       const front = e.face === 'x' ? { col: o.col + w, row: o.row + e.at } : { col: o.col + e.at, row: o.row + h };
       assert.ok(road(front.col, front.row), `${o.type} at (${o.col}, ${o.row}): its door opens onto a street`);
       assert.ok(reached[front.row][front.col], `${o.type} at (${o.col}, ${o.row}): the street in front of its door is reachable`);
+      houses++;
+    }
+    // ruined blueprint houses on the +y street: their way in (a gap in the +y wall) opens onto it
+    const gapAt: Record<string, number> = { timber_house: 1, stone_hall: 3, courtyard: 2 };
+    for (const s of DAWNKEEP.structures.filter((st) => inRect(b, st.col, st.row) && st.row + STRUCTURE_BLUEPRINTS[st.type].height === b.row + b.h)) {
+      assert.ok(s.type in gapAt, `${s.type} at (${s.col}, ${s.row}) opens on +y`);
+      assert.ok(road(s.col + gapAt[s.type], s.row + STRUCTURE_BLUEPRINTS[s.type].height), `${s.type} at (${s.col}, ${s.row}): its way in opens onto the street`);
       houses++;
     }
     // neighbours in a block keep a free tile between their footprints
@@ -371,9 +378,35 @@ test('skill name box: centred above the head, above the name / bars, whole pixel
   assert.ok(th && en && !th.startsWith('skills.') && !en.startsWith('skills.'), `names in both languages: ${th} / ${en}`);
 });
 
+test('grounded houses: no house stands on a raised base - nothing of the cottage reaches below its walls\' base; the stone shell is gone', () => {
+  const a = DAWNKEEP_ART.dk_ruin_cottage;
+  const png = readPng(path.join(process.cwd(), 'public', DAWNKEEP_ART_BASE, a.file));
+  const k = a.scale;
+  const { w, h } = MAP_OBJECTS.dk_ruin_cottage;
+  const g = MAP_OBJECTS.dk_ruin_cottage.ground!.walls;
+  // the walls' base edges in image pixels (left -> front -> right corner)
+  const P = (x: number, y: number) => ({ x: a.anchorX + ((x - w / 2 - (y - h / 2)) * 32) / k, y: a.anchorY + ((x - w / 2 + (y - h / 2)) * 16) / k });
+  const L = P(g.x, g.y + g.h);
+  const F = P(g.x + g.w, g.y + g.h);
+  const R = P(g.x + g.w, g.y);
+  const base = (px: number): number => {
+    const x = Math.min(R.x, Math.max(L.x, px));
+    return x <= F.x ? L.y + ((F.y - L.y) * (x - L.x)) / (F.x - L.x) : F.y + ((R.y - F.y) * (x - F.x)) / (R.x - F.x);
+  };
+  let below = 0;
+  for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) if (png.data[(y * png.width + x) * 4 + 3] > 20 && y > base(x) + 4) below++;
+  assert.equal(below, 0, 'no yard block, dirt sides or path under / in front of the house');
+  assert.ok(!('dk_ruin_shell' in DAWNKEEP_ART) && !('dk_ruin_shell' in MAP_OBJECTS), 'the shell is not a building any more');
+  assert.ok(!fs.existsSync(path.join('public', DAWNKEEP_ART_BASE, 'ruin_shell.png')));
+  assert.ok(!DAWNKEEP.objects.some((o) => (o.type as string) === 'dk_ruin_shell'));
+  // the open ground of the cottage's plot is walkable right up to its door
+  const cottage = map.objects.find((o) => o.type === 'dk_ruin_cottage')!;
+  for (const y of [3.75, 4.3, 4.8]) assert.ok(map.isAreaFree({ minX: cottage.col + 2.3 - 0.22, minY: cottage.row + y - 0.22, maxX: cottage.col + 2.3 + 0.22, maxY: cottage.row + y + 0.22 }), `in front of the door (${y})`);
+});
+
 test('building scale: judged by the door - render-scaled to about 1.15x the 54-px player; footprints and anchors fitted to the scaled art', () => {
   const PLAYER_HEIGHT = 54;
-  for (const id of ['dk_ruin_burned', 'dk_ruin_cottage', 'dk_ruin_shell', 'dk_house_intact', 'dk_keep', 'dk_church'] as const) {
+  for (const id of ['dk_ruin_burned', 'dk_ruin_cottage', 'dk_house_intact', 'dk_keep', 'dk_church'] as const) {
     const a = DAWNKEEP_ART[id];
     const png = readPng(path.join(process.cwd(), 'public', DAWNKEEP_ART_BASE, a.file));
     let top = png.height;
@@ -398,6 +431,15 @@ test('building scale: judged by the door - render-scaled to about 1.15x the 54-p
     else assert.ok(ratio >= 1.1 && ratio <= 1.2, `${id}: door ${Math.round(door * k)} px on screen = ${ratio.toFixed(2)}x the player (target ~1.15x)`);
     const { w, h } = MAP_OBJECTS[id];
     const diamond = (w + h) * 32;
+    if (id === 'dk_ruin_cottage') {
+      // grounded on its plot (the raised yard block was trimmed off): the art's lowest pixel is the house's front corner
+      // on the ground, inside the footprint
+      const g = MAP_OBJECTS[id].ground!.walls;
+      const frontY = a.anchorY + ((g.x + g.w - w / 2 + (g.y + g.h - h / 2)) * 16) / k;
+      assert.ok(Math.abs(frontY - bottom) <= 4, `${id}: its walls' front corner (${Math.round(frontY)}) is where the art ends (${bottom})`);
+      assert.ok((right - left + 1) * k <= diamond, `${id}: inside its plot`);
+      continue;
+    }
     assert.ok(Math.abs((right - left + 1) * k - diamond) <= 0.1 * diamond + 16, `${id}: footprint ${w} x ${h} (${diamond} px) fits its ${Math.round((right - left + 1) * k)}-px-wide scaled art`);
     assert.ok(Math.abs(a.anchorY + ((w + h) * 8) / k - bottom) <= 4, `${id}: the anchor is the footprint centre (its lowest corner meets the scaled art's lowest pixel)`);
   }

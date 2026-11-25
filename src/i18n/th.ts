@@ -26,6 +26,8 @@ export const th = {
     /** Shown in both languages on purpose so either reader can find it. */
     languageLabel: 'ภาษา / Language',
     saveGame: 'บันทึกเกม',
+    uiScaleLabel: 'ขนาด UI',
+    uiScaleLimit: 'จอนี้แสดงได้สูงสุด {percent}%',
     saveStarted: 'เริ่มดาวน์โหลดไฟล์เซฟแล้ว',
     saveFailed: 'บันทึกเกมไม่สำเร็จ',
   },

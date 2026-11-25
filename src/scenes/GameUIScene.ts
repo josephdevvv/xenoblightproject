@@ -51,6 +51,11 @@ import { HintService, showClickToMoveHint, showNavigateHint } from '../tutorial/
 import { isTouchMode } from '../platform/DeviceMode';
 import { TouchControls } from '../ui/touch/TouchControls';
 import { TargetHud } from '../ui/touch/TargetHud';
+import { installUiLayers, pointerIn, uiView } from '../ui/layout/UiLayers';
+import { uiZooms, type UiZooms } from '../ui/layout/UiScale';
+import { getUiScale, onUiScaleChange, setUiScale } from '../settings/UiScaleSetting';
+import type { DialogueSnapshot } from '../ui/dialogue/DialogueWindow';
+import type { PotionTutorialStep as PotionStep } from '../quests/TutorialQuest04';
 
 /** Mobile: the potion buttons' names in notices (desktop: the keys Q / W). */
 const TOUCH_POTION_LABEL = { hp: 'HP', sp: 'SP' } as const;
@@ -65,6 +70,23 @@ const STATUS_SPOTLIGHT = 'status.';
 
 export interface GameUISceneData {
   characterId?: string;
+  /**
+   * Rebuilt for a new view size or UI scale (relayoutWhenSafe): what was open comes back as it was - the windows, the
+   * conversation (same line, same callback), the tutorial guide lines and the Auto Combat tutorial's step.
+   */
+  restore?: UiRestore;
+}
+
+type WindowName = 'status' | 'inventory' | 'skills' | 'passive' | 'auto' | 'settings';
+
+interface UiRestore {
+  windows: WindowName[];
+  dialogue: DialogueSnapshot | null;
+  autoInfoIndex: number;
+  potionStep: PotionStep | null;
+  scrollGuide: keyof typeof TUTORIAL_QUEST_06.guideDialogueIds | null;
+  autoGuide: AutoInfoStep | null;
+  guideSuspended: boolean;
 }
 
 /**
@@ -108,6 +130,10 @@ export class GameUIScene extends Phaser.Scene {
   private scrollGuide: keyof typeof TUTORIAL_QUEST_06.guideDialogueIds | null = null;
   /** Mobile (touch mode only): the joystick, action wheel and potion buttons, and the target HUD. */
   private readonly touch = isTouchMode();
+  /** The UI scale's zoom of each layer for this view (UiScale; set when the UI is built). */
+  private zooms: UiZooms = { hud: 1, windows: 1, hudLimit: 100 };
+  /** The view size or the UI scale changed: the UI is rebuilt for it at the next safe moment (relayoutWhenSafe). */
+  private relayoutPending = false;
   private touchControls: TouchControls | null = null;
   private targetHud: TargetHud | null = null;
 
@@ -132,10 +158,25 @@ export class GameUIScene extends Phaser.Scene {
     this.skillWindow = null;
     this.autoWindow = null;
     this.potionFlash = null;
-    this.autoInfoIndex = 0;
+    this.autoInfoIndex = data.restore?.autoInfoIndex ?? 0;
     this.autoGuide = null;
     this.scrollGuide = null;
     this.touchControls = null;
+    this.relayoutPending = false;
+    // the UI layers: the HUD and the windows zoomed by the UI scale (as far as each fits this view), the spotlight in
+    // screen pixels - set up first, every layout below reads its layer's room (uiView)
+    this.zooms = uiZooms({ width: this.scale.width, height: this.scale.height }, getUiScale(), this.touch);
+    installUiLayers(this, this.zooms);
+    // the view size (browser window, mobile viewport) or the UI scale changes: rebuild for it
+    const relayout = (): void => {
+      this.relayoutPending = true;
+    };
+    this.scale.on(Phaser.Scale.Events.RESIZE, relayout);
+    const offScale = onUiScaleChange(relayout);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off(Phaser.Scale.Events.RESIZE, relayout);
+      offScale();
+    });
     this.targetHud = null;
     const character = this.resolveCharacter(data.characterId);
     this.character = character;
@@ -320,7 +361,12 @@ export class GameUIScene extends Phaser.Scene {
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, offPoints);
     this.refreshPointGuides(character);
-    this.settingsWindow = new SettingsWindow(this, { depth: 20, onSaveGame: () => downloadText(SAVE_FILE_NAME, serializeSave(character, this.gameScene()?.captureSavedLocation() ?? null)) });
+    this.settingsWindow = new SettingsWindow(this, {
+      depth: 20,
+      onSaveGame: () => downloadText(SAVE_FILE_NAME, serializeSave(character, this.gameScene()?.captureSavedLocation() ?? null)),
+      // in-game only (never on the main menu / character creation): 100-150 %, applied at once, saved
+      uiScale: { value: () => getUiScale(), set: (percent) => setUiScale(percent), limit: () => this.zooms.hudLimit },
+    });
     const leave = new ChoiceDialog(this, 28);
     this.leaveDialog = leave;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => leave.forget());
@@ -370,7 +416,7 @@ export class GameUIScene extends Phaser.Scene {
     });
     FeatureService.sync(character); // older saves: unlocked from their quest progress
     // Notices for received items: below the minimap, above dialogue, below the death screen.
-    const notifications = new ItemNotifications(this, { ...this.hud.belowMinimap, right: Math.min(this.scale.width - 4, this.hud.belowMinimap.right + 8) }, 36);
+    const notifications = new ItemNotifications(this, { ...this.hud.belowMinimap, right: Math.min(uiView(this, 'hud').width - 4, this.hud.belowMinimap.right + 8) }, 36);
     this.itemNotifications = notifications;
     const offGained = InventoryService.onGained((c, itemId, quantity) => {
       if (c === character) notifications.showItem(itemId, quantity);
@@ -397,6 +443,25 @@ export class GameUIScene extends Phaser.Scene {
       this.touchControls = null;
       this.targetHud = null;
     });
+    if (data.restore) this.restoreUi(data.restore);
+  }
+
+  /** After a rebuild: the windows, the conversation and the tutorial guide state as they were. */
+  private restoreUi(r: UiRestore): void {
+    this.potionStep = r.potionStep;
+    this.scrollGuide = r.scrollGuide;
+    this.autoGuide = r.autoGuide;
+    this.guideSuspended = r.guideSuspended;
+    const open: Record<WindowName, () => void> = {
+      status: () => this.toggleStatus(),
+      inventory: () => this.toggleInventory(),
+      skills: () => this.toggleSkills(),
+      passive: () => this.togglePassiveTree(),
+      auto: () => this.toggleAutoPlayWindow(),
+      settings: () => this.settingsWindow?.show(),
+    };
+    for (const w of r.windows) open[w]();
+    if (r.dialogue) this.dialogueWindow?.restore(r.dialogue);
   }
 
   /**
@@ -410,7 +475,8 @@ export class GameUIScene extends Phaser.Scene {
       {
         onSteer: (direction) => this.gameScene()?.steer(direction),
         onAttack: () => {
-          if (this.canOpenWindows() && !this.spotlightOverlay?.isActive) this.gameScene()?.touchAttack();
+          // talk to the NPC in range, or attack the selected monster (GameScene.touchAction decides)
+          if (this.canOpenWindows() && !this.spotlightOverlay?.isActive) this.gameScene()?.touchAction();
         },
         onSlot: (slot) => this.canUseHotbar() && this.useHotbarSlot(slot),
         onPotion: (key) => this.canUseHotbar() && this.usePotionSlot(key),
@@ -432,6 +498,36 @@ export class GameUIScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * The view size (browser window, mobile viewport) or the UI scale changed: every UI here is laid out from its
+   * layer's room when it is built, so the scene is rebuilt at once - with the open windows, the conversation (same line,
+   * same callback) and the tutorial guide state carried over (restoreUi). Only the death screen and the leave dialog
+   * wait (they are rebuilt right after). Returns true when it restarted.
+   */
+  private relayoutWhenSafe(): boolean {
+    if (!this.relayoutPending || !this.isPlayerAlive() || this.leaveDialog?.isOpen) return false;
+    this.relayoutPending = false;
+    const windows: WindowName[] = [];
+    if (this.statusWindow?.isOpen) windows.push('status');
+    if (this.inventoryWindow?.isOpen) windows.push('inventory');
+    if (this.skillWindow?.isOpen) windows.push('skills');
+    if (this.passiveWindow?.isOpen) windows.push('passive');
+    if (this.autoWindow?.isOpen) windows.push('auto');
+    if (this.settingsWindow?.isOpen) windows.push('settings');
+    const restore: UiRestore = {
+      windows,
+      dialogue: this.dialogueWindow?.snapshot() ?? null,
+      autoInfoIndex: this.autoInfoIndex,
+      potionStep: this.potionStep,
+      scrollGuide: this.scrollGuide,
+      autoGuide: this.autoGuide,
+      guideSuspended: this.guideSuspended,
+    };
+    this.scene.restart({ characterId: this.character?.id, restore } satisfies GameUISceneData);
+    return true;
+  }
+
+
   /** One-time hints follow their rule (no close button, no timeout); one that ends fades out. */
   private updateHints(): void {
     const c = this.character;
@@ -450,6 +546,7 @@ export class GameUIScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
+    if (this.relayoutWhenSafe()) return;
     this.updatePotionTraining();
     this.updateScrollTraining();
     this.updateLevelTutorials();
@@ -462,6 +559,8 @@ export class GameUIScene extends Phaser.Scene {
     if (!this.hud || !game?.player) return;
     this.hud.updateCooldowns((id) => game.skillCooldown(id));
     this.touchControls?.update((id) => game.skillCooldown(id));
+    // the action button shows what a tap does now: a speech bubble near an NPC to talk to, else the sword
+    this.touchControls?.setActionMode(game.touchActionMode());
     this.targetHud?.set(this.isPlayerAlive() ? game.touchTarget() : null);
     // the AUTO button is gray while it cannot be used (dead, a conversation, the leave dialog)
     const c = this.character;
@@ -486,11 +585,11 @@ export class GameUIScene extends Phaser.Scene {
   isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
     // a tutorial spotlight shuts the world out completely
     if (this.spotlightOverlay?.isActive || this.input.hitTestPointer(pointer).length > 0) return true;
-    const x = pointer.x;
-    const y = pointer.y;
     for (const o of this.children.list) {
       const v = o as Phaser.GameObjects.GameObject & Partial<Phaser.GameObjects.Components.Visible & Phaser.GameObjects.Components.AlphaSingle>;
       if (v.visible === false || v.alpha === 0) continue;
+      // the pointer in the coordinates of the layer that draws it (the HUD and the windows have their own UI scale)
+      const { x, y } = pointerIn(this, o, pointer);
       if (o instanceof Phaser.GameObjects.Image) {
         if (o.isCropped) {
           const c = (o as unknown as { _crop: { x: number; y: number; width: number; height: number } })._crop;

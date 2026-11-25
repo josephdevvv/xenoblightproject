@@ -13,7 +13,10 @@
  *   keep, castle_tower, gate_tower   the intact citadel and the town gate (crimson banners)
  *   church                           the church with its bell tower (the landmark of its quarter)
  *   house_intact                     the few houses still standing
- *   ruin_burned, ruin_cottage, ruin_shell   the ruined houses (burned / roof torn open / roofless shell)
+ *   ruin_burned, ruin_cottage            the ruined houses (burned on a flat stone slab / roof torn open). Every house
+ *                                        stands on the map ground: the cottage's raised yard block (dirt sides, path,
+ *                                        grass) was trimmed off its art and the house lowered onto the ground (21 px);
+ *                                        the roofless stone shell that stood on a raised base was removed.
  *   market_stall, well, barricade, banner_pole, knight_statue   props
  */
 export interface DawnkeepArtEntry {
@@ -45,8 +48,7 @@ export const DAWNKEEP_ART = {
   dk_church: { file: 'church.png', width: 344, height: 400, anchorX: 158, anchorY: 316, door: 50, entrance: { face: 'x', at: 0 } },
   dk_house_intact: { file: 'house_intact.png', width: 324, height: 352, anchorX: 161, anchorY: 256, door: 88, scale: 0.7, entrance: { face: 'x', at: 1 } },
   dk_ruin_burned: { file: 'ruin_burned.png', width: 400, height: 332, anchorX: 199, anchorY: 232, door: 60, entrance: { face: 'x', at: 2 } },
-  dk_ruin_cottage: { file: 'ruin_cottage.png', width: 400, height: 344, anchorX: 197, anchorY: 245, door: 73, scale: 0.85, entrance: { face: 'y', at: 1 } },
-  dk_ruin_shell: { file: 'ruin_shell.png', width: 400, height: 352, anchorX: 199, anchorY: 240, door: 83, scale: 0.75, entrance: { face: 'y', at: 1 } },
+  dk_ruin_cottage: { file: 'ruin_cottage.png', width: 400, height: 344, anchorX: 197, anchorY: 245, door: 73, scale: 0.85, entrance: { face: 'y', at: 2 } },
   // canopy raised 24 px over the player's head (posts and drape lengthened by repeating their own pixel rows; the
   // base, table and crates untouched - same ground position)
   dk_market_stall: { file: 'market_stall.png', width: 128, height: 120, anchorX: 63, anchorY: 87 },

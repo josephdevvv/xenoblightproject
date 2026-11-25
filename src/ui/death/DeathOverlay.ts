@@ -3,6 +3,7 @@ import { t } from '../../i18n';
 import { localize } from '../../i18n/phaser';
 import { dissolveNoise, dissolvePixels, ghostPixels, opaqueRows } from '../../player/death/GhostPixels';
 import { typo } from '../UITheme';
+import { uiView } from '../layout/UiLayers';
 
 /** The player's drawn frame at the moment of death, and where it is on screen. */
 export interface DeathCapture {
@@ -81,7 +82,7 @@ export class DeathOverlay {
     private readonly scene: Phaser.Scene,
     private readonly depth: number,
   ) {
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     this.overlay = scene.add.rectangle(0, 0, sw, sh, 0x000000, 1).setOrigin(0, 0).setDepth(depth).setAlpha(0).setVisible(false);
     this.title = scene.add.text(Math.round(sw / 2), Math.round(sh / 2) - 36, '', typo('display', '#cfc9c0', { stroke: '#000000', strokeThickness: 2 })).setOrigin(0.5).setDepth(depth + 3).setVisible(false);
     const bx = Math.round(sw / 2 - BUTTON.width / 2);

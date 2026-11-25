@@ -5,7 +5,9 @@ import { loadUiFonts } from './ui/text/Typography';
 import { GameCursor } from './ui/cursor/GameCursor';
 import { initDeviceMode } from './platform/DeviceMode';
 import { OrientationGate } from './platform/OrientationGate';
-import { attachTouchGame, prepareTouchPage } from './platform/TouchPage';
+import { attachTouchGame, gameContainerSize, prepareTouchPage } from './platform/TouchPage';
+import { desktopGameSize, mobileGameSize } from './platform/MobileViewport';
+import { attachDesktopViewport } from './platform/DesktopViewport';
 
 async function start(): Promise<void> {
   // Saved language (Thai by default) and the UI font must be ready before the first text is drawn.
@@ -22,8 +24,11 @@ async function start(): Promise<void> {
   const gate = touch ? new OrientationGate() : null;
   if (gate) await gate.waitForLandscape();
 
-  const game = new Phaser.Game(createGameConfig({ touch }));
+  // The game takes the window's / screen's shape (mobile: inside the safe areas) at the usual world scale - no black bars.
+  const size = touch ? mobileGameSize(...gameContainerSize()) : desktopGameSize(...gameContainerSize());
+  const game = new Phaser.Game(createGameConfig({ touch, size }));
   if (gate) attachTouchGame(game, gate);
+  else attachDesktopViewport(game);
   // The game's own mouse cursor everywhere (menus, HUD, windows, world).
   GameCursor.install(game);
 

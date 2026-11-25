@@ -230,28 +230,47 @@ export const TOWN_BLOCKS: readonly TownBlock[] = [
   block(49, 22, 11, 13, 'timber_house'),
 ];
 
+/** Ruined blueprint houses that stand on the +y street (their way in opens on +y): ground-level walls, no base. */
+export const STREET_RUINS = ['timber_house', 'stone_hall', 'courtyard'] as const satisfies readonly StructureType[];
+
+/** Footprint of a house type (sprite object or blueprint ruin). */
+function sizeOf(type: House['type']): { w: number; h: number } {
+  if (type in STRUCTURE_BLUEPRINTS) {
+    const bp = STRUCTURE_BLUEPRINTS[type as StructureType];
+    return { w: bp.width, h: bp.height };
+  }
+  return MAP_OBJECTS[type as ObjectType];
+}
+
 /** The houses of a block (see TownBlock): its +x street side, its +y street side, the ruin in the yard. */
 function blockHouses(b: TownBlock, index: number): House[] {
   const out: House[] = [];
   const at = (type: House['type'], x: number, y: number): void => {
     out.push(h(type, b.col + x, b.row + y));
   };
-  const [first, corner] = index % 2 ? (['dk_ruin_shell', 'dk_ruin_cottage'] as const) : (['dk_ruin_cottage', 'dk_ruin_shell'] as const);
+  // the +y street: the cottage and a ruined blueprint house (never the same ruin as the yard's), each flush with it
+  let ruin: StructureType = STREET_RUINS[index % STREET_RUINS.length];
+  if (ruin === b.ruin) ruin = STREET_RUINS[(index + 1) % STREET_RUINS.length];
+  const [first, corner]: House['type'][] = index % 2 ? [ruin, 'dk_ruin_cottage'] : ['dk_ruin_cottage', ruin];
+  const onStreet = (type: House['type'], x: number | 'corner'): void => {
+    const s = sizeOf(type);
+    at(type, x === 'corner' ? b.w - s.w : x, b.h - s.h);
+  };
   if (b.h >= 12) {
     // +x street: the burned house on its slab (or an intact house) at the top, a second house on tall blocks
     if (b.intact) at('dk_house_intact', b.w - 4, 1);
     else at('dk_ruin_burned', b.w - 6, 0);
     if (b.h >= 16) at('stone_house', b.w - 4, 7);
-    // +y street: a cottage / shell on the left and one on the corner (an intact house on narrow blocks)
-    at(first, 0, b.h - 5);
-    if (b.w >= 11) at(corner, b.w - 5, b.h - 5);
+    // +y street: the cottage / a blueprint ruin on the left and the other on the corner (an intact house on narrow blocks)
+    onStreet(first, 0);
+    if (b.w >= 11) onStreet(corner, 'corner');
     else at('dk_house_intact', b.w - 4, b.h - 4);
   } else {
     // short blocks (11 rows): a small house at the top of the +x street, the burned house on the corner
     at(b.intact ? 'dk_house_intact' : 'stone_house', b.w - 4, 0);
-    at(first, 0, b.h - 5);
+    onStreet(first, 0);
     if (b.w >= 12) at('dk_ruin_burned', b.w - 6, b.h - 6);
-    else at(corner, b.w - 5, b.h - 5);
+    else onStreet(corner, 'corner');
   }
   if (b.ruin) at(b.ruin, 0, 0);
   return out;

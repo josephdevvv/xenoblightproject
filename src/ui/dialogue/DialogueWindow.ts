@@ -4,6 +4,7 @@ import { translate } from '../../i18n';
 import { localize } from '../../i18n/phaser';
 import { typo } from '../UITheme';
 import { wrapText } from '../text/wrapText';
+import { uiView } from '../layout/UiLayers';
 
 /** Same flat palette as the Passive Tree window (minimal layer pack). */
 const C = { line: 0xe7e7ee, dim: 0x3a3a45, fill: 0x0e0e12, red: 0xd3424b, name: '#e8dcb8', text: '#e7e7ee' } as const;
@@ -34,6 +35,15 @@ export interface DialogueHooks {
    * (onFinished does not run). The window itself does not advance while answers are shown.
    */
   choices?: { step: number; options: readonly string[]; onChoose: (index: number) => void };
+}
+
+/** An open conversation as it is now: a rebuilt UI (new view size / UI scale) reopens it where it was. */
+export interface DialogueSnapshot {
+  speaker: string;
+  lines: readonly string[];
+  step: number;
+  onFinished: () => void;
+  hooks: DialogueHooks;
 }
 
 /** The answer boxes above the window: one under the other, the last one just above the window. */
@@ -71,6 +81,7 @@ export class DialogueWindow {
   private lines: readonly string[] | null = null;
   private onFinished: (() => void) | null = null;
   private hooks: DialogueHooks = {};
+  private speaker = '';
   /** A left press that began on the window and has not been released, moved off or used yet. */
   private pressed = false;
   private readonly pictureFrame: Phaser.GameObjects.Graphics;
@@ -86,7 +97,7 @@ export class DialogueWindow {
   constructor(scene: Phaser.Scene, depth: number) {
     this.scene = scene;
     this.depth = depth;
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const x = Math.round((sw - PANEL.width) / 2);
     const y = sh - PANEL.bottom - PANEL.height;
     this.textWidth = PANEL.width - PAD_X * 2 - NEXT.width;
@@ -158,6 +169,7 @@ export class DialogueWindow {
 
   /** Opens a conversation; `onFinished` runs once, after the last step was confirmed and the window closed. */
   open(speaker: string, lines: readonly string[], onFinished: () => void, hooks: DialogueHooks = {}): void {
+    this.speaker = speaker;
     this.session = new DialogueSession(lines);
     this.lines = lines;
     this.onFinished = onFinished;
@@ -166,6 +178,19 @@ export class DialogueWindow {
     this.nameText.setText(speaker);
     this.drawPanel();
     this.setVisible(true);
+    this.showLine();
+  }
+
+  /** The conversation open now (null = none) - the same lines, step, callback and hooks. */
+  snapshot(): DialogueSnapshot | null {
+    if (!this.session || !this.lines || !this.onFinished) return null;
+    return { speaker: this.speaker, lines: this.lines, step: this.session.step, onFinished: this.onFinished, hooks: this.hooks };
+  }
+
+  /** Reopens a conversation at the step it was on (nothing is asked or run for the steps passed again). */
+  restore(s: DialogueSnapshot): void {
+    this.open(s.speaker, s.lines, s.onFinished, s.hooks);
+    for (let i = 0; i < s.step && this.session && !this.session.isLastStep; i++) this.session.next();
     this.showLine();
   }
 

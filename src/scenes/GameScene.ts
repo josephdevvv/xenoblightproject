@@ -23,7 +23,7 @@ import type { MonsterEntity } from '../monsters/MonsterEntity';
 import { ClickMarker } from '../ui/world/ClickMarker';
 import { npcSheetKey, npcsOnMap, type NpcId } from '../npcs/NpcDefinition';
 import { NpcEntity } from '../npcs/NpcEntity';
-import { NpcInteraction } from '../npcs/NpcInteraction';
+import { nearestInRange, NpcInteraction } from '../npcs/NpcInteraction';
 import { PathTrail } from '../world/navigation/PathTrail';
 import { Pathfinder } from '../world/navigation/Pathfinder';
 import { PathTrailView } from '../ui/world/PathTrailView';
@@ -180,6 +180,8 @@ export class GameScene extends Phaser.Scene {
   private readonly touch = isTouchMode();
   private steerDir: Point | null = null;
   private touchSelection: MonsterEntity | null = null;
+  /** Mobile: the nearest NPC with something to say within talking range - the sword button talks to it instead. */
+  private touchNpc: NpcEntity | null = null;
 
   constructor() {
     super(SCENES.Game);
@@ -198,6 +200,7 @@ export class GameScene extends Phaser.Scene {
     this.leaving = false;
     this.steerDir = null;
     this.touchSelection = null;
+    this.touchNpc = null;
     const character = this.resolveCharacter();
     this.character = character;
 
@@ -582,12 +585,36 @@ export class GameScene extends Phaser.Scene {
     if (old && old !== next && old !== this.combat.getTarget()) old.setTargeted(false);
     this.touchSelection = next;
     next?.setTargeted(true);
+    // an NPC with something to say within talking range: the action button becomes the talk button
+    this.touchNpc = alive && !this.isTalking() ? nearestInRange(this.npcs.filter((n) => this.isTalkable(n)), me) : null;
   }
 
   /** The selected monster for the target HUD (name and HP), or null. */
   touchTarget(): TargetInfo | null {
     const m = this.touchSelection;
     return m && m.isAlive() ? { name: m.definition.displayName, hp: m.getHp(), maxHp: m.definition.combat.maxHp } : null;
+  }
+
+  /** Mobile: what the action button does now - talk (an NPC to talk to is in range) or attack. Updated every frame. */
+  touchActionMode(): 'talk' | 'attack' {
+    return this.touchNpc ? 'talk' : 'attack';
+  }
+
+  /**
+   * The action button: with an NPC to talk to in range it opens the conversation (never an attack - the target is
+   * dropped, as a click on an NPC does on desktop); otherwise it attacks the selected monster.
+   */
+  touchAction(): 'talk' | 'attack' | null {
+    if (!this.ready || !this.death.life.isAlive() || this.isTalking()) return null;
+    const npc = this.touchNpc;
+    if (npc) {
+      if (!this.canPerform('interact')) return null;
+      this.navigation.cancel();
+      this.combat.clearTarget();
+      this.autoPlay.notifyManual();
+      return this.npcInteraction.request(npc) ? 'talk' : null;
+    }
+    return this.touchAttack() ? 'attack' : null;
   }
 
   /** The sword button: the selected monster is attacked by the normal rules (walk into range, swing until it dies). */

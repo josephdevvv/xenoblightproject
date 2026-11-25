@@ -13,6 +13,7 @@ import { cooldownSeconds, elapsedFraction, handAngle, remainingWedge, sweepStep 
 import { entryIcon } from '../hotbar/hotbarIcons';
 import { typo } from '../UITheme';
 import { joystickState, screenToGround, slotOfButton, TOUCH, touchLayout, type Circle, type TouchLayout } from './TouchLayout';
+import { uiView } from '../layout/UiLayers';
 
 export interface TouchControlCallbacks {
   /** The joystick: a ground (tile-space) unit direction while pushed, null when let go. */
@@ -76,6 +77,9 @@ export class TouchControls {
   readonly slotZones: readonly Phaser.GameObjects.Zone[];
   readonly potionZones: Readonly<Record<PotionSlotKey, Phaser.GameObjects.Zone>>;
   readonly swordZone: Phaser.GameObjects.Zone;
+  private readonly swordGraphics: Phaser.GameObjects.Graphics;
+  /** What the action button shows: the crossed swords (attack) or a speech bubble (an NPC to talk to in range). */
+  private actionMode: 'attack' | 'talk' = 'attack';
   readonly stickZone: Phaser.GameObjects.Zone;
 
   constructor(
@@ -84,7 +88,8 @@ export class TouchControls {
     private readonly callbacks: TouchControlCallbacks,
     private readonly depth: number,
   ) {
-    this.layout = touchLayout(scene.scale.width, scene.scale.height);
+    const view = uiView(scene, 'hud');
+    this.layout = touchLayout(view.width, view.height);
     const L = this.layout;
     // joystick: translucent base, outer and inner rings, four direction thorns; the knob with its emblem on top
     const base = scene.add.graphics().setDepth(depth);
@@ -132,10 +137,8 @@ export class TouchControls {
     plate.fillStyle(C.plate, 0.5).fillCircle(S.x, S.y, S.r + 12);
     plate.lineStyle(1, C.dim, 0.8).strokeCircle(S.x, S.y, S.r + 12);
     const sword = scene.add.graphics().setDepth(depth + 1);
-    sword.fillStyle(0x1b1b21, 0.92).fillCircle(S.x, S.y, S.r);
-    sword.lineStyle(2, C.rimBright, 1).strokeCircle(S.x, S.y, S.r);
-    sword.lineStyle(1, 0x4a4a52, 1).strokeCircle(S.x, S.y, S.r - 5);
-    drawCrossedSwords(sword, S.x, S.y, S.r - 9);
+    this.swordGraphics = sword;
+    this.drawAction('attack');
     this.swordZone = this.circleZone(S, () => {
       this.flash(sword);
       callbacks.onAttack();
@@ -172,6 +175,28 @@ export class TouchControls {
     const offs = [InventoryService.onChange(refresh), HotbarService.onChange(refresh), SkillService.onLearned(refresh)];
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => offs.forEach((off) => off()));
     this.refresh();
+  }
+
+  /** The action button's face for what a tap does now (redrawn only when it changes). */
+  setActionMode(mode: 'attack' | 'talk'): void {
+    if (mode === this.actionMode) return;
+    this.drawAction(mode);
+  }
+
+  get currentActionMode(): 'attack' | 'talk' {
+    return this.actionMode;
+  }
+
+  private drawAction(mode: 'attack' | 'talk'): void {
+    this.actionMode = mode;
+    const S = this.layout.sword;
+    const g = this.swordGraphics.clear();
+    g.fillStyle(0x1b1b21, 0.92).fillCircle(S.x, S.y, S.r);
+    // talk: the rim turns gold, so the change reads at a glance
+    g.lineStyle(2, mode === 'talk' ? C.gold : C.rimBright, 1).strokeCircle(S.x, S.y, S.r);
+    g.lineStyle(1, 0x4a4a52, 1).strokeCircle(S.x, S.y, S.r - 5);
+    if (mode === 'talk') drawSpeechBubble(g, S.x, S.y);
+    else drawCrossedSwords(g, S.x, S.y, S.r - 9);
   }
 
   /** The joystick is being held (for checks). */
@@ -340,6 +365,19 @@ export class TouchControls {
     g.setAlpha(0.55);
     this.scene.time.delayedCall(120, () => g.active && g.setAlpha(1));
   }
+}
+
+/** A speech bubble (talk): a pale rounded bubble with a gold edge, a tail to the lower left and three dark dots. */
+function drawSpeechBubble(g: Phaser.GameObjects.Graphics, cx: number, cy: number): void {
+  const w = 34;
+  const h = 24;
+  const x = cx - w / 2;
+  const y = cy - h / 2 - 3;
+  g.fillStyle(C.glyph, 1).fillRoundedRect(x, y, w, h, 7);
+  g.fillTriangle(cx - 11, y + h - 2, cx - 1, y + h - 2, cx - 14, y + h + 8);
+  g.lineStyle(1, C.gold, 1).strokeRoundedRect(x, y, w, h, 7);
+  g.fillStyle(0x1b1b21, 1);
+  for (const dx of [-9, 0, 9]) g.fillRect(cx + dx - 2, y + Math.floor(h / 2) - 2, 4, 4);
 }
 
 /** Two crossed blades (pixel-stepped): silver steel with a pale-blue edge, gold cross-guards and pommels, dark grips. */

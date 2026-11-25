@@ -35,6 +35,7 @@ import {
   TREE_UI,
   type Rect,
 } from './PassiveTreeLayout';
+import { uiView } from '../layout/UiLayers';
 
 /** Pack colours (flat, from the layer art). */
 const C = {
@@ -190,7 +191,7 @@ export class PassiveTreeWindow {
     private readonly character: CharacterData,
     depth: number,
   ) {
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const [wx, wy, ww, wh] = TREE_UI.window;
     const ox = Math.round((sw - ww) / 2) - wx;
     const oy = Math.round((sh - wh) / 2) - wy;

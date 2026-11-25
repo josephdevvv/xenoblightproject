@@ -44,6 +44,8 @@ export class MapLayout {
   private readonly blocked: boolean[][];
   /** Footprints of solid objects (whole lot, walkable or not): no other object may be placed there. */
   private readonly reserved: boolean[][];
+  /** Reserved tiles that are open ground all the same (a plot around a building's walls): ground details may lie there. */
+  private readonly openLot: boolean[][];
   private readonly owner: StructureIndex[][];
   /** Coarse grid of solid boxes - wall pieces and objects' ground collision (cell = 4 x 4 tiles) - for fast queries. */
   private readonly pieceGrid = new Map<number, { box: TileBox }[]>();
@@ -56,6 +58,7 @@ export class MapLayout {
     this.ground = Array.from({ length: this.rows }, () => Array<GroundType>(this.cols).fill('ground'));
     this.blocked = Array.from({ length: this.rows }, () => Array<boolean>(this.cols).fill(false));
     this.reserved = Array.from({ length: this.rows }, () => Array<boolean>(this.cols).fill(false));
+    this.openLot = Array.from({ length: this.rows }, () => Array<boolean>(this.cols).fill(false));
     this.owner = Array.from({ length: this.rows }, () => Array<StructureIndex>(this.cols).fill(-1));
 
     for (const r of d.paths) {
@@ -193,7 +196,16 @@ export class MapLayout {
         }
       }
       // a building on a walkable lot: only its walls' base and the solid extras collide
-      if (spec.ground) for (const b of [spec.ground.walls, ...(spec.ground.extra ?? [])]) this.groundBoxes.push({ box: local(b) });
+      if (spec.ground) {
+        const solids = [spec.ground.walls, ...(spec.ground.extra ?? [])].map(local);
+        for (const box of solids) this.groundBoxes.push({ box });
+        // the plot's tiles whose centre no wall or boulder covers stay open ground
+        for (let r = row; r < row + spec.h; r++) {
+          for (let c = col; c < col + spec.w; c++) {
+            if (!solids.some((b) => c + 0.5 > b.minX && c + 0.5 < b.maxX && r + 0.5 > b.minY && r + 0.5 < b.maxY)) this.openLot[r][c] = true;
+          }
+        }
+      }
     }
     this.objects.push({
       type,
@@ -212,7 +224,7 @@ export class MapLayout {
       const a = s.area;
       for (let row = a.row; row < a.row + a.h; row++) {
         for (let col = a.col; col < a.col + a.w; col++) {
-          if (!this.isInside(col, row) || this.blocked[row][col] || this.reserved[row][col] || this.owner[row][col] !== -1) continue;
+          if (!this.isInside(col, row) || this.blocked[row][col] || (this.reserved[row][col] && !this.openLot[row][col]) || this.owner[row][col] !== -1) continue;
           if (taken.has(row * this.cols + col)) continue;
           if (this.tileNoise(col, row, 11 + si) >= s.density) continue;
           const pick = s.types[Math.floor(this.tileNoise(col, row, 23 + si) * s.types.length)];

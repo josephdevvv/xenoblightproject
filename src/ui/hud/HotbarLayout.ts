@@ -25,6 +25,19 @@ export interface HotbarLayout {
   potionDivider: { x: number; y: number; height: number };
 }
 
+/**
+ * Mobile: the top-right menu bar (its frame, the six slots, icons, highlights, pips and touch areas) is drawn 30 %
+ * larger, anchored at its top-right corner. The bar is the top 23 rows of 03_map_and_menu.png, the minimap frame
+ * starts at row 30: the map block under it (minimap, coordinates, map name, AUTO, notices) moves down by what the bar
+ * grew, so the 7-row gap stays.
+ */
+export const TOUCH_MENU = { scale: 1.3, barRows: 23, mapTopRow: 30 } as const;
+
+/** How far the map block moves down on mobile (whole pixels). */
+export function touchMapShift(): number {
+  return Math.ceil(TOUCH_MENU.barRows * (TOUCH_MENU.scale - 1));
+}
+
 /** Mobile: the AUTO button right-aligned with the minimap, just below the map name (the hotbar row is hidden). */
 export function touchAutoButtonRect(minimapRight: number, belowMapName: number): ScreenRect {
   return { x: minimapRight - AUTO_BUTTON.width, y: belowMapName, width: AUTO_BUTTON.width, height: HOTBAR_SLOT.height };

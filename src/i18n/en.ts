@@ -20,6 +20,8 @@ export const en: Messages = {
     title: 'Settings',
     languageLabel: 'ภาษา / Language',
     saveGame: 'Save Game',
+    uiScaleLabel: 'UI Scale',
+    uiScaleLimit: 'This screen shows up to {percent}%',
     saveStarted: 'Save file download started.',
     saveFailed: 'The game could not be saved.',
   },

@@ -1,4 +1,5 @@
 import { DEFAULT_LANGUAGE, isLanguage, type Language } from '../i18n/languages';
+import { clampUiScale, UI_SCALE } from '../ui/layout/UiScale';
 
 /**
  * Player settings, saved in the browser (localStorage) - there is no account / server yet.
@@ -7,6 +8,8 @@ import { DEFAULT_LANGUAGE, isLanguage, type Language } from '../i18n/languages';
  */
 export interface PlayerSettings {
   language: Language;
+  /** In-game UI scale, percent (100-150, step 5). Older records have none: 100. */
+  uiScale: number;
 }
 
 export const SETTINGS_STORAGE_KEY = 'xenoblight.settings.v1';
@@ -18,7 +21,7 @@ export interface SettingsStorage {
 }
 
 export function defaultSettings(): PlayerSettings {
-  return { language: DEFAULT_LANGUAGE };
+  return { language: DEFAULT_LANGUAGE, uiScale: UI_SCALE.default };
 }
 
 export function browserStorage(): SettingsStorage | null {
@@ -39,6 +42,7 @@ export function loadSettings(storage: SettingsStorage | null = browserStorage())
     if (typeof data === 'object' && data !== null && isLanguage((data as { language?: unknown }).language)) {
       settings.language = (data as { language: Language }).language;
     }
+    if (typeof data === 'object' && data !== null && 'uiScale' in data) settings.uiScale = clampUiScale((data as { uiScale?: unknown }).uiScale);
   } catch {
     // Unreadable record: keep the defaults (it is overwritten on the next save).
   }
@@ -49,7 +53,7 @@ export function loadSettings(storage: SettingsStorage | null = browserStorage())
 export function saveSettings(settings: PlayerSettings, storage: SettingsStorage | null = browserStorage()): boolean {
   if (!storage) return false;
   try {
-    storage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ version: 1, language: settings.language }));
+    storage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ version: 1, language: settings.language, uiScale: clampUiScale(settings.uiScale) }));
     return true;
   } catch {
     return false;

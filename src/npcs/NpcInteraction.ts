@@ -7,6 +7,20 @@ export interface InteractableNpc {
   readonly position: Point;
 }
 
+/** The nearest of `npcs` within talking range of `me` (tile space), or null. Pure - the mobile talk button uses it. */
+export function nearestInRange<T extends InteractableNpc>(npcs: readonly T[], me: Point, range = NPC_INTERACT_RANGE): T | null {
+  let best: T | null = null;
+  let bestDistance = Infinity;
+  for (const npc of npcs) {
+    const d = Math.hypot(npc.position.x - me.x, npc.position.y - me.y);
+    if (d <= range && d < bestDistance) {
+      best = npc;
+      bestDistance = d;
+    }
+  }
+  return best;
+}
+
 /** The parts of PlayerController this needs. */
 export interface InteractingPlayer {
   getTilePosition(): Point;

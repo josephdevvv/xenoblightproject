@@ -14,6 +14,7 @@ import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeo
 import { ItemDetailPanel } from './ItemDetailPanel';
 import { GoldDisplay } from '../hud/GoldDisplay';
 import { GOLD_DISPLAY } from '../hud/GoldIcon';
+import { uiView, windowCamera } from '../layout/UiLayers';
 
 /**
  * After EQUIP the same button says UNEQUIP (and the other way round): further clicks are ignored for a moment,
@@ -56,7 +57,7 @@ export class InventoryWindow {
     depth: number,
     private readonly source: InventorySource = EMPTY_INVENTORY,
   ) {
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const L = inventoryLayout(sw, sh);
     this.layout = L;
     const [wx, wy, ww, wh] = L.window;
@@ -153,7 +154,7 @@ export class InventoryWindow {
     if (!this.open) return null;
     const [wx, wy] = this.layout.window;
     const [x, y, width, height] = this.layout.panels.detail;
-    return throughCamera({ x: wx + x, y: wy + y, width, height }, this.scene.cameras.main);
+    return throughCamera({ x: wx + x, y: wy + y, width, height }, windowCamera(this.scene));
   }
 
   /** Shows the selection again (e.g. after the item's quantity changed elsewhere). */

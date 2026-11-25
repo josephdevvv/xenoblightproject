@@ -15,7 +15,7 @@ import type { IsometricMap } from '../../world/IsometricMap';
 import { typo, UI_COLORS } from '../UITheme';
 import { HUD_LAYERS, HUD_LAYOUT, HudSpace, hudTextureKey, REF_ELEMENTS, type HudLayerId, type ScreenRect } from './HudLayout';
 import { Minimap } from './Minimap';
-import { hotbarLayout, touchAutoButtonRect } from './HotbarLayout';
+import { hotbarLayout, TOUCH_MENU, touchAutoButtonRect, touchMapShift } from './HotbarLayout';
 import { HotbarService } from '../../hotbar/HotbarService';
 import { InventoryService } from '../../inventory/InventoryService';
 import { itemCount } from '../../inventory/InventoryState';
@@ -42,6 +42,7 @@ import {
 import { POTION_KEY_LABEL, POTION_SLOT_KEYS, type PotionSlotKey } from '../../hotbar/PotionSlots';
 import { SkillService } from '../../skills/SkillService';
 import { isSkillUnlocked } from '../../skills/ActiveSkills';
+import { uiView } from '../layout/UiLayers';
 
 const BAR = HUD_LAYOUT.bars;
 const TEXT = HUD_LAYOUT.dynamic_text;
@@ -190,15 +191,18 @@ export class DungeonHud {
     private readonly options: DungeonHudOptions,
     private readonly depth = 0,
   ) {
-    this.space = new HudSpace(scene.scale.width, scene.scale.height);
+    const view = uiView(scene, 'hud');
+    this.space = new HudSpace(view.width, view.height);
 
     // 1. Chrome layers, in the pack's render order.
+    let mapLayer: Phaser.GameObjects.Image | null = null;
     for (const layer of HUD_LAYERS) {
       if (HIDDEN_LAYERS.has(layer.id)) continue;
       const key = hudTextureKey(layer.id);
       if (!scene.textures.exists(key)) continue;
       const id = layer.id as HudLayerId;
-      scene.add.image(this.space.x(id, layer.refX), this.space.y(id, layer.refY), key).setOrigin(0, 0).setDepth(depth);
+      const image = scene.add.image(this.space.x(id, layer.refX), this.space.y(id, layer.refY), key).setOrigin(0, 0).setDepth(depth);
+      if (id === '03_map_and_menu') mapLayer = image;
     }
 
     // 2. Player status: name, level, HP / SP values and bars.
@@ -236,7 +240,7 @@ export class DungeonHud {
 
     // 3b. Hotbar: 8 slots above the EXP bar, centred, numbered 1-8 (top-row keys), icon + quantity.
     const hotbarTop = this.space.frame('05_hotbar', REF_ELEMENTS.hotbarSlots[0]).y;
-    const H = hotbarLayout(scene.scale.width, hotbarTop);
+    const H = hotbarLayout(view.width, hotbarTop);
     const frames = scene.add.graphics().setDepth(depth + 1);
     const partsFrom = this.scene.children.list.length - 1;
     frames.fillStyle(HOTBAR_COLORS.divider, 1).fillRect(H.divider.x, H.divider.y, 1, H.divider.height);
@@ -348,12 +352,15 @@ export class DungeonHud {
 
     // 5. Map, coordinates and menu.
     const M = '03_map_and_menu';
+    // mobile: the menu bar is drawn larger (TOUCH_MENU) and the map block under it moves down by what it grew
+    const mapDy = options.touch ? touchMapShift() : 0;
+    const down = (r: ScreenRect): ScreenRect => ({ ...r, y: r.y + mapDy });
     // Coordinates centred in their box (hud_layout.json's x/y would left-align them).
-    const coordBox = this.space.frame(M, REF_ELEMENTS.coordinateBox);
-    const coord = this.space.point(M, TEXT.coordinates);
+    const coordBox = down(this.space.frame(M, REF_ELEMENTS.coordinateBox));
+    const coord = { y: this.space.point(M, TEXT.coordinates).y + mapDy };
     this.coordText = this.text(coordBox.x + coordBox.width / 2, coord.y, '', 'small', PALETTE.pale).setOrigin(0.5, 0);
     const mapName = this.text(coordBox.x + coordBox.width, coordBox.y + coordBox.height + 3, '', 'small', PALETTE.silver).setOrigin(1, 0);
-    const mapFrame = this.space.frame(M, REF_ELEMENTS.minimap);
+    const mapFrame = down(this.space.frame(M, REF_ELEMENTS.minimap));
     const belowMapName = Math.ceil(mapName.y + mapName.height) + 2;
     if (options.touch) {
       // mobile: no hotbar row (the touch controls replace it); AUTO right under the map name, the notices below it
@@ -371,8 +378,9 @@ export class DungeonHud {
       this.autoButton.setPosition(T.x, T.y);
       this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: T.y + T.height + 4 };
     } else this.belowMinimap = { right: mapFrame.x + mapFrame.width, top: belowMapName };
-    this.minimap = new Minimap(scene, options.map, this.space.inner(M, REF_ELEMENTS.minimap), depth + 1);
+    this.minimap = new Minimap(scene, options.map, down(this.space.inner(M, REF_ELEMENTS.minimap)), depth + 1);
     // Menu bar, 6 slots left to right: Status, Passive Tree, Skills, Inventory, (placeholder), Settings
+    const menuFrom = scene.children.list.length;
     this.drawMenuSlots(M);
     const statusSlot = this.space.inner(M, REF_ELEMENTS.menuSlots[MENU_SLOT.status]);
     this.statusButton = this.buildMenuButton(statusSlot, 'hud.menuStatus', () => this.options.onStatus(), (g, slot, color) => {
@@ -430,6 +438,7 @@ export class DungeonHud {
       g.fillStyle(toColorInt(color), 1);
       GEAR_ICON.forEach((row, j) => [...row].forEach((ch, i) => ch === '#' && g.fillRect(left + i, top + j, 1, 1)));
     });
+    if (options.touch && mapLayer) this.enlargeMenuBar(mapLayer, scene.children.list.slice(menuFrom), mapDy);
 
     this.unsubscribe = CharacterStatusService.onChange((c) => {
       if (c === options.character) this.refreshStatus();
@@ -676,6 +685,30 @@ export class DungeonHud {
     const more = slots[MENU_SLOT.more];
     g.fillStyle(MENU_ART.border, 1);
     for (const row of MORE_ICON.rows) g.fillRect(more.x + MORE_ICON.fromCol, more.y + row, MORE_ICON.toCol - MORE_ICON.fromCol + 1, 1);
+  }
+
+  /**
+   * Mobile: the menu bar 30 % larger, anchored at its top-right corner - its frame (the top rows of the map layer art,
+   * cut out), the repainted slots, icons, highlights, tooltips, pips and touch areas all go into one scaled container
+   * (input, spotlights and the "over the UI" check follow the container). The layer art keeps only the minimap part,
+   * moved down with the map block.
+   */
+  private enlargeMenuBar(layer: Phaser.GameObjects.Image, parts: Phaser.GameObjects.GameObject[], mapDy: number): void {
+    const ax = layer.x + layer.width;
+    const ay = layer.y;
+    // the bar rows as a frame of their own (a crop would still count the whole layer as UI for clicks)
+    const texture = this.scene.textures.get(layer.texture.key);
+    if (!texture.has('touchMenuBar')) texture.add('touchMenuBar', 0, 0, 0, layer.width, TOUCH_MENU.barRows);
+    const bar = this.scene.add.image(-layer.width, 0, layer.texture.key, 'touchMenuBar').setOrigin(0, 0);
+    const box = this.scene.add.container(ax, ay).setDepth(this.depth + 4).setScale(TOUCH_MENU.scale);
+    box.add(bar);
+    const sorted = [...parts].sort((a, b) => ((a as Partial<Phaser.GameObjects.Components.Depth>).depth ?? 0) - ((b as Partial<Phaser.GameObjects.Components.Depth>).depth ?? 0));
+    for (const o of sorted) {
+      const p = o as Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform;
+      p.setPosition(p.x - ax, p.y - ay);
+      box.add(o);
+    }
+    layer.setCrop(0, TOUCH_MENU.mapTopRow, layer.width, layer.height - TOUCH_MENU.mapTopRow).setY(layer.y + mapDy);
   }
 
   /**

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE } from '../../config/palette';
 import { typo } from '../UITheme';
 import { hpFillWidth, TARGET_HUD, targetHudLayout, type TargetHudLayout, type TargetInfo } from './TargetHudLayout';
+import { uiView } from '../layout/UiLayers';
 
 export type { TargetInfo } from './TargetHudLayout';
 
@@ -23,7 +24,7 @@ export class TargetHud {
     scene: Phaser.Scene,
     depth: number,
   ) {
-    this.layout = targetHudLayout(scene.scale.width);
+    this.layout = targetHudLayout(uiView(scene, 'hud').width);
     const L = this.layout;
     const T = TARGET_HUD;
     this.frame = scene.add.graphics().setDepth(depth);

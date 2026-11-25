@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { getLogoTexture } from '../assets/LogoTexture';
 import { TextureKeys } from '../assets/TextureKeys';
-import { GAME_HEIGHT, GAME_WIDTH, SCENES } from '../config/constants';
+import { SCENES } from '../config/constants';
+import { keepCentered } from '../ui/layout/CenteredDesign';
 import { PALETTE } from '../config/palette';
 import { CharacterStore } from '../data/CharacterStore';
 import { getLanguage, t, type TranslationKey } from '../i18n';
@@ -43,11 +44,14 @@ export class MainMenuScene extends Phaser.Scene {
     this.busy = false;
     this.message = null;
     this.cameras.main.setBackgroundColor(PALETTE.void).fadeIn(400, 0, 0, 0);
-    this.atmosphere = new AtmosphereEffects(this, new Phaser.Geom.Rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT))
+    // the fog drifts over more than the view: it still covers it when a mobile view widens or the layout is re-centred
+    this.atmosphere = new AtmosphereEffects(this, new Phaser.Geom.Rectangle(-200, -160, this.scale.width + 400, this.scale.height + 320))
       .addDriftLayer({ textureKey: TextureKeys.fx.fog, count: 7, depth: -10, scale: [5, 8], alpha: [0.05, 0.09], speed: [4, 10] })
       .addVignette(-5);
 
     const L = mainMenuLayout(this.scale.width, this.scale.height);
+    // built for the view as it is now; a later mobile view change keeps it centred
+    keepCentered(this, { width: this.scale.width, height: this.scale.height });
     const logo = getLogoTexture(this, L.logo.height);
     if (logo) {
       const image = this.add.image(0, 0, logo).setOrigin(0, 0);

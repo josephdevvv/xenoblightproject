@@ -198,3 +198,101 @@ test('mobile wiring: decided once, landscape before the game exists, several fin
   assert.match(controls, /HotbarService\.potions\(c\)/);
   assert.doesNotMatch(controls, /\.png'/, 'no new image assets');
 });
+
+test('mobile game size: shaped like the screen (no bars), 480 high on wide phones, never narrower than 960; desktop 960 x 480', async () => {
+  const { mobileGameSize, centerOffset, MOBILE_VIEW } = await import('../src/platform/MobileViewport');
+  const fills = (vw: number, vh: number) => {
+    const s = mobileGameSize(vw, vh);
+    // the canvas (FIT) shows it at vw x vh: the bars are under one CSS pixel
+    // ENVELOP covers the view: the part cut off is under one game pixel in total
+    const k = Math.max(vw / s.width, vh / s.height);
+    return { ...s, barX: (s.width * k - vw) / k, barY: (s.height * k - vh) / k };
+  };
+  for (const [vw, vh] of [
+    [740, 360],
+    [932, 430],
+    [844, 390],
+    [915, 412],
+    [667, 375],
+    [1024, 768],
+    [1180, 820],
+    [760, 340],
+  ]) {
+    const f = fills(vw, vh);
+    assert.ok(f.barX < 1 && f.barY < 1, `${vw} x ${vh}: no black bars, under a game pixel cut (${f.width} x ${f.height})`);
+    assert.ok(f.width >= GAME_WIDTH && f.height >= GAME_HEIGHT, `${vw} x ${vh}: every desktop-sized layout fits`);
+    assert.ok(Number.isInteger(f.width) && Number.isInteger(f.height));
+  }
+  assert.deepEqual(mobileGameSize(932, 430), { width: 1040, height: 480 }, 'a wide phone: 480 high');
+  assert.deepEqual(mobileGameSize(667, 375), { width: 960, height: 540 }, '16:9: 960 wide, taller');
+  assert.deepEqual(mobileGameSize(1024, 768), { width: 960, height: 720 }, '4:3 tablet');
+  assert.equal(mobileGameSize(10000, 1000).width, MOBILE_VIEW.maxWidth, 'beyond any real device the width stops growing');
+  assert.deepEqual(mobileGameSize(0, 0), { width: GAME_WIDTH, height: GAME_HEIGHT });
+  assert.deepEqual(centerOffset({ width: 960, height: 720 }, { width: 960, height: 480 }), { x: 0, y: 120 });
+  assert.deepEqual(centerOffset({ width: 960, height: 480 }, { width: 960, height: 480 }), { x: 0, y: 0 }, 'desktop: no offset');
+});
+
+test('mobile resizing wiring: created at the screen\'s shape, resized on viewport changes, UI rebuilt at a safe moment; desktop unchanged', () => {
+  const main = read('src/main.ts');
+  assert.match(main, /const size = touch \? mobileGameSize\(\.\.\.gameContainerSize\(\)\) : desktopGameSize\(\.\.\.gameContainerSize\(\)\);/);
+  assert.ok(main.indexOf('await gate.waitForLandscape()') < main.indexOf('mobileGameSize('), 'measured in landscape');
+  const config = read('src/config/GameConfig.ts');
+  assert.match(config, /width: options\.size\?\.width \?\? GAME_WIDTH,\n\s+height: options\.size\?\.height \?\? GAME_HEIGHT,/, 'desktop: 960 x 480');
+  assert.match(config, /mode: Phaser\.Scale\.ENVELOP/);
+  const page = read('src/platform/TouchPage.ts');
+  assert.match(page, /if \(gate\.portrait\) return;\n\s+const next = mobileGameSize\(\.\.\.gameContainerSize\(\)\);/, 'landscape only');
+  assert.match(page, /game\.scale\.setGameSize\(next\.width, next\.height\)/);
+  for (const ev of ["'resize'", "'orientationchange'"]) assert.ok(page.includes(`window.addEventListener(${ev}, schedule)`));
+  assert.match(page, /visualViewport\?\.addEventListener\('resize', schedule\)/);
+  const ui = read('src/scenes/GameUIScene.ts');
+  assert.match(ui, /if \(!this\.relayoutPending \|\| !this\.isPlayerAlive\(\) \|\| this\.leaveDialog\?\.isOpen\) return false;/, 'not while dead or asked to leave');
+  assert.match(ui, /dialogue: this\.dialogueWindow\?\.snapshot\(\) \?\? null,/, 'a conversation is carried over (same line, same callback)');
+  assert.match(ui, /this\.scene\.restart\(\{ characterId: this\.character\?\.id, restore \}/);
+  assert.match(read('src/scenes/CharacterCreationScene.ts'), /keepCentered\(this, \{ width: GAME_WIDTH, height: GAME_HEIGHT \}\);/);
+  assert.match(read('src/scenes/MainMenuScene.ts'), /keepCentered\(this, \{ width: this\.scale\.width, height: this\.scale\.height \}\);/);
+  assert.match(read('src/world/AtmosphereEffects.ts'), /setDisplaySize\(scene\.scale\.width, scene\.scale\.height\)/, 'the vignette covers any view');
+  assert.doesNotMatch(read('src/ui/LoadingScreen.ts'), /GAME_WIDTH|GAME_HEIGHT/);
+  assert.doesNotMatch(read('src/scenes/BootScene.ts'), /GAME_WIDTH|GAME_HEIGHT/);
+});
+
+test('mobile menu bar: 30 % larger (frame, slots, icons, touch areas), anchored top-right; the map block moves down so the gap stays', async () => {
+  const { TOUCH_MENU, touchMapShift } = await import('../src/ui/hud/HotbarLayout');
+  const { readPng } = await import('./helpers/png');
+  const pack = (await import('../src/ui/hud/hudPack.generated.json')).default as { layers: { id: string; url: string }[] };
+  const layer = pack.layers.find((l) => l.id === '03_map_and_menu')!;
+  const png = readPng(`public/${layer.url}`);
+  const opaqueRow = (y: number) => Array.from({ length: png.width }, (_, x) => png.data[(y * png.width + x) * 4 + 3]).some((a) => a > 0);
+  for (let y = 0; y < TOUCH_MENU.barRows; y++) assert.ok(opaqueRow(y), `bar row ${y}`);
+  for (let y = TOUCH_MENU.barRows; y < TOUCH_MENU.mapTopRow; y++) assert.ok(!opaqueRow(y), `gap row ${y}`);
+  assert.ok(opaqueRow(TOUCH_MENU.mapTopRow), 'the minimap frame starts there');
+  assert.equal(TOUCH_MENU.scale, 1.3);
+  const dy = touchMapShift();
+  const gapBefore = TOUCH_MENU.mapTopRow - TOUCH_MENU.barRows;
+  const gapAfter = TOUCH_MENU.mapTopRow + dy - TOUCH_MENU.barRows * TOUCH_MENU.scale;
+  assert.ok(gapAfter >= gapBefore - 0.5 && gapAfter <= gapBefore + 1, `the bar / minimap gap stays (${gapBefore} -> ${gapAfter.toFixed(1)})`);
+  const hud = read('src/ui/hud/DungeonHud.ts');
+  assert.match(hud, /if \(options\.touch && mapLayer\) this\.enlargeMenuBar\(mapLayer, scene\.children\.list\.slice\(menuFrom\), mapDy\);/, 'mobile only');
+  assert.match(hud, /const mapDy = options\.touch \? touchMapShift\(\) : 0;/, 'desktop: nothing moves');
+  assert.match(hud, /this\.scene\.add\.container\(ax, ay\)\.setDepth\(this\.depth \+ 4\)\.setScale\(TOUCH_MENU\.scale\)/);
+});
+
+test('mobile talk button: near an NPC with something to say the action button talks (speech bubble) - never attacks; the sword comes back out of range', async () => {
+  const { nearestInRange, NPC_INTERACT_RANGE } = await import('../src/npcs/NpcInteraction');
+  const a = { id: 'a', position: { x: 1, y: 0 } };
+  const b = { id: 'b', position: { x: 0, y: 1.4 } };
+  const c = { id: 'c', position: { x: 5, y: 5 } };
+  assert.equal(nearestInRange([b, a, c], { x: 0, y: 0 }), a, 'the nearest in range');
+  assert.equal(nearestInRange([c], { x: 0, y: 0 }), null, 'none in range');
+  assert.equal(nearestInRange([{ position: { x: NPC_INTERACT_RANGE, y: 0 } }], { x: 0, y: 0 })?.position.x, NPC_INTERACT_RANGE, 'the talk range is the click-to-talk range');
+  const game = read('src/scenes/GameScene.ts');
+  assert.match(game, /this\.touchNpc = alive && !this\.isTalking\(\) \? nearestInRange\(this\.npcs\.filter\(\(n\) => this\.isTalkable\(n\)\), me\) : null;/, 'updated every frame, talkable NPCs only');
+  const action = game.slice(game.indexOf('  touchAction(): '), game.indexOf('  /** The sword button: the selected monster is attacked'));
+  assert.ok(action.indexOf('this.npcInteraction.request(npc)') < action.indexOf('this.touchAttack()'), 'talking comes first');
+  assert.match(action, /this\.combat\.clearTarget\(\);/, 'no attack goes on in talk mode');
+  const ui = read('src/scenes/GameUIScene.ts');
+  assert.match(ui, /this\.gameScene\(\)\?\.touchAction\(\);/);
+  assert.match(ui, /this\.touchControls\?\.setActionMode\(game\.touchActionMode\(\)\);/);
+  const controls = read('src/ui/touch/TouchControls.ts');
+  assert.match(controls, /if \(mode === 'talk'\) drawSpeechBubble\(g, S\.x, S\.y\);\n\s+else drawCrossedSwords\(g, S\.x, S\.y, S\.r - 9\);/);
+  assert.match(controls, /if \(mode === this\.actionMode\) return;/, 'redrawn only on a change');
+});

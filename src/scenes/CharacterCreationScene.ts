@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, SCENES } from '../config/constants';
+import { keepCentered } from '../ui/layout/CenteredDesign';
 import { PALETTE, toColorInt } from '../config/palette';
 import { AssetManager } from '../assets/AssetManager';
 import { getLogoTexture } from '../assets/LogoTexture';
@@ -84,6 +85,8 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.hairstyleButtons = [];
 
     this.createBackdrop();
+    // laid out for 960 x 480 (GAME_WIDTH / GAME_HEIGHT below are its design size): centred in a wider / taller mobile view
+    keepCentered(this, { width: GAME_WIDTH, height: GAME_HEIGHT });
     const loading = new LoadingScreen(this).show();
     this.cameras.main.fadeIn(400, 0, 0, 0);
 
@@ -110,7 +113,8 @@ export class CharacterCreationScene extends Phaser.Scene {
   // -------------------------------------------------------------------------------------------
 
   private createBackdrop(): void {
-    const bounds = new Phaser.Geom.Rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    // more than the design area: the fog still covers a wider mobile view around the centred layout
+    const bounds = new Phaser.Geom.Rectangle(-320, -240, GAME_WIDTH + 640, GAME_HEIGHT + 480);
     this.atmosphere = new AtmosphereEffects(this, bounds)
       .addDriftLayer({ textureKey: TextureKeys.fx.fog, count: 7, depth: -10, scale: [5, 8], alpha: [0.05, 0.09], speed: [4, 10] })
       .addVignette(-5); // behind the UI on this screen

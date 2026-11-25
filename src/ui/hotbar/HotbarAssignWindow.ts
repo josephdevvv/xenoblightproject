@@ -10,6 +10,7 @@ import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeo
 import { fitText } from '../text/fitText';
 import { typo } from '../UITheme';
 import { hotbarAssignLayout, PAD, TITLE } from './HotbarAssignLayout';
+import { uiView, windowCamera } from '../layout/UiLayers';
 
 /**
  * "Assign Hotkey": which of the hotbar slots 1-8 a consumable goes on. Shows what every slot holds now (the
@@ -36,7 +37,7 @@ export class HotbarAssignWindow {
     private readonly scene: Phaser.Scene,
     depth: number,
   ) {
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const L = hotbarAssignLayout(sw, sh);
     this.layout = L;
     const [wx, wy, ww, wh] = L.window;
@@ -76,7 +77,7 @@ export class HotbarAssignWindow {
     if (!this.isOpen) return null;
     const [wx, wy] = this.layout.window;
     const [x, y, width, height] = this.layout.slotArea;
-    return throughCamera({ x: wx + x, y: wy + y, width, height }, this.scene.cameras.main);
+    return throughCamera({ x: wx + x, y: wy + y, width, height }, windowCamera(this.scene));
   }
 
   /** `name`: the item's / skill's name in the current language (the hint line). */

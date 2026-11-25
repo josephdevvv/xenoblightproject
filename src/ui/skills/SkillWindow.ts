@@ -13,6 +13,7 @@ import { FrameButton } from '../passiveTree/PassiveTreeWindow';
 import { fitText } from '../text/fitText';
 import { typo } from '../UITheme';
 import { skillWindowLayout, type SkillWindowLayout } from './SkillWindowLayout';
+import { uiView } from '../layout/UiLayers';
 
 interface RowView {
   id: SkillId;
@@ -58,7 +59,7 @@ export class SkillWindow {
     private readonly character: CharacterData,
     skills: readonly SkillId[] = DRIFTER_SKILLS,
   ) {
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const L = skillWindowLayout(sw, sh, skills.length);
     this.layout = L;
     const [wx, wy, ww, wh] = L.window;

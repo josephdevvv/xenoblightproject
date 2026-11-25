@@ -4,6 +4,7 @@ import { t, type TranslationKey } from '../../i18n';
 import { localize } from '../../i18n/phaser';
 import { typo } from '../UITheme';
 import { BANNER_ICONS, BANNER_TIMING, bannerFrame, HINT_BANNER, iconOffset, stackTops, type BannerIcon } from './HintBannerLayout';
+import { uiView } from '../layout/UiLayers';
 
 const COLORS = { fill: 0x0e0e12, fillAlpha: 0.78, border: 0xc49a45, accent: 0xf0cc55, outline: 0xc4c4cb, gold: 0xf0cc55 } as const;
 
@@ -109,7 +110,7 @@ export class BannerStack {
 
   /** Every banner to its slot: new ones appear there, the others glide (up when one above has gone). */
   private layout(): void {
-    const tops = stackTops(this.scene.scale.height, this.banners.length);
+    const tops = stackTops(uiView(this.scene, 'hud').height, this.banners.length);
     this.banners.forEach((b, i) => {
       const top = tops[i];
       if (b.top === top) return;
@@ -129,7 +130,7 @@ export class BannerStack {
   /** Text, frame and icon at local y 0 (the Graphics is moved as a whole). */
   private draw(b: Banner): void {
     b.text.setText(t(b.key, b.params));
-    const L = bannerFrame(this.scene.scale.width, 0, b.text.width);
+    const L = bannerFrame(uiView(this.scene, 'hud').width, 0, b.text.width);
     b.text.setX(L.textX);
     const g = b.frame.clear();
     g.fillStyle(COLORS.fill, COLORS.fillAlpha).fillRect(L.x, 0, L.width, L.height);

@@ -22,6 +22,7 @@ import { fitText } from '../text/fitText';
 import { typo } from '../UITheme';
 import { throughCamera, type Rect as ScreenRect } from '../tutorial/SpotlightGeometry';
 import { autoPlayLayout, dropIndex, RECOVERY_ROWS, sliderValue, sliderX, SKILL_SLOT, type AutoPlayLayout } from './AutoPlayLayout';
+import { uiView, windowCamera } from '../layout/UiLayers';
 
 type RecoveryKey = keyof AutoPlayRecovery;
 
@@ -73,7 +74,7 @@ export class AutoPlayWindow {
     private readonly character: CharacterData,
     private readonly monsters: readonly MonsterId[],
   ) {
-    const { width: sw, height: sh } = scene.scale;
+    const { width: sw, height: sh } = uiView(scene, 'windows');
     const L = autoPlayLayout(sw, sh, monsters.length);
     this.layout = L;
     const [wx, wy, ww, wh] = L.window;
@@ -212,7 +213,7 @@ export class AutoPlayWindow {
     if (!this.open) return null;
     const [wx, wy] = this.layout.window;
     const [x, y, width, height] = this.layout.panels[key];
-    return throughCamera({ x: wx + x, y: wy + y, width, height }, this.scene.cameras.main);
+    return throughCamera({ x: wx + x, y: wy + y, width, height }, windowCamera(this.scene));
   }
 
   /** START / STOP (tutorial spotlight target), while open. */

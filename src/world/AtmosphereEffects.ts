@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH, GAME_HEIGHT, GAME_WIDTH } from '../config/constants';
+import { DEPTH } from '../config/constants';
 import { TextureKeys } from '../assets/TextureKeys';
 
 interface Drifter {
@@ -90,12 +90,16 @@ export class AtmosphereEffects {
     return this;
   }
 
-  /** Screen-space darkening around the edges. */
+  /** Screen-space darkening around the edges: always the whole view (the mobile view can be wider and change). */
   addVignette(depth: number = DEPTH.Vignette): this {
-    this.scene.add
-      .image(GAME_WIDTH / 2, GAME_HEIGHT / 2, TextureKeys.fx.vignette)
-      .setScrollFactor(0)
-      .setDepth(depth);
+    const scene = this.scene;
+    const image = scene.add.image(0, 0, TextureKeys.fx.vignette).setScrollFactor(0).setDepth(depth);
+    const place = (): void => {
+      image.setPosition(scene.scale.width / 2, scene.scale.height / 2).setDisplaySize(scene.scale.width, scene.scale.height);
+    };
+    place();
+    scene.scale.on(Phaser.Scale.Events.RESIZE, place);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.scale.off(Phaser.Scale.Events.RESIZE, place));
     return this;
   }
 

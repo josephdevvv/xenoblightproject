@@ -151,6 +151,16 @@ export function sanitizePortals(raw: unknown): { state: Partial<Record<PortalId,
   return { state, dropped };
 }
 
+/**
+ * The Ashen gate portal opens only after Tutorial Quest 07 is completed (Sonny's talk): a loaded save that has it
+ * open without that - an edited or older file - gets it closed again (no way around the quest through Save / Load).
+ */
+export function portalsAllowed(portals: Readonly<Partial<Record<string, string>>>, quest07Completed: boolean): Partial<Record<string, string>> {
+  if (quest07Completed) return { ...portals };
+  const { dawnkeep_gate: _closed, ...rest } = portals;
+  return rest;
+}
+
 /** Shown on its map (and clickable) once opened. */
 export function portalVisible(state: PortalState): boolean {
   return state !== 'LOCKED';

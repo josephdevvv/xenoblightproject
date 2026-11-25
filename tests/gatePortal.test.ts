@@ -3,12 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import { DIALOGUES } from '../src/dialogue/Dialogues';
-import { GATE_ANSWERS, GATE_TALKS, gateTalkOf } from '../src/dialogue/GateTalks';
+import { GATE_ANSWERS, GATE_TALKS, gateTalkMode, gateTalkOf } from '../src/dialogue/GateTalks';
 import { initLanguage, setLanguage, translate } from '../src/i18n';
 import { QUEST_MARKER_SOURCES } from '../src/quests/QuestMarkers';
 import { trackedQuest } from '../src/quests/QuestTracker';
 import { NPC_CURSOR, NpcCursor } from '../src/ui/world/NpcCursor';
-import { PORTALS, PortalService, portalArrowShown, portalVisible, sanitizePortals, tileCentre } from '../src/world/Portals';
+import { PORTALS, PortalService, portalArrowShown, portalVisible, portalsAllowed, sanitizePortals, tileCentre } from '../src/world/Portals';
+import { createQuest07, QUEST07_STATES } from '../src/quests/TutorialQuest07';
 import { readPng } from './helpers/png';
 import { newCharacter, saveAndLoad, withoutStorage } from './helpers/session';
 
@@ -42,14 +43,15 @@ test('only Sonny\'s "Roland sent me" opens the portal; Jack never starts a quest
   assert.ok(!QUEST_MARKER_SOURCES.some((s) => s.npcId === 'city_guard_jack'), 'no quest of Jack');
   const game = read('src/scenes/GameScene.ts');
   const talk = game.slice(game.indexOf('private gateTalk('), game.indexOf('private enterPortal('));
-  assert.match(talk, /if \(answer === gate\.opensPortalOn\) PortalService\.unlock\(this\.character, 'dawnkeep_gate'\);/);
-  assert.ok(!/QuestService|Reward|grant/i.test(talk), 'just talk: no quest step, no reward');
+  assert.match(talk, /if \(answer === gate\.opensPortalOn && completed\) PortalService\.unlock\(this\.character, 'dawnkeep_gate'\);/);
+  assert.ok(!/QuestService\.(?!quest07\()|Reward|grant/i.test(talk), 'just talk: reads Quest 07, no quest step, no reward');
   assert.match(talk, /choices: \{\s*step: gate\.questionStep,\s*options: GATE_ANSWERS,/);
 });
 
 test('portal: opened once (never a second one), shown with the arrow until entered, saved', () => {
   withoutStorage(() => {
     const c = newCharacter('Alpha');
+    c.quests = { ...c.quests!, tutorial_07_reach_level_10: { ...createQuest07(), state: 'COMPLETED' } };
     assert.equal(PortalService.state(c, 'dawnkeep_gate'), 'LOCKED');
     assert.equal(PortalService.enter(c, 'dawnkeep_gate'), false, 'a locked portal leads nowhere');
     assert.deepEqual([portalVisible('LOCKED'), portalArrowShown('LOCKED')], [false, false]);
@@ -145,4 +147,41 @@ test('the tracker hears about the portal: opened and first entered fire a change
     assert.equal(heard, 2);
     assert.match(read('src/scenes/GameUIScene.ts'), /PortalService\.onChange\(\(c\) => \{\s*if \(c === character\) refreshQuest\(\);/);
   });
+});
+
+test('Sonny before Quest 07 is completed: only "get lost" - one line, no question, no portal; Jack is unchanged', () => {
+  initLanguage(null);
+  setLanguage('th');
+  assert.deepEqual(say('sonny_not_yet'), ['ไปไหนก็ไป เจ้าตัวเหม็น!']);
+  setLanguage('en');
+  assert.deepEqual(say('sonny_not_yet'), ['Get lost, you stinking wretch!']);
+  setLanguage('th');
+  assert.equal(GATE_TALKS.sonny.notYet, 'sonny_not_yet');
+  assert.equal(GATE_TALKS.jack.notYet, undefined);
+  assert.equal(gateTalkMode(GATE_TALKS.sonny, false), 'notYet');
+  assert.equal(gateTalkMode(GATE_TALKS.sonny, true), 'full');
+  assert.equal(gateTalkMode(GATE_TALKS.jack, false), 'full', 'Jack talks as before');
+  const game = read('src/scenes/GameScene.ts');
+  const talk = game.slice(game.indexOf('private gateTalk('), game.indexOf('private enterPortal('));
+  assert.match(talk, /const completed = isQuest07ToSonny\(QuestService\.quest07\(this\.character\)\);/, 'actual quest state, not the level');
+  assert.ok(!/level/.test(talk.replace(/Level 10/g, '')), 'the level alone never opens it');
+  const early = talk.slice(talk.indexOf("=== 'notYet'"), talk.indexOf('return;'));
+  assert.match(early, /dialogue\.open\(name, DIALOGUES\[gate\.notYet\], end, \{ onInterrupted: end \}\);/);
+  assert.ok(!/choices|PortalService/.test(early), 'no answers, no portal');
+});
+
+test('Sonny\'s portal through Save / Load: dropped unless Quest 07 is completed (Level 10 alone is not enough)', () => {
+  assert.deepEqual(portalsAllowed({ dawnkeep_gate: 'UNLOCKED', dawnkeep_exit: 'UNLOCKED' }, false), { dawnkeep_exit: 'UNLOCKED' });
+  assert.deepEqual(portalsAllowed({ dawnkeep_gate: 'ENTERED' }, true), { dawnkeep_gate: 'ENTERED' });
+  withoutStorage(() => {
+    for (const state of QUEST07_STATES) {
+      const c = newCharacter('Beta');
+      c.level = 10;
+      c.quests = { ...c.quests!, tutorial_07_reach_level_10: { ...createQuest07(), state } };
+      c.portals = { dawnkeep_gate: 'UNLOCKED' };
+      const loaded = saveAndLoad(c);
+      assert.equal(PortalService.state(loaded, 'dawnkeep_gate'), state === 'COMPLETED' ? 'UNLOCKED' : 'LOCKED', `Quest 07 ${state}`);
+    }
+  });
+  assert.match(read('src/status/CharacterStatusService.ts'), /QuestService\.restore\(character, saved\.quests\);\s*\/\/[^\n]*\n\s*character\.portals = portalsAllowed\(character\.portals, isQuest07ToSonny\(QuestService\.quest07\(character\)\)\);/);
 });

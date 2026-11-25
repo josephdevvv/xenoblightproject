@@ -21,7 +21,7 @@ export const en: Messages = {
     languageLabel: 'ภาษา / Language',
     saveGame: 'Save Game',
     uiScaleLabel: 'UI Scale',
-    uiScaleLimit: 'This screen shows up to {percent}%',
+    uiScaleLimit: 'Windows grow up to {percent}% on this screen',
     saveStarted: 'Save file download started.',
     saveFailed: 'The game could not be saved.',
   },
@@ -567,6 +567,9 @@ export const en: Messages = {
       l2: 'Well then, if you\'ve come this far, you\'re ready.',
       l3: 'Head further north and you\'ll find the guards at the gate. Talk to Sonny.',
       l4: 'And don\'t get caught up talking to Jack. He makes no sense.',
+    },
+    sonny_not_yet: {
+      l1: 'Get lost, you stinking wretch!',
     },
     sonny_gate: {
       l1: 'This is the gate of Dawnkeep, the first fortress of the Kingdom of Rosencrown.',

@@ -16,12 +16,14 @@ export interface Circle {
 }
 
 export const TOUCH = {
-  joystick: { radius: 52, knob: 20, grab: 84, deadzone: 0.18, inset: 40 },
-  sword: { radius: 34, inset: 42 },
+  // sized like the reference mobile MMO HUD (share of the screen height at 480): joystick ~26 %, attack ~16 %,
+  // skills ~13 % on an arc ~20 % out, potions ~11 %
+  joystick: { radius: 62, knob: 24, grab: 100, deadzone: 0.18, inset: 34 },
+  sword: { radius: 40, inset: 40 },
   /** Hotkey buttons: on an arc around the sword (screen angles in degrees, 0 = right, 90 = down). */
-  slot: { radius: 23, arc: 88, angles: [175, 210, 245, 280] as const },
-  tab: { radius: 14, distance: 72, angle: 322 },
-  potion: { radius: 23, gap: 6, fromSword: 142, bottom: 40 },
+  slot: { radius: 31, arc: 100, angles: [175, 215, 255, 295] as const },
+  tab: { radius: 16, distance: 64, angle: 330 },
+  potion: { radius: 26, gap: 8, fromSword: 167, bottom: 40 },
 } as const;
 
 /** Hotkey buttons shown at once (two pages: slots 1-4, 5-8). */
@@ -84,6 +86,12 @@ export function screenToGround(direction: Point): Point {
   const ty = direction.y / 32 - direction.x / 64;
   const length = Math.hypot(tx, ty);
   return length === 0 ? { x: 0, y: 0 } : { x: tx / length, y: ty / length };
+}
+
+/** Icon scale in a round button: the icon about as wide as the button's inside, in half steps (16 px items and 32 px
+ * skill icons end up the same size). */
+export function buttonIconScale(radius: number, iconSize: number): number {
+  return Math.max(1, Math.round(((2 * radius - 10) / Math.max(1, iconSize)) * 2) / 2);
 }
 
 export function inCircle(c: Circle, x: number, y: number, r = c.r): boolean {

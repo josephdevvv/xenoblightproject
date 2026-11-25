@@ -11,6 +11,8 @@ import { createSkills, type SkillsState } from '../skills/LearnedSkills';
 import { createAutoPlaySettings, type AutoPlaySettings } from '../autoplay/AutoPlaySettings';
 import { createPotionSlots, type PotionSlots } from '../hotbar/PotionSlots';
 import { QuestService } from '../quests/QuestService';
+import { isQuest07ToSonny } from '../quests/TutorialQuest07';
+import { portalsAllowed } from '../world/Portals';
 import type { StatAllocationDraft } from './StatAllocation';
 import { addExp } from '../progression/LevelProgression';
 import { applyLevelUp, cloneStatus, createInitialStatus, STATUS_RULES, totalStats, type CharacterStatus, type StatBlock } from './StatTypes';
@@ -87,6 +89,8 @@ export const CharacterStatusService = {
     character.portals = { ...(saved.portals ?? {}) };
     character.autoPlay = saved.autoPlay ?? createAutoPlaySettings();
     QuestService.restore(character, saved.quests);
+    // the gate portal needs Tutorial Quest 07 really completed - a file cannot open it without (Sonny's talk opens it)
+    character.portals = portalsAllowed(character.portals, isQuest07ToSonny(QuestService.quest07(character)));
   },
 
   /**

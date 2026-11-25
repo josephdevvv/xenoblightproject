@@ -44,48 +44,49 @@ const VIEWS = [
     [1024, 768],
   ].map(([w, h]) => ({ ...mobileGameSize(w, h), touch: true, label: `mobile ${w}x${h}` })),
 ];
-const SCALES = Array.from({ length: (UI_SCALE.max - UI_SCALE.min) / UI_SCALE.step + 1 }, (_, i) => UI_SCALE.min + i * UI_SCALE.step);
+/** 100-150 in steps, and well beyond (there is no upper limit). */
+const SCALES = [...Array.from({ length: 11 }, (_, i) => UI_SCALE.min + i * UI_SCALE.step), 175, 200, 250, 300];
 
-test('UI scale: 100-150 % in steps of 5, 100 by default; anything else is snapped or replaced', () => {
-  assert.deepEqual(UI_SCALE, { min: 100, max: 150, step: 5, default: 100 });
-  assert.equal(SCALES.length, 11);
+test('UI scale: from 100 % in steps of 5, 100 by default, no upper limit; anything else is snapped or replaced', () => {
+  assert.deepEqual(UI_SCALE, { min: 100, step: 5, default: 100 });
   assert.equal(clampUiScale(125), 125);
   assert.equal(clampUiScale(127), 125);
   assert.equal(clampUiScale(128), 130);
   assert.equal(clampUiScale(90), 100);
-  assert.equal(clampUiScale(400), 150);
+  assert.equal(clampUiScale(400), 400, 'no maximum');
+  assert.equal(clampUiScale(1003), 1005, 'no hidden clamp - only the step');
   for (const bad of [undefined, null, 'big', NaN, Infinity]) assert.equal(clampUiScale(bad), 100);
 });
 
-test('UI scale: 100 % is the UI as it was; each layer zooms by the scale as far as its layout still fits the view', () => {
+test('UI scale: 100 % is the UI as it was; the HUD zooms by exactly the chosen scale; windows as far as a full-size one fits', () => {
   for (const v of VIEWS) {
-    const z1 = uiZooms(v, 100, v.touch);
+    const z1 = uiZooms(v, 100);
     assert.deepEqual([z1.hud, z1.windows], [1, 1], `${v.label}: 100 % = zoom 1`);
+    const room = v.touch ? HUD_SPACE.touch : HUD_SPACE.desktop;
+    const hud100 = layerSpace(v, 1);
+    assert.ok(hud100.width >= room.width && hud100.height >= room.height, `${v.label}: at the default 100 % the HUD's pieces all fit side by side`);
     for (const s of SCALES) {
-      const z = uiZooms(v, s, v.touch);
-      assert.ok(z.hud >= 1 && z.hud <= s / 100 + 1e-9 && z.windows >= 1 && z.windows <= s / 100 + 1e-9, `${v.label} ${s}%: never more than chosen, never below 1`);
-      const hud = layerSpace(v, z.hud);
+      const z = uiZooms(v, s);
+      assert.equal(z.hud, s / 100, `${v.label} ${s}%: the HUD takes the chosen scale - no clamp`);
+      assert.ok(z.windows >= 1 && z.windows <= s / 100 + 1e-9, `${v.label} ${s}%: windows never more than chosen`);
       const win = layerSpace(v, z.windows);
-      const room = v.touch ? HUD_SPACE.touch : HUD_SPACE.desktop;
-      assert.ok(hud.width >= room.width && hud.height >= room.height, `${v.label} ${s}%: the HUD has ${hud.width} x ${hud.height}`);
       assert.ok(win.width >= WINDOW_SPACE.width && win.height >= WINDOW_SPACE.height, `${v.label} ${s}%: the windows have ${win.width} x ${win.height}`);
-      assert.ok(z.hudLimit >= 100 && z.hudLimit <= 150 && z.hudLimit % 5 === 0);
+      assert.ok(z.windowsLimit >= 100 && z.windowsLimit % 5 === 0);
+      if (s <= z.windowsLimit) assert.equal(z.windows, s / 100, `${v.label} ${s}%: windows take the scale while they fit`);
     }
   }
-  // a common desktop window (1920 x 1080 -> 960 x 540): the HUD gets the full 150 %, the windows as much as fits
-  const fhd = desktopGameSize(1920, 1080);
-  const z = uiZooms(fhd, 150);
+  // a common desktop window (1920 x 1080 -> 960 x 540): the HUD gets the full scale, the windows as much as fits
+  const z = uiZooms(desktopGameSize(1920, 1080), 150);
   assert.equal(z.hud, 1.5);
   assert.ok(z.windows > 1.2 && z.windows < 1.5);
-  assert.equal(z.hudLimit, 150);
-  // a squat mobile view: the touch HUD needs more room, so it stops earlier (the Settings row says so)
-  assert.equal(uiZooms(mobileGameSize(740, 360), 150, true).hudLimit, 120);
+  assert.equal(z.windowsLimit, 125);
+  assert.equal(uiZooms(mobileGameSize(740, 360), 200).hud, 2, 'mobile too: no cap');
 });
 
-test('UI scale: every window and the HUD stay inside the view at every scale', () => {
+test('UI scale: every window stays inside the view at every scale; the HUD wherever its pieces have their room', () => {
   for (const v of VIEWS) {
-    for (const s of [100, 125, 150]) {
-      const z = uiZooms(v, s, v.touch);
+    for (const s of SCALES) {
+      const z = uiZooms(v, s);
       const win = layerSpace(v, z.windows);
       assert.ok(inside(inventoryLayout(win.width, win.height).window, win), `${v.label} ${s}%: Inventory`);
       assert.ok(inside(statusLayout(win.width, win.height).window, win), `${v.label} ${s}%: Status`);
@@ -93,8 +94,10 @@ test('UI scale: every window and the HUD stay inside the view at every scale', (
       assert.ok(inside(autoPlayLayout(win.width, win.height, 4).window, win) || (AUTO_WINDOW.width <= win.width && AUTO_WINDOW.height <= win.height), `${v.label} ${s}%: Auto Play`);
       assert.ok(inside(hotbarAssignLayout(win.width, win.height).window, win), `${v.label} ${s}%: Assign Hotkey`);
       assert.ok(TREE_UI.window[2] <= win.width && TREE_UI.window[3] <= win.height, `${v.label} ${s}%: Passive Tree`);
-      // the HUD: its layers, the minimap, the menu and the hotbar row on the screen
+      // the HUD: its layers, the minimap and the hotbar row on the screen while it has the room it needs
       const hud = layerSpace(v, z.hud);
+      const room = v.touch ? HUD_SPACE.touch : HUD_SPACE.desktop;
+      if (hud.width < room.width || hud.height < room.height) continue;
       const space = new HudSpace(hud.width, hud.height);
       for (const l of HUD_LAYERS.filter((x) => x.id !== '04_chat' && x.id !== '05_hotbar')) {
         const id = l.id as Parameters<HudSpace['x']>[0];
@@ -170,7 +173,7 @@ test('UI scale wiring: in-game Settings only; two zoomed UI cameras + a screen c
   assert.match(settings, /if \(uiScale\) \{/, 'the row exists only when the in-game UI passes it');
   for (const f of ['src/scenes/MainMenuScene.ts', 'src/scenes/CharacterCreationScene.ts']) assert.doesNotMatch(read(f), /uiScale/, `${f}: no UI Scale`);
   const ui = read('src/scenes/GameUIScene.ts');
-  assert.match(ui, /uiScale: \{ value: \(\) => getUiScale\(\), set: \(percent\) => setUiScale\(percent\), limit: \(\) => this\.zooms\.hudLimit \}/);
+  assert.match(ui, /uiScale: \{ value: \(\) => getUiScale\(\), set: \(percent\) => setUiScale\(percent\), limit: \(\) => this\.zooms\.windowsLimit \}/);
   assert.ok(ui.indexOf('installUiLayers(this, this.zooms);') < ui.indexOf('this.hud = new DungeonHud('), 'the layers exist before any layout reads them');
   assert.match(ui, /const offScale = onUiScaleChange\(relayout\);/, 'a new scale rebuilds the UI at once');
   assert.match(ui, /const \{ x, y \} = pointerIn\(this, o, pointer\);/, 'the world is not clicked through scaled UI');

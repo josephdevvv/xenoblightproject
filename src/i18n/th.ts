@@ -27,7 +27,7 @@ export const th = {
     languageLabel: 'ภาษา / Language',
     saveGame: 'บันทึกเกม',
     uiScaleLabel: 'ขนาด UI',
-    uiScaleLimit: 'จอนี้แสดงได้สูงสุด {percent}%',
+    uiScaleLimit: 'หน้าต่างขยายได้สูงสุด {percent}% บนจอนี้',
     saveStarted: 'เริ่มดาวน์โหลดไฟล์เซฟแล้ว',
     saveFailed: 'บันทึกเกมไม่สำเร็จ',
   },
@@ -575,6 +575,9 @@ export const th = {
       l2: 'เอาล่ะ เจ้าพร้อมแล้วล่ะถ้าทำได้ถึงขนาดนี้',
       l3: 'เดินขึ้นเหนือไปอีกสิ จะเจอยามเฝ้าหน้าประตู ให้คุยกับ Sonny นะ',
       l4: 'อย่าหลงไปคุยกับ Jack เชียวล่ะ มันพูดไม่รู้เรื่อง',
+    },
+    sonny_not_yet: {
+      l1: 'ไปไหนก็ไป เจ้าตัวเหม็น!',
     },
     sonny_gate: {
       l1: 'ที่นี่คือประตูเมือง Dawnkeep ป้อมปราการแรกแห่งอาณาจักร Rosencrown',

@@ -12,7 +12,7 @@ import { SkillService } from '../../skills/SkillService';
 import { cooldownSeconds, elapsedFraction, handAngle, remainingWedge, sweepStep } from '../hud/CooldownSweep';
 import { entryIcon } from '../hotbar/hotbarIcons';
 import { typo } from '../UITheme';
-import { joystickState, screenToGround, slotOfButton, TOUCH, touchLayout, type Circle, type TouchLayout } from './TouchLayout';
+import { buttonIconScale, joystickState, screenToGround, slotOfButton, TOUCH, touchLayout, type Circle, type TouchLayout } from './TouchLayout';
 import { uiView } from '../layout/UiLayers';
 
 export interface TouchControlCallbacks {
@@ -331,8 +331,10 @@ export class TouchControls {
     const shown = pic !== null && this.scene.textures.exists(pic.texture);
     b.icon.setVisible(shown);
     if (shown) {
-      b.icon.setTexture(pic.texture, pic.frame).setScale(pic.largeScale).setAlpha(usable ? 1 : 0.35);
-      b.gray.setTexture(pic.texture, pic.frame).setScale(pic.largeScale);
+      b.icon.setTexture(pic.texture, pic.frame).setAlpha(usable ? 1 : 0.35);
+      const k = buttonIconScale(b.circle.r, Math.max(b.icon.frame.width, b.icon.frame.height));
+      b.icon.setScale(k);
+      b.gray.setTexture(pic.texture, pic.frame).setScale(k);
     } else b.gray.setVisible(false);
     b.count.setText(count === null ? '' : String(count));
     b.label.setText(label);

@@ -131,7 +131,7 @@ export class GameUIScene extends Phaser.Scene {
   /** Mobile (touch mode only): the joystick, action wheel and potion buttons, and the target HUD. */
   private readonly touch = isTouchMode();
   /** The UI scale's zoom of each layer for this view (UiScale; set when the UI is built). */
-  private zooms: UiZooms = { hud: 1, windows: 1, hudLimit: 100 };
+  private zooms: UiZooms = { hud: 1, windows: 1, windowsLimit: 100 };
   /** The view size or the UI scale changed: the UI is rebuilt for it at the next safe moment (relayoutWhenSafe). */
   private relayoutPending = false;
   private touchControls: TouchControls | null = null;
@@ -165,7 +165,7 @@ export class GameUIScene extends Phaser.Scene {
     this.relayoutPending = false;
     // the UI layers: the HUD and the windows zoomed by the UI scale (as far as each fits this view), the spotlight in
     // screen pixels - set up first, every layout below reads its layer's room (uiView)
-    this.zooms = uiZooms({ width: this.scale.width, height: this.scale.height }, getUiScale(), this.touch);
+    this.zooms = uiZooms({ width: this.scale.width, height: this.scale.height }, getUiScale());
     installUiLayers(this, this.zooms);
     // the view size (browser window, mobile viewport) or the UI scale changes: rebuild for it
     const relayout = (): void => {
@@ -365,7 +365,7 @@ export class GameUIScene extends Phaser.Scene {
       depth: 20,
       onSaveGame: () => downloadText(SAVE_FILE_NAME, serializeSave(character, this.gameScene()?.captureSavedLocation() ?? null)),
       // in-game only (never on the main menu / character creation): 100-150 %, applied at once, saved
-      uiScale: { value: () => getUiScale(), set: (percent) => setUiScale(percent), limit: () => this.zooms.hudLimit },
+      uiScale: { value: () => getUiScale(), set: (percent) => setUiScale(percent), limit: () => this.zooms.windowsLimit },
     });
     const leave = new ChoiceDialog(this, 28);
     this.leaveDialog = leave;
@@ -416,7 +416,11 @@ export class GameUIScene extends Phaser.Scene {
     });
     FeatureService.sync(character); // older saves: unlocked from their quest progress
     // Notices for received items: below the minimap, above dialogue, below the death screen.
-    const notifications = new ItemNotifications(this, { ...this.hud.belowMinimap, right: Math.min(uiView(this, 'hud').width - 4, this.hud.belowMinimap.right + 8) }, 36);
+    // mobile: left-aligned under the quest tracker - the right side holds the action wheel's arc
+    const noticeAnchor = this.touch
+      ? { right: 0, ...this.hud.belowQuests }
+      : { ...this.hud.belowMinimap, right: Math.min(uiView(this, 'hud').width - 4, this.hud.belowMinimap.right + 8) };
+    const notifications = new ItemNotifications(this, noticeAnchor, 36);
     this.itemNotifications = notifications;
     const offGained = InventoryService.onGained((c, itemId, quantity) => {
       if (c === character) notifications.showItem(itemId, quantity);

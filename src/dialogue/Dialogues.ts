@@ -31,6 +31,7 @@ export const DIALOGUES = {
   roland_level10_done_rest: lines('roland_level10_done', 4).slice(1),
   // the gate guards (GateTalks): the question, then a branch per answer
   sonny_gate: lines('sonny_gate', 2),
+  sonny_not_yet: lines('sonny_not_yet', 1),
   sonny_from_roland: lines('sonny_from_roland', 2),
   sonny_just_walking: lines('sonny_just_walking', 2),
   jack_gate: lines('jack_gate', 1),

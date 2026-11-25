@@ -166,6 +166,8 @@ export class DungeonHud {
   private autoEnabled = true;
   /** What the button shows now (redrawn only when it changes). */
   private autoShown = '';
+  /** Mobile: where the item notices start instead - left-aligned under the quest tracker (the right side is the action wheel). */
+  readonly belowQuests: { left: number; top: number };
   /** Where notices below the minimap start: its right edge, under the map name. */
   readonly belowMinimap: { right: number; top: number };
   /** Hotbar slots 1-8: click zones (UI hit testing, checks), icons and quantities. */
@@ -337,6 +339,8 @@ export class DungeonHud {
     // leads to an NPC; a second click stops). Its label stays in the art's colour - never red.
     const Q = '02_quest_auto';
     const pin = this.space.frame(Q, REF_ELEMENTS.questPins[0]);
+    const lastPin = this.space.frame(Q, REF_ELEMENTS.questPins[REF_ELEMENTS.questPins.length - 1]);
+    this.belowQuests = { left: pin.x, top: lastPin.y + lastPin.height + 8 };
     this.questName = this.text(pin.x + pin.width + 4, pin.y + 1, '', 'small', PALETTE.gray);
     this.questObjective = this.text(pin.x + pin.width + 4, pin.y + 17, '', 'small', PALETTE.silver);
     this.navBox = this.space.frame(Q, REF_ELEMENTS.questNavButton);

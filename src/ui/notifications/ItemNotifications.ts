@@ -31,10 +31,10 @@ export class ItemNotifications {
   private readonly queue = new NotificationQueue<Content>(MAX_VISIBLE);
   private readonly views = new Map<QueuedNotification<Content>, View>();
 
-  /** `anchor`: right edge and top of the first panel. */
+  /** `anchor`: right edge (or, with `left`, left edge - mobile) and top of the first panel. */
   constructor(
     private readonly scene: Phaser.Scene,
-    private readonly anchor: { right: number; top: number },
+    private readonly anchor: { right: number; top: number; left?: number },
     private readonly depth: number,
   ) {}
 
@@ -80,7 +80,7 @@ export class ItemNotifications {
       const top = target;
       target += view.height + PANEL.gap;
       view.y = Math.max(top, view.y - deltaMs * SLIDE);
-      view.place(Math.round(this.anchor.right - view.width), Math.round(view.y));
+      view.place(Math.round(this.anchor.left ?? this.anchor.right - view.width), Math.round(view.y));
       const alpha = this.queue.alphaOf(n);
       for (const o of view.objects) o.setAlpha(alpha);
     });

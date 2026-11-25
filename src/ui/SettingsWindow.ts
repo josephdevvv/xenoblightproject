@@ -25,8 +25,8 @@ export interface SettingsWindowOptions {
   /** In game: adds the Save Game button. Returns whether the download was started. */
   onSaveGame?: () => boolean;
   /**
-   * In game only: the UI Scale row (100-150 %, step 5). `set` applies and saves it at once; `limit` is the largest
-   * scale this screen can show (the row says so when the choice is above it).
+   * In game only: the UI Scale row (from 100 %, step 5, no upper limit). `set` applies and saves it at once; `limit` is
+   * the largest scale the windows can use on this screen (the row says so when the choice is above it).
    */
   uiScale?: { value: () => number; set: (percent: number) => void; limit: () => number };
 }
@@ -86,7 +86,6 @@ export class SettingsWindow {
         value.setText(`${v}%`);
         note.setText(v > limit ? t('settings.uiScaleLimit', { percent: limit }) : '');
         minus.setEnabled?.(v > UI_SCALE.min);
-        plus.setEnabled?.(v < UI_SCALE.max);
       };
     }
     let save: Button | null = null;

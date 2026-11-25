@@ -62,11 +62,23 @@ test('touch layout: joystick bottom-left, sword + four hotkeys + tab bottom-righ
   for (const s of L.slots) {
     assert.ok(2 * s.r >= 44, 'hotkey buttons are finger-sized');
     assert.ok(Math.abs(Math.hypot(s.x - L.sword.x, s.y - L.sword.y) - TOUCH.slot.arc) <= 1, 'on the arc around the sword');
-    assert.ok(s.x <= L.sword.x + 20 && s.y <= L.sword.y + 10, 'around its upper-left');
+    assert.ok(s.x <= L.sword.x + 45 && s.y <= L.sword.y + 10, 'around its upper-left');
   }
-  // potions: the same size as the hotkeys, the same row, HP (red, Q) left of SP (blue, W), above the EXP bar
+  // the reference mobile HUD's proportions (share of the 480-px height): joystick ~26 %, attack ~16 %, skills ~13 %, potions ~11 %
+  const share = (r: number) => (2 * r) / GAME_HEIGHT;
+  for (const [name, r, want] of [
+    ['joystick', L.joystick.r, 0.26],
+    ['attack', L.sword.r, 0.165],
+    ['skill', L.slots[0].r, 0.13],
+    ['potion', L.potions.hp.r, 0.107],
+  ] as const) {
+    assert.ok(Math.abs(share(r) - want) <= 0.01, `${name}: ${(share(r) * 100).toFixed(1)} % of the screen height (reference ~${want * 100} %)`);
+  }
+  // the centre stays free: nothing of the controls within the middle third of the screen width above the bottom quarter
+  for (const [name, c] of all) assert.ok(!(c.x + c.r > GAME_WIDTH / 3 && c.x - c.r < (GAME_WIDTH * 2) / 3 && c.y - c.r < GAME_HEIGHT * 0.75), `${name} keeps the centre free`);
+  // potions: as in the reference, a little smaller than the hotkeys; the same row, HP (red, Q) left of SP (blue, W), above the EXP bar
   const { hp, sp } = L.potions;
-  assert.equal(hp.r, L.slots[0].r);
+  assert.ok(hp.r < L.slots[0].r && hp.r >= 24, 'finger-sized');
   assert.equal(sp.r, hp.r);
   assert.equal(hp.y, sp.y);
   assert.ok(hp.x < sp.x && sp.x - hp.x === 2 * hp.r + TOUCH.potion.gap, 'side by side with the hotkeys\' spacing');
@@ -255,7 +267,7 @@ test('mobile resizing wiring: created at the screen\'s shape, resized on viewpor
   assert.doesNotMatch(read('src/scenes/BootScene.ts'), /GAME_WIDTH|GAME_HEIGHT/);
 });
 
-test('mobile menu bar: 30 % larger (frame, slots, icons, touch areas), anchored top-right; the map block moves down so the gap stays', async () => {
+test('mobile menu bar: twice as large (frame, slots, icons, touch areas), anchored top-right; the map block moves down so the gap stays', async () => {
   const { TOUCH_MENU, touchMapShift } = await import('../src/ui/hud/HotbarLayout');
   const { readPng } = await import('./helpers/png');
   const pack = (await import('../src/ui/hud/hudPack.generated.json')).default as { layers: { id: string; url: string }[] };
@@ -265,7 +277,7 @@ test('mobile menu bar: 30 % larger (frame, slots, icons, touch areas), anchored 
   for (let y = 0; y < TOUCH_MENU.barRows; y++) assert.ok(opaqueRow(y), `bar row ${y}`);
   for (let y = TOUCH_MENU.barRows; y < TOUCH_MENU.mapTopRow; y++) assert.ok(!opaqueRow(y), `gap row ${y}`);
   assert.ok(opaqueRow(TOUCH_MENU.mapTopRow), 'the minimap frame starts there');
-  assert.equal(TOUCH_MENU.scale, 1.3);
+  assert.equal(TOUCH_MENU.scale, 2);
   const dy = touchMapShift();
   const gapBefore = TOUCH_MENU.mapTopRow - TOUCH_MENU.barRows;
   const gapAfter = TOUCH_MENU.mapTopRow + dy - TOUCH_MENU.barRows * TOUCH_MENU.scale;

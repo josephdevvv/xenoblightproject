@@ -18,12 +18,22 @@ export interface GateTalk {
   branches: readonly [DialogueId, DialogueId];
   /** Answer index whose talk opens the portal when it ends; null = none. */
   opensPortalOn: number | null;
+  /**
+   * Until Roland's Reach Level 10 quest (Tutorial Quest 07) is really completed - turned in, not just Level 10 - the
+   * guard says only this line: a click closes it, no question, no portal.
+   */
+  notYet?: DialogueId;
 }
 
 export const GATE_TALKS: Readonly<Record<'sonny' | 'jack', GateTalk>> = {
-  sonny: { npcId: 'city_guard_sonny', intro: 'sonny_gate', questionStep: 1, branches: ['sonny_from_roland', 'sonny_just_walking'], opensPortalOn: 0 },
+  sonny: { npcId: 'city_guard_sonny', intro: 'sonny_gate', questionStep: 1, branches: ['sonny_from_roland', 'sonny_just_walking'], opensPortalOn: 0, notYet: 'sonny_not_yet' },
   jack: { npcId: 'city_guard_jack', intro: 'jack_gate', questionStep: 0, branches: ['jack_from_roland', 'jack_just_walking'], opensPortalOn: null },
 };
+
+/** What the guard says now: only the `notYet` line until Tutorial Quest 07 is completed, else the full talk. */
+export function gateTalkMode(gate: GateTalk, quest07Completed: boolean): 'notYet' | 'full' {
+  return gate.notYet && !quest07Completed ? 'notYet' : 'full';
+}
 
 /** The gate talk of an NPC (always talkable, whatever the quests say), or null. */
 export function gateTalkOf(npcId: string): GateTalk | null {

@@ -54,7 +54,7 @@ import { NPC_CURSOR, NpcCursor } from '../ui/world/NpcCursor';
 import { SkillNameBox } from '../ui/world/SkillNameBox';
 import { PortalEntity } from '../world/PortalEntity';
 import { arrivalGuard, arrivalPoint, onPortalTile, PORTALS, PortalService, stepWarps, updateWarpGuard, warpAllowed, type PortalId, type WarpGuard } from '../world/Portals';
-import { GATE_ANSWERS, gateTalkOf, type GateTalk } from '../dialogue/GateTalks';
+import { GATE_ANSWERS, gateTalkMode, gateTalkOf, type GateTalk } from '../dialogue/GateTalks';
 import type { InteractableNpc } from '../npcs/NpcInteraction';
 import { SKILL_CURSOR, SkillTargetCursor } from '../ui/world/SkillTargetCursor';
 import { GOLD_ICON } from '../ui/hud/GoldIcon';
@@ -896,7 +896,13 @@ export class GameScene extends Phaser.Scene {
   private gateTalk(ui: GameUIScene, name: string, gate: GateTalk): void {
     const dialogue = ui.dialogue!;
     const end = (): void => this.combat.setSuspended(false);
+    const completed = isQuest07ToSonny(QuestService.quest07(this.character));
     this.beginConversation(ui);
+    // Sonny before Roland's Reach Level 10 quest is completed (turned in, not just Level 10): one line, a click closes it
+    if (gateTalkMode(gate, completed) === 'notYet' && gate.notYet) {
+      dialogue.open(name, DIALOGUES[gate.notYet], end, { onInterrupted: end });
+      return;
+    }
     dialogue.open(name, DIALOGUES[gate.intro], end, {
       onInterrupted: end,
       choices: {
@@ -905,7 +911,7 @@ export class GameScene extends Phaser.Scene {
         onChoose: (answer) => {
           dialogue.open(name, DIALOGUES[gate.branches[answer]], () => {
             end();
-            if (answer === gate.opensPortalOn) PortalService.unlock(this.character, 'dawnkeep_gate');
+            if (answer === gate.opensPortalOn && completed) PortalService.unlock(this.character, 'dawnkeep_gate');
           }, { onInterrupted: end });
         },
       },

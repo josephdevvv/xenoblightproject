@@ -50,6 +50,7 @@ import { PortalService } from '../world/Portals';
 import { GoldService } from '../economy/GoldService';
 import { HintService, showClickToMoveHint, showNavigateHint } from '../tutorial/TutorialHints';
 import { isTouchMode } from '../platform/DeviceMode';
+import { onSafeInsetsChange, safeInsets, safeRect } from '../platform/SafeArea';
 import { TouchControls } from '../ui/touch/TouchControls';
 import { TargetHud } from '../ui/touch/TargetHud';
 import { installUiLayers, pointerIn, uiView } from '../ui/layout/UiLayers';
@@ -166,17 +167,22 @@ export class GameUIScene extends Phaser.Scene {
     this.relayoutPending = false;
     // the UI layers: the HUD and the windows zoomed by the UI scale (as far as each fits this view), the spotlight in
     // screen pixels - set up first, every layout below reads its layer's room (uiView)
-    this.zooms = uiZooms({ width: this.scale.width, height: this.scale.height }, getUiScale());
-    installUiLayers(this, this.zooms);
-    // the view size (browser window, mobile viewport) or the UI scale changes: rebuild for it
+    // (mobile: inside the device's safe area - the world itself is drawn edge to edge)
+    const safe = safeRect({ width: this.scale.width, height: this.scale.height }, safeInsets());
+    this.zooms = uiZooms(safe, getUiScale());
+    installUiLayers(this, this.zooms, safe);
+    // the view size (browser window, mobile viewport), the safe area (the phone turned the other way) or the UI scale
+    // changes: rebuild for it
     const relayout = (): void => {
       this.relayoutPending = true;
     };
     this.scale.on(Phaser.Scale.Events.RESIZE, relayout);
     const offScale = onUiScaleChange(relayout);
+    const offSafe = onSafeInsetsChange(relayout);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, relayout);
       offScale();
+      offSafe();
     });
     this.targetHud = null;
     const character = this.resolveCharacter(data.characterId);
@@ -590,6 +596,11 @@ export class GameUIScene extends Phaser.Scene {
   isPointerOverUi(pointer: Phaser.Input.Pointer): boolean {
     // a tutorial spotlight shuts the world out completely
     if (this.spotlightOverlay?.isActive || this.input.hitTestPointer(pointer).length > 0) return true;
+    // mobile: outside the safe area (beside the notch / cutout) no window or dialog draws - the world stays shut while
+    // one is open, as it is behind its dimmed backdrop
+    const safe = this.cameras.main; // the HUD camera: its viewport is the safe area
+    const inSafe = pointer.x >= safe.x && pointer.x < safe.x + safe.width && pointer.y >= safe.y && pointer.y < safe.y + safe.height;
+    if (!inSafe && this.worldBlocked) return true;
     for (const o of this.children.list) {
       const v = o as Phaser.GameObjects.GameObject & Partial<Phaser.GameObjects.Components.Visible & Phaser.GameObjects.Components.AlphaSingle>;
       if (v.visible === false || v.alpha === 0) continue;

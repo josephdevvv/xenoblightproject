@@ -5,7 +5,7 @@ import { loadUiFonts } from './ui/text/Typography';
 import { GameCursor } from './ui/cursor/GameCursor';
 import { initDeviceMode } from './platform/DeviceMode';
 import { OrientationGate } from './platform/OrientationGate';
-import { attachTouchGame, gameContainerSize, prepareTouchPage } from './platform/TouchPage';
+import { attachTouchGame, gameContainerSize, prepareTouchPage, updateSafeArea } from './platform/TouchPage';
 import { desktopGameSize, mobileGameSize } from './platform/MobileViewport';
 import { attachDesktopViewport } from './platform/DesktopViewport';
 
@@ -24,8 +24,10 @@ async function start(): Promise<void> {
   const gate = touch ? new OrientationGate() : null;
   if (gate) await gate.waitForLandscape();
 
-  // The game takes the window's / screen's shape (mobile: inside the safe areas) at the usual world scale - no black bars.
+  // The game takes the window's / screen's shape (mobile: the whole screen, edge to edge) at the usual world scale -
+  // no black bars; on mobile the in-game UI keeps to the safe areas (SafeArea).
   const size = touch ? mobileGameSize(...gameContainerSize()) : desktopGameSize(...gameContainerSize());
+  if (touch) updateSafeArea(size);
   const game = new Phaser.Game(createGameConfig({ touch, size }));
   if (gate) attachTouchGame(game, gate);
   else attachDesktopViewport(game);

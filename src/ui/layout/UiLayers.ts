@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { layerSpace, type UiZooms } from './UiScale';
+import type { Rect } from '../../platform/SafeArea';
 
 /**
  * The in-game UI's cameras (GameUIScene): one scene, three cameras over it - the HUD camera (zoomed by the HUD's UI
@@ -11,6 +12,9 @@ import { layerSpace, type UiZooms } from './UiScale';
  *   'hud'     depth below 10 (HUD, banners, touch controls) and 36-39 (item notices)
  *   'windows' everything else (the windows at 10-24, the leave dialog, dialogue, the death screen)
  *
+ * The HUD and window cameras cover only the device's safe area (mobile: inside the notch / cutout, rounded corners and
+ * home indicator - SafeArea; the whole view on desktop), so every HUD piece, touch control and window is laid out
+ * in it; the screen camera covers the whole canvas (the spotlight shade, the death screen), like the world.
  * Text is re-rendered at its camera's zoom, so it stays sharp when scaled. Other scenes (menus) have none of this:
  * uiView / cameraOf fall back to the plain view and the main camera.
  */
@@ -24,6 +28,8 @@ export const TEXT_RESOLUTION_KEY = 'uiTextResolution';
 interface Layers {
   cameras: Record<UiLayer, Phaser.Cameras.Scene2D.Camera>;
   zooms: Record<UiLayer, number>;
+  /** Each layer's viewport size (screen pixels). */
+  views: Record<UiLayer, { width: number; height: number }>;
 }
 
 const registry = new WeakMap<Phaser.Scene, Layers>();
@@ -34,11 +40,16 @@ export function layerOfDepth(depth: number): Exclude<UiLayer, 'screen'> {
   return depth < 10 || (depth >= 36 && depth < 40) ? 'hud' : 'windows';
 }
 
-/** Sets up the three cameras for a scene (before its UI is built: layouts read uiView). */
-export function installUiLayers(scene: Phaser.Scene, zooms: Pick<UiZooms, 'hud' | 'windows'>): void {
+/**
+ * Sets up the three cameras for a scene (before its UI is built: layouts read uiView). `safe`: the part of the view
+ * the HUD and the windows may use (default: all of it).
+ */
+export function installUiLayers(scene: Phaser.Scene, zooms: Pick<UiZooms, 'hud' | 'windows'>, safe?: Rect): void {
   const main = scene.cameras.main;
   const { width, height } = scene.scale;
-  const windows = scene.cameras.add(0, 0, width, height);
+  const s = safe ?? { x: 0, y: 0, width, height };
+  main.setViewport(s.x, s.y, s.width, s.height);
+  const windows = scene.cameras.add(s.x, s.y, s.width, s.height);
   const screen = scene.cameras.add(0, 0, width, height);
   for (const [cam, zoom] of [
     [main, zooms.hud],
@@ -47,7 +58,12 @@ export function installUiLayers(scene: Phaser.Scene, zooms: Pick<UiZooms, 'hud' 
   ] as const) {
     cam.setOrigin(0, 0).setZoom(zoom).setScroll(0, 0).setRoundPixels(true);
   }
-  registry.set(scene, { cameras: { hud: main, windows, screen }, zooms: { hud: zooms.hud, windows: zooms.windows, screen: 1 } });
+  const inner = { width: s.width, height: s.height };
+  registry.set(scene, {
+    cameras: { hud: main, windows, screen },
+    zooms: { hud: zooms.hud, windows: zooms.windows, screen: 1 },
+    views: { hud: inner, windows: inner, screen: { width, height } },
+  });
   const assign = (): void => assignUiLayers(scene);
   scene.events.on(Phaser.Scenes.Events.PRE_RENDER, assign);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -56,11 +72,10 @@ export function installUiLayers(scene: Phaser.Scene, zooms: Pick<UiZooms, 'hud' 
   });
 }
 
-/** The room (UI pixels) a layer lays out in: the view divided by its zoom (the plain view without layers). */
+/** The room (UI pixels) a layer lays out in: its viewport (the safe area) divided by its zoom (the plain view without layers). */
 export function uiView(scene: Phaser.Scene, layer: UiLayer): { width: number; height: number } {
   const L = registry.get(scene);
-  const view = { width: scene.scale.width, height: scene.scale.height };
-  return L ? layerSpace(view, L.zooms[layer]) : view;
+  return L ? layerSpace(L.views[layer], L.zooms[layer]) : { width: scene.scale.width, height: scene.scale.height };
 }
 
 /** A layer's zoom (1 without UI layers). */

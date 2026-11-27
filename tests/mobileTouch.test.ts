@@ -190,7 +190,11 @@ test('mobile wiring: decided once, landscape before the game exists, several fin
   assert.match(read('src/config/GameConfig.ts'), /input: \{ activePointers: options\.touch \? 4 : 1 \}/);
   const html = read('index.html');
   assert.match(html, /user-scalable=no, viewport-fit=cover/);
-  assert.match(html, /html\.touch #game-container \{[\s\S]*?env\(safe-area-inset-top, 0px\)/);
+  // edge to edge: the container covers the whole screen; the safe areas are measured (probe), not used as margins
+  assert.match(html, /html\.touch #game-container \{\n\s+position: fixed;\n\s+inset: 0;\n\s+width: 100%;\n\s+height: 100%;/);
+  assert.doesNotMatch(html.slice(html.indexOf('html.touch #game-container'), html.indexOf('}', html.indexOf('html.touch #game-container'))), /safe-area-inset/);
+  assert.match(html, /#safe-area-probe \{[\s\S]*?padding: env\(safe-area-inset-top, 0px\) env\(safe-area-inset-right, 0px\) env\(safe-area-inset-bottom, 0px\) env\(safe-area-inset-left, 0px\);/);
+  assert.match(html, /height: 100dvh;/, 'the dynamic viewport (browser bars, installed app)');
   assert.match(html, /html\.touch,\n\s+html\.touch body \{\n\s+touch-action: none;/);
   const ui = read('src/scenes/GameUIScene.ts');
   assert.match(ui, /if \(this\.touch\) this\.createTouchControls\(character\);/);
@@ -212,7 +216,7 @@ test('mobile wiring: decided once, landscape before the game exists, several fin
 });
 
 test('mobile game size: shaped like the screen (no bars), 480 high on wide phones, never narrower than 960; desktop 960 x 480', async () => {
-  const { mobileGameSize, centerOffset, MOBILE_VIEW } = await import('../src/platform/MobileViewport');
+  const { mobileGameSize, MOBILE_VIEW } = await import('../src/platform/MobileViewport');
   const fills = (vw: number, vh: number) => {
     const s = mobileGameSize(vw, vh);
     // the canvas (FIT) shows it at vw x vh: the bars are under one CSS pixel
@@ -240,8 +244,9 @@ test('mobile game size: shaped like the screen (no bars), 480 high on wide phone
   assert.deepEqual(mobileGameSize(1024, 768), { width: 960, height: 720 }, '4:3 tablet');
   assert.equal(mobileGameSize(10000, 1000).width, MOBILE_VIEW.maxWidth, 'beyond any real device the width stops growing');
   assert.deepEqual(mobileGameSize(0, 0), { width: GAME_WIDTH, height: GAME_HEIGHT });
-  assert.deepEqual(centerOffset({ width: 960, height: 720 }, { width: 960, height: 480 }), { x: 0, y: 120 });
-  assert.deepEqual(centerOffset({ width: 960, height: 480 }, { width: 960, height: 480 }), { x: 0, y: 0 }, 'desktop: no offset');
+  // any landscape shape is followed exactly - also squarer than 4:3 (foldables): no bars, no crop
+  assert.deepEqual(mobileGameSize(1000, 900), { width: 960, height: 864 });
+  assert.deepEqual(mobileGameSize(800, 800), { width: 960, height: 960 }, 'square');
 });
 
 test('mobile resizing wiring: created at the screen\'s shape, resized on viewport changes, UI rebuilt at a safe moment; desktop unchanged', () => {
@@ -260,7 +265,7 @@ test('mobile resizing wiring: created at the screen\'s shape, resized on viewpor
   assert.match(ui, /if \(!this\.relayoutPending \|\| !this\.isPlayerAlive\(\) \|\| this\.leaveDialog\?\.isOpen\) return false;/, 'not while dead or asked to leave');
   assert.match(ui, /dialogue: this\.dialogueWindow\?\.snapshot\(\) \?\? null,/, 'a conversation is carried over (same line, same callback)');
   assert.match(ui, /this\.scene\.restart\(\{ characterId: this\.character\?\.id, restore \}/);
-  assert.match(read('src/scenes/CharacterCreationScene.ts'), /keepCentered\(this, \{ width: GAME_WIDTH, height: GAME_HEIGHT \}\);/);
+  assert.match(read('src/scenes/CharacterCreationScene.ts'), /keepCentered\(this, \{ width: GAME_WIDTH, height: GAME_HEIGHT \}, \{ fitSafe: true \}\);/);
   assert.match(read('src/scenes/MainMenuScene.ts'), /keepCentered\(this, \{ width: this\.scale\.width, height: this\.scale\.height \}\);/);
   assert.match(read('src/world/AtmosphereEffects.ts'), /setDisplaySize\(scene\.scale\.width, scene\.scale\.height\)/, 'the vignette covers any view');
   assert.doesNotMatch(read('src/ui/LoadingScreen.ts'), /GAME_WIDTH|GAME_HEIGHT/);
@@ -308,4 +313,56 @@ test('mobile talk button: near an NPC with something to say the action button ta
   const controls = read('src/ui/touch/TouchControls.ts');
   assert.match(controls, /if \(mode === 'talk'\) drawSpeechBubble\(g, S\.x, S\.y\);\n\s+else drawCrossedSwords\(g, S\.x, S\.y, S\.r - 9\);/);
   assert.match(controls, /if \(mode === this\.actionMode\) return;/, 'redrawn only on a change');
+});
+
+test('installed app (Add to Home Screen): fullscreen landscape manifest, iOS web-app tags, edge-to-edge page', () => {
+  const manifest = JSON.parse(read('public/manifest.webmanifest')) as Record<string, unknown>;
+  assert.equal(manifest.display, 'fullscreen', 'no status / navigation bar bands (Android)');
+  assert.deepEqual(manifest.display_override, ['fullscreen', 'standalone']);
+  assert.equal(manifest.orientation, 'landscape');
+  const html = read('index.html');
+  assert.match(html, /viewport-fit=cover/);
+  assert.match(html, /<meta name="apple-mobile-web-app-capable" content="yes" \/>/);
+  assert.match(html, /<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" \/>/, 'iOS: the page under the status bar too');
+  assert.match(html, /<meta name="mobile-web-app-capable" content="yes" \/>/);
+});
+
+test('safe area: CSS insets -> game pixels; the HUD and the windows keep inside it, the world and the screen layer fill the screen', async () => {
+  const { insetsInGame, safeRect, NO_INSETS, setSafeInsets, safeInsets, onSafeInsetsChange } = await import('../src/platform/SafeArea');
+  const { mobileGameSize } = await import('../src/platform/MobileViewport');
+  // an iPhone in landscape: 852 x 393 CSS, notch 59 left and right, home indicator 21 at the bottom
+  const game = mobileGameSize(852, 393);
+  const ins = insetsInGame({ top: 0, right: 59, bottom: 21, left: 59 }, 852, 393, game);
+  const k = Math.min(game.width / 852, game.height / 393);
+  assert.deepEqual(ins, { top: 0, right: Math.ceil(59 * k), bottom: Math.ceil(21 * k), left: Math.ceil(59 * k) });
+  const r = safeRect(game, ins);
+  assert.deepEqual(r, { x: ins.left, y: 0, width: game.width - ins.left - ins.right, height: game.height - ins.bottom });
+  assert.ok(r.width >= 800 && r.height >= 400, `the touch HUD's room fits in it (${r.width} x ${r.height})`);
+  assert.deepEqual(insetsInGame(NO_INSETS, 852, 393, game), NO_INSETS, 'no notch: the whole view');
+  assert.deepEqual(insetsInGame({ top: 5, right: 5, bottom: 5, left: 5 }, 0, 0, game), NO_INSETS);
+  assert.deepEqual(safeRect({ width: 960, height: 480 }, NO_INSETS), { x: 0, y: 0, width: 960, height: 480 }, 'desktop: unchanged');
+  // listeners hear real changes only (the phone turned the other way swaps the notch side)
+  const heard: unknown[] = [];
+  const off = onSafeInsetsChange((i) => heard.push(i));
+  setSafeInsets({ top: 0, right: 0, bottom: 0, left: 72 });
+  setSafeInsets({ top: 0, right: 0, bottom: 0, left: 72 });
+  setSafeInsets({ top: 0, right: 72, bottom: 0, left: 0 });
+  off();
+  setSafeInsets(NO_INSETS);
+  assert.equal(heard.length, 2);
+  assert.deepEqual(safeInsets(), NO_INSETS);
+  // wiring
+  const layers = read('src/ui/layout/UiLayers.ts');
+  assert.match(layers, /main\.setViewport\(s\.x, s\.y, s\.width, s\.height\);\s*const windows = scene\.cameras\.add\(s\.x, s\.y, s\.width, s\.height\);\s*const screen = scene\.cameras\.add\(0, 0, width, height\);/);
+  assert.match(layers, /views: \{ hud: inner, windows: inner, screen: \{ width, height \} \}/);
+  const ui = read('src/scenes/GameUIScene.ts');
+  assert.match(ui, /const safe = safeRect\(\{ width: this\.scale\.width, height: this\.scale\.height \}, safeInsets\(\)\);\s*this\.zooms = uiZooms\(safe, getUiScale\(\)\);\s*installUiLayers\(this, this\.zooms, safe\);/);
+  assert.match(ui, /const offSafe = onSafeInsetsChange\(relayout\);/, 'rebuilt when the insets change');
+  assert.match(ui, /if \(!inSafe && this\.worldBlocked\) return true;/, 'beside the cutout the world stays shut while a window is open');
+  const page = read('src/platform/TouchPage.ts');
+  assert.match(page, /updateSafeArea\(next\);\s*if \(next\.width !== now\.width/, 'measured with every fit, before the resize');
+  assert.match(read('src/main.ts'), /if \(touch\) updateSafeArea\(size\);/);
+  // the finger in HUD coordinates (UI scale + safe offset)
+  assert.match(read('src/ui/touch/TouchControls.ts'), /const at = pointerIn\(this\.scene, this\.stickZone, p\);\s*const s = joystickState\(at\.x - J\.x, at\.y - J\.y/);
+  assert.match(read('src/ui/layout/CenteredDesign.ts'), /const zoom = options\.fitSafe \? Math\.min\(1, safe\.width \/ design\.width, safe\.height \/ design\.height\) : 1;/);
 });

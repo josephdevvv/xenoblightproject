@@ -13,7 +13,7 @@ import { cooldownSeconds, elapsedFraction, handAngle, remainingWedge, sweepStep 
 import { entryIcon } from '../hotbar/hotbarIcons';
 import { typo } from '../UITheme';
 import { buttonIconScale, joystickState, screenToGround, slotOfButton, TOUCH, touchLayout, type Circle, type TouchLayout } from './TouchLayout';
-import { uiView } from '../layout/UiLayers';
+import { pointerIn, uiView } from '../layout/UiLayers';
 
 export interface TouchControlCallbacks {
   /** The joystick: a ground (tile-space) unit direction while pushed, null when let go. */
@@ -278,7 +278,9 @@ export class TouchControls {
 
   private moveStick(p: Phaser.Input.Pointer): void {
     const J = this.layout.joystick;
-    const s = joystickState(p.x - J.x, p.y - J.y, J.r, TOUCH.joystick.deadzone);
+    // the finger in HUD coordinates (the HUD camera's UI scale and safe-area offset), like the joystick itself
+    const at = pointerIn(this.scene, this.stickZone, p);
+    const s = joystickState(at.x - J.x, at.y - J.y, J.r, TOUCH.joystick.deadzone);
     this.drawKnob(s.knob.x, s.knob.y);
     const next = s.direction ? screenToGround(s.direction) : null;
     if (!next && !this.steering) return;

@@ -6,6 +6,11 @@
     <title>Xenoblight</title>
     <meta name="description" content="Xenoblight - a dark fantasy isometric pixel-art RPG." />
     <meta name="theme-color" content="#060608" />
+    <!-- Installed (Add to Home Screen): full screen, the page under the status bar / cutout (the HUD keeps to the safe area) -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Xenoblight" />
     <!-- Browser tab favicon: multi-size ICO (16-256 px) -->
     <link rel="icon" href="/icons/XENOBLIGHT_App.ico" sizes="any" />
     <!-- Home-screen / app icons -->
@@ -33,7 +38,8 @@
         image-rendering: crisp-edges;
       }
       /* Mobile (html.touch, set by src/platform/TouchPage.ts - never on desktop): no scrolling, zooming, selection or
-         tap callouts; the game area stays inside the safe areas (notch, rounded corners, home indicator). */
+         tap callouts; the game covers the whole screen edge to edge (dynamic viewport: browser bars, installed app),
+         under the notch / cutout too - the in-game UI keeps to the safe areas itself (src/platform/SafeArea.ts). */
       html.touch,
       html.touch body {
         touch-action: none;
@@ -44,15 +50,28 @@
         -webkit-tap-highlight-color: transparent;
         -webkit-text-size-adjust: 100%;
       }
+      html.touch,
+      html.touch body {
+        height: 100%;
+        height: 100dvh;
+      }
       html.touch #game-container {
         position: fixed;
-        top: env(safe-area-inset-top, 0px);
-        right: env(safe-area-inset-right, 0px);
-        bottom: env(safe-area-inset-bottom, 0px);
-        left: env(safe-area-inset-left, 0px);
-        width: auto;
-        height: auto;
+        inset: 0;
+        width: 100%;
+        height: 100%;
         touch-action: none;
+      }
+      /* measures env(safe-area-inset-*) for the game (TouchPage) */
+      #safe-area-probe {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        visibility: hidden;
+        pointer-events: none;
+        padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
       }
     </style>
   </head>

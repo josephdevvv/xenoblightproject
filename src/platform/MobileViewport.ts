@@ -7,8 +7,8 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config/constants';
  *
  *  - wide screens (most phones, wider than 2:1): 480 game pixels high - the HUD's height and the same pixel density as
  *    desktop - and as wide as the screen's shape asks (e.g. 2.17:1 -> 1040 x 480)
- *  - squarer screens (16:9 phones, tablets): never narrower than desktop's 960 - every screen (HUD, windows, character
- *    creation) is laid out for that width - and taller instead (16:9 -> 960 x 540, 4:3 -> 960 x 720)
+ *  - squarer screens (16:9 phones, tablets, foldables): never narrower than desktop's 960 - every screen (HUD, windows,
+ *    character creation) is laid out for that width - and taller instead (16:9 -> 960 x 540, 4:3 -> 960 x 720)
  *  - beyond 2048 x 480 (wider than 4.3:1, no real device) the width stops growing
  *
  * Every UI builds from the live `scene.scale` size, and edge-anchored layouts (HUD, touch controls) follow it.
@@ -22,17 +22,14 @@ export interface GameSize {
 
 export function mobileGameSize(viewWidth: number, viewHeight: number): GameSize {
   if (!(viewWidth > 0) || !(viewHeight > 0)) return { width: GAME_WIDTH, height: GAME_HEIGHT };
-  // portrait never gets this far (OrientationGate); a square or taller view is treated as 4:3 landscape
-  const aspect = Math.max(viewWidth / viewHeight, 4 / 3);
+  // portrait never gets this far (OrientationGate); any landscape shape is followed exactly (no 4:3 floor: a squarer
+  // screen gets a taller game, never bars or a crop); a taller-than-wide view counts as square
+  const aspect = Math.max(viewWidth / viewHeight, 1);
   const wide = Math.round(MOBILE_VIEW.height * aspect);
   if (wide >= MOBILE_VIEW.minWidth) return { width: Math.min(wide, MOBILE_VIEW.maxWidth), height: MOBILE_VIEW.height };
   return { width: MOBILE_VIEW.minWidth, height: Math.round(MOBILE_VIEW.minWidth / aspect) };
 }
 
-/** Offset that centres a layout designed for `design` in the current view (whole pixels; 0 on desktop). */
-export function centerOffset(view: GameSize, design: GameSize): { x: number; y: number } {
-  return { x: Math.floor((view.width - design.width) / 2), y: Math.floor((view.height - design.height) / 2) };
-}
 
 /**
  * Desktop: the game fills the browser window at the world scale it always had - the scale FIT gave the fixed 960 x 480

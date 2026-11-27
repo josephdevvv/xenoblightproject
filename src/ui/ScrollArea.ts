@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { pointerIn } from './layout/UiLayers';
 import { UI_COLORS } from './UITheme';
 
 /**
@@ -39,7 +40,7 @@ export class ScrollArea {
 
     // Transparent hit zone for drag-scrolling (sits above the content, below nothing interactive).
     this.zone = scene.add.zone(x, y, width, height).setOrigin(0, 0).setDepth(depth + 2).setInteractive();
-    this.zone.on('pointerdown', (p: Phaser.Input.Pointer) => (this.dragY = p.y));
+    this.zone.on('pointerdown', (p: Phaser.Input.Pointer) => (this.dragY = this.local(p).y));
     scene.input.on('pointermove', this.onPointerMove, this);
     scene.input.on('pointerup', this.onPointerUp, this);
     scene.input.on('wheel', this.onWheel, this);
@@ -81,15 +82,22 @@ export class ScrollArea {
     return px >= this.x && px < this.x + this.width && py >= this.y && py < this.y + this.height;
   }
 
+  /** The pointer in this area's coordinates (through the camera that draws it: UI scale, safe-area offset). */
+  private local(pointer: Phaser.Input.Pointer): Phaser.Math.Vector2 {
+    return pointerIn(this.scene, this.zone, pointer);
+  }
+
   private onWheel(pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number): void {
-    if (!this.visible || !this.contains(pointer.x, pointer.y) || dy === 0) return;
+    const at = this.local(pointer);
+    if (!this.visible || !this.contains(at.x, at.y) || dy === 0) return;
     this.scrollTo(this.step > 0 ? this.offset + Math.sign(dy) * this.step : this.offset + dy * 0.4);
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer): void {
     if (this.dragY === null || !pointer.isDown) return;
-    this.scrollTo(this.raw + (this.dragY - pointer.y));
-    this.dragY = pointer.y;
+    const y = this.local(pointer).y;
+    this.scrollTo(this.raw + (this.dragY - y));
+    this.dragY = y;
   }
 
   private onPointerUp(): void {

@@ -92,7 +92,7 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     this.createBackdrop();
     // laid out for 960 x 480 (GAME_WIDTH / GAME_HEIGHT below are its design size): centred in a wider / taller mobile view
-    keepCentered(this, { width: GAME_WIDTH, height: GAME_HEIGHT });
+    keepCentered(this, { width: GAME_WIDTH, height: GAME_HEIGHT }, { fitSafe: true });
     const loading = new LoadingScreen(this).show();
     this.cameras.main.fadeIn(400, 0, 0, 0);
 

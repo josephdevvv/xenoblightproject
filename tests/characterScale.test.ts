@@ -66,6 +66,7 @@ const PAIRS: [string, string][] = [
   ['female_bald_base', 'female_straight_bangs_blonde_base'],
   ...['blonde', 'black', 'silver', 'brown', 'red'].flatMap((c): [string, string][] => [['male_bald_drifter', `male_side_swept_${c}_drifter`], ['male_bald_base', `male_side_swept_${c}_base`]]),
   ...['blonde', 'black', 'silver', 'brown', 'red'].flatMap((c): [string, string][] => [['male_bald_drifter', `male_middle_part_${c}_drifter`], ['male_bald_base', `male_middle_part_${c}_base`]]),
+  ...['slicked_back', 'long_middle_part'].flatMap((h) => ['blonde', 'black', 'silver', 'brown', 'red'].flatMap((c): [string, string][] => [['male_bald_drifter', `male_${h}_${c}_drifter`], ['male_bald_base', `male_${h}_${c}_base`]])),
   ...['black', 'silver', 'brown', 'red'].flatMap((c): [string, string][] => [
     ['male_bald_drifter', `male_spike_${c}_drifter`], ['male_bald_base', `male_spike_${c}_base`],
     ['female_bald_drifter', `female_straight_bangs_${c}_drifter`], ['female_bald_base', `female_straight_bangs_${c}_base`],

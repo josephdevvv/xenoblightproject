@@ -33,15 +33,18 @@ function pngSize(file: string): { width: number; height: number } {
   return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
 }
 
-test('starter hairstyles per gender, Bald first (male: + Mohawk, Side Swept, Middle Part)', () => {
-  assert.deepEqual(STARTER_HAIRSTYLE_IDS, { male: ['bald', 'mohawk', 'side_swept', 'middle_part'], female: ['bald', 'straight_bangs'] });
-  assert.deepEqual(starterHairstyles('male').map((h) => h.id), ['bald', 'mohawk', 'side_swept', 'middle_part']);
+test('starter hairstyles per gender, Bald first (male: + Mohawk, Side Swept, Middle Part, Slicked Back, Long Middle Part)', () => {
+  const male = ['bald', 'mohawk', 'side_swept', 'middle_part', 'slicked_back', 'long_middle_part'];
+  assert.deepEqual(STARTER_HAIRSTYLE_IDS, { male, female: ['bald', 'straight_bangs'] });
+  assert.deepEqual(starterHairstyles('male').map((h) => h.id), male);
   assert.deepEqual(starterHairstyles('female').map((h) => h.id), ['bald', 'straight_bangs']);
 });
 
 test('exactly the required starter appearances (every hairstyle with hair in all 5 colours)', () => {
   assert.deepEqual(starterHairColors('side_swept'), ['blonde', 'black', 'silver', 'brown', 'red']);
   assert.deepEqual(starterHairColors('middle_part'), ['blonde', 'black', 'silver', 'brown', 'red']);
+  assert.deepEqual(starterHairColors('slicked_back'), ['blonde', 'black', 'silver', 'brown', 'red']);
+  assert.deepEqual(starterHairColors('long_middle_part'), ['blonde', 'black', 'silver', 'brown', 'red']);
   assert.deepEqual(starterHairColors('mohawk'), ['blonde', 'black', 'silver', 'brown', 'red']);
   assert.deepEqual(starterHairColors('straight_bangs'), ['blonde', 'black', 'silver', 'brown', 'red']);
   assert.deepEqual(starterHairColors('bald'), ['none']);
@@ -50,6 +53,8 @@ test('exactly the required starter appearances (every hairstyle with hair in all
     ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'mohawk', hairColorId: c, outfitId: 'drifter' })),
     ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'side_swept', hairColorId: c, outfitId: 'drifter' })),
     ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'middle_part', hairColorId: c, outfitId: 'drifter' })),
+    ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'slicked_back', hairColorId: c, outfitId: 'drifter' })),
+    ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'male', hairstyleId: 'long_middle_part', hairColorId: c, outfitId: 'drifter' })),
     { gender: 'female', hairstyleId: 'bald', hairColorId: 'none', outfitId: 'drifter' },
     ...['blonde', 'black', 'silver', 'brown', 'red'].map((c) => ({ gender: 'female', hairstyleId: 'straight_bangs', hairColorId: c, outfitId: 'drifter' })),
   ]);
@@ -62,6 +67,8 @@ test('each starter resolves to approved Drifter sheets that exist on disk', () =
     ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_female_straight_bangs_${c}_drifter`, `female/straight_bangs_${c}/drifter/female_straight_bangs_${c}_drifter`])),
     ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_male_side_swept_${c}_drifter`, `male/side_swept_${c}/drifter/male_side_swept_${c}_drifter`])),
     ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_male_middle_part_${c}_drifter`, `male/middle_part_${c}/drifter/male_middle_part_${c}_drifter`])),
+    ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_male_slicked_back_${c}_drifter`, `male/slicked_back_${c}/drifter/male_slicked_back_${c}_drifter`])),
+    ...Object.fromEntries(['blonde', 'black', 'silver', 'brown', 'red'].map((c) => [`char_male_long_middle_part_${c}_drifter`, `male/long_middle_part_${c}/drifter/male_long_middle_part_${c}_drifter`])),
     char_female_bald_none_drifter: 'female/bald/drifter/female_bald_drifter',
   };
   for (const appearance of allStarterAppearances()) {
@@ -144,7 +151,7 @@ test('profiles: saved appearance + class persist and existing characters are res
   assert.equal(store.data[LAST_CHARACTER_KEY], 'Kaito');
 
   // Every hairstyle with hair in every colour: saved, loaded and restored unchanged, and it resolves to its approved art.
-  for (const [gender, hairstyleId, tag] of [['male', 'side_swept', 'Side'], ['male', 'middle_part', 'Middle'], ['male', 'mohawk', 'Mohawk'], ['female', 'straight_bangs', 'Bangs']] as const) for (const c of starterHairColors(hairstyleId)) {
+  for (const [gender, hairstyleId, tag] of [['male', 'side_swept', 'Side'], ['male', 'middle_part', 'Middle'], ['male', 'slicked_back', 'Slick'], ['male', 'long_middle_part', 'Long'], ['male', 'mohawk', 'Mohawk'], ['female', 'straight_bangs', 'Bangs']] as const) for (const c of starterHairColors(hairstyleId)) {
     const ss = createCharacterData(`${tag} ${c}`, { gender, hairstyleId, hairColorId: c });
     assert.equal(CharacterProfileStore.save({ name: ss.name, appearance: ss.appearance, classId: ss.classId, createdAt: ss.createdAt }, store), true);
     const back = CharacterProfileStore.load(`${tag.toLowerCase()} ${c}`, store);
@@ -190,8 +197,8 @@ test('creation labels exist in Thai (default) and English', () => {
 
 test('hair colour row labels exist in Thai (default) and English', () => {
   initLanguage(memoryStorage());
-  assert.deepEqual([t('creation.hairColor'), labels.hairstyle('side_swept'), labels.hairColor('silver'), labels.hairstyle('middle_part')], ['สีผม', 'แสกปัด', 'เงิน/ขาว', 'แสกกลาง']);
+  assert.deepEqual([t('creation.hairColor'), labels.hairstyle('side_swept'), labels.hairColor('silver'), labels.hairstyle('middle_part'), labels.hairstyle('slicked_back'), labels.hairstyle('long_middle_part')], ['สีผม', 'แสกปัด', 'เงิน/ขาว', 'แสกกลาง', 'ปัดหลัง', 'ผมยาวแสกกลาง']);
   setLanguage('en');
-  assert.deepEqual([t('creation.hairColor'), labels.hairstyle('side_swept'), labels.hairColor('silver'), labels.hairstyle('middle_part')], ['Hair Colour', 'Side Swept', 'Silver', 'Middle Part']);
+  assert.deepEqual([t('creation.hairColor'), labels.hairstyle('side_swept'), labels.hairColor('silver'), labels.hairstyle('middle_part'), labels.hairstyle('slicked_back'), labels.hairstyle('long_middle_part')], ['Hair Colour', 'Side Swept', 'Silver', 'Middle Part', 'Slicked Back', 'Long Middle Part']);
   setLanguage('th');
 });

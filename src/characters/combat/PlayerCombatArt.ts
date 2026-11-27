@@ -19,6 +19,16 @@ import maleMiddlePartBlackDrifter from '../../../public/assets/characters/male/m
 import maleMiddlePartSilverDrifter from '../../../public/assets/characters/male/middle_part_silver/drifter/combat/male_middle_part_silver_drifter_combat.json';
 import maleMiddlePartBrownDrifter from '../../../public/assets/characters/male/middle_part_brown/drifter/combat/male_middle_part_brown_drifter_combat.json';
 import maleMiddlePartRedDrifter from '../../../public/assets/characters/male/middle_part_red/drifter/combat/male_middle_part_red_drifter_combat.json';
+import maleSlickedBackBlondeDrifter from '../../../public/assets/characters/male/slicked_back_blonde/drifter/combat/male_slicked_back_blonde_drifter_combat.json';
+import maleSlickedBackBlackDrifter from '../../../public/assets/characters/male/slicked_back_black/drifter/combat/male_slicked_back_black_drifter_combat.json';
+import maleSlickedBackSilverDrifter from '../../../public/assets/characters/male/slicked_back_silver/drifter/combat/male_slicked_back_silver_drifter_combat.json';
+import maleSlickedBackBrownDrifter from '../../../public/assets/characters/male/slicked_back_brown/drifter/combat/male_slicked_back_brown_drifter_combat.json';
+import maleSlickedBackRedDrifter from '../../../public/assets/characters/male/slicked_back_red/drifter/combat/male_slicked_back_red_drifter_combat.json';
+import maleLongMiddlePartBlondeDrifter from '../../../public/assets/characters/male/long_middle_part_blonde/drifter/combat/male_long_middle_part_blonde_drifter_combat.json';
+import maleLongMiddlePartBlackDrifter from '../../../public/assets/characters/male/long_middle_part_black/drifter/combat/male_long_middle_part_black_drifter_combat.json';
+import maleLongMiddlePartSilverDrifter from '../../../public/assets/characters/male/long_middle_part_silver/drifter/combat/male_long_middle_part_silver_drifter_combat.json';
+import maleLongMiddlePartBrownDrifter from '../../../public/assets/characters/male/long_middle_part_brown/drifter/combat/male_long_middle_part_brown_drifter_combat.json';
+import maleLongMiddlePartRedDrifter from '../../../public/assets/characters/male/long_middle_part_red/drifter/combat/male_long_middle_part_red_drifter_combat.json';
 import impactVfx from '../../../public/assets/vfx/player/combat/impact.json';
 import type { ActionDirection } from '../../core/Direction';
 
@@ -91,7 +101,7 @@ function fromExport(e: CombatExport): PlayerCombatSet {
 
 /** Combat sets by character sprite id. */
 export const PLAYER_COMBAT_SETS: Readonly<Record<string, PlayerCombatSet>> = Object.fromEntries(
-  [maleSpikeBlondeDrifter, maleSpikeBlackDrifter, maleSpikeSilverDrifter, maleSpikeBrownDrifter, maleSpikeRedDrifter, femaleStraightBangsBlondeDrifter, femaleStraightBangsBlackDrifter, femaleStraightBangsSilverDrifter, femaleStraightBangsBrownDrifter, femaleStraightBangsRedDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter, maleMiddlePartBlondeDrifter, maleMiddlePartBlackDrifter, maleMiddlePartSilverDrifter, maleMiddlePartBrownDrifter, maleMiddlePartRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
+  [maleSpikeBlondeDrifter, maleSpikeBlackDrifter, maleSpikeSilverDrifter, maleSpikeBrownDrifter, maleSpikeRedDrifter, femaleStraightBangsBlondeDrifter, femaleStraightBangsBlackDrifter, femaleStraightBangsSilverDrifter, femaleStraightBangsBrownDrifter, femaleStraightBangsRedDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter, maleMiddlePartBlondeDrifter, maleMiddlePartBlackDrifter, maleMiddlePartSilverDrifter, maleMiddlePartBrownDrifter, maleMiddlePartRedDrifter, maleSlickedBackBlondeDrifter, maleSlickedBackBlackDrifter, maleSlickedBackSilverDrifter, maleSlickedBackBrownDrifter, maleSlickedBackRedDrifter, maleLongMiddlePartBlondeDrifter, maleLongMiddlePartBlackDrifter, maleLongMiddlePartSilverDrifter, maleLongMiddlePartBrownDrifter, maleLongMiddlePartRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
 );
 
 export function combatSetFor(spriteId: string): PlayerCombatSet | null {

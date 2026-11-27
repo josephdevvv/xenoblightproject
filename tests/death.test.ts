@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import { SPRITE_FORGE_CHARACTER_VARIANTS } from '../src/assets/SpriteForgeCharacters';
 import { dissolveNoise, dissolvePixels, ghostPixels, ghostRowKeep, GHOST_OPTIONS, opaqueRows } from '../src/player/death/GhostPixels';
 import { DEAD_ALLOWED_ACTIONS, PlayerLife, type PlayerAction } from '../src/player/death/PlayerLifeState';
+import { ButtonPress } from '../src/ui/death/ButtonPress';
 import { readPng } from './helpers/png';
 
 const ALL_ACTIONS: PlayerAction[] = ['move', 'attack', 'cast', 'interact', 'loot', 'useItem', 'openWindow', 'chat'];
@@ -128,4 +130,46 @@ test('dissolve: whole at 0, gone at 1, never brings pixels back, pale edge band'
   for (let i = 0; i < mid.length; i += 4) if (mid[i + 3] && mid[i] === 214 && mid[i + 1] === 218) pale++;
   assert.ok(pale > 0, 'edge band turns pale');
   assert.deepEqual(dissolveNoise(8, 8, 3), dissolveNoise(8, 8, 3), 'deterministic noise');
+});
+
+// ------------------------------------------------------------------------------------------ respawn button
+
+test('respawn button: a touch tap (down, then over, then up) is a click - the bug that kept players dead', () => {
+  const tap = new ButtonPress();
+  tap.press();
+  tap.over(); // Phaser: pointerover after pointerdown when the pointer was not over the button yet
+  assert.equal(tap.release(), true, 'the release counts');
+  // a mouse that hovered first
+  const mouse = new ButtonPress();
+  mouse.over();
+  mouse.press();
+  assert.equal(mouse.release(), true);
+  // dragged off before releasing: no click; a release without a press: no click
+  const drag = new ButtonPress();
+  drag.press();
+  drag.out();
+  assert.equal(drag.release(), false);
+  assert.equal(new ButtonPress().release(), false);
+  // one press, one click (a second release does nothing)
+  const once = new ButtonPress();
+  once.press();
+  assert.deepEqual([once.release(), once.release()], [true, false]);
+});
+
+test('death screen: on the screen layer (above every window and the tutorial spotlight), sized by the UI scale', () => {
+  const read = (f: string): string => fs.readFileSync(path.join(process.cwd(), f), 'utf8').replace(/\r\n/g, '\n');
+  const overlay = read('src/ui/death/DeathOverlay.ts');
+  assert.match(overlay, /const \{ width: sw, height: sh \} = scene\.scale;/, 'full screen, in screen pixels like the captured body');
+  assert.match(overlay, /const screen = <T extends Phaser\.GameObjects\.GameObject>\(o: T\): T => o\.setData\(UI_LAYER_KEY, 'screen'\);/);
+  for (const o of ['overlay', 'title', 'buttonBox', 'buttonText']) assert.match(overlay, new RegExp(`this\\.${o} = screen\\(`), o);
+  assert.equal((overlay.match(/setData\(UI_LAYER_KEY, 'screen'\)/g) ?? []).length, 3, 'the helper + the body and the ghost of each death');
+  assert.match(overlay, /for \(const o of \[this\.title, this\.buttonBox, this\.buttonText\]\) o\.setScale\(z\);/);
+  assert.match(overlay, /buttonY = Math\.round\(Math\.max\(8, Math\.min\(buttonY, sh - buttonH - 8\)\)\);/, 'the button always on the screen');
+  assert.match(overlay, /const click = this\.press\.release\(\);\s*this\.drawButton\(\);\s*if \(click\) this\.clickRespawn\(\);/);
+  // the spotlight never stays while dying / dead, and is drawn below the death screen
+  const ui = read('src/scenes/GameUIScene.ts');
+  assert.match(ui, /if \(this\.settingsWindow\?\.isOpen \|\| this\.leaveDialog\?\.isOpen \|\| !this\.isPlayerAlive\(\)\) return null;/);
+  const spot = Number(/new SpotlightOverlay\(this, (\d+)\)/.exec(ui)![1]);
+  const death = Number(/new DeathOverlay\(this, (\d+)\)/.exec(ui)![1]);
+  assert.ok(death > spot + 3, 'death screen above the spotlight (shade, outline, label, blockers)');
 });

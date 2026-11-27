@@ -192,7 +192,7 @@ test('UI scale wiring: in-game Settings only; two zoomed UI cameras + a screen c
   assert.match(layers, /scene\.events\.on\(Phaser\.Scenes\.Events\.PRE_RENDER, assign\);/, 'assigned before every frame is drawn');
   // the world scene is never touched: no zoom, no UI layers
   assert.doesNotMatch(read('src/scenes/GameScene.ts'), /installUiLayers|setZoom\(/);
-  for (const f of ['src/ui/inventory/InventoryWindow.ts', 'src/ui/StatusWindow.ts', 'src/ui/skills/SkillWindow.ts', 'src/ui/passiveTree/PassiveTreeWindow.ts', 'src/ui/autoplay/AutoPlayWindow.ts', 'src/ui/dialogue/DialogueWindow.ts', 'src/ui/death/DeathOverlay.ts', 'src/ui/ChoiceDialog.ts', 'src/ui/SettingsWindow.ts', 'src/ui/hotbar/HotbarAssignWindow.ts']) {
+  for (const f of ['src/ui/inventory/InventoryWindow.ts', 'src/ui/StatusWindow.ts', 'src/ui/skills/SkillWindow.ts', 'src/ui/passiveTree/PassiveTreeWindow.ts', 'src/ui/autoplay/AutoPlayWindow.ts', 'src/ui/dialogue/DialogueWindow.ts', 'src/ui/ChoiceDialog.ts', 'src/ui/SettingsWindow.ts', 'src/ui/hotbar/HotbarAssignWindow.ts']) {
     assert.match(read(f), /uiView\(scene, 'windows'\)/, `${f}: laid out in the window layer's room`);
   }
   assert.match(read('src/ui/hud/DungeonHud.ts'), /const view = uiView\(scene, 'hud'\);/);

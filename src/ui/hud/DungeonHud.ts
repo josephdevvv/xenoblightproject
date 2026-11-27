@@ -692,7 +692,7 @@ export class DungeonHud {
   }
 
   /**
-   * Mobile: the menu bar 30 % larger, anchored at its top-right corner - its frame (the top rows of the map layer art,
+   * Mobile: the menu bar larger (TOUCH_MENU.scale), anchored at its top-right corner - its frame (the top rows of the map layer art,
    * cut out), the repainted slots, icons, highlights, tooltips, pips and touch areas all go into one scaled container
    * (input, spotlights and the "over the UI" check follow the container). The layer art keeps only the minimap part,
    * moved down with the map block.

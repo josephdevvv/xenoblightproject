@@ -3,7 +3,8 @@ import { t } from '../../i18n';
 import { localize } from '../../i18n/phaser';
 import { dissolveNoise, dissolvePixels, ghostPixels, opaqueRows } from '../../player/death/GhostPixels';
 import { typo } from '../UITheme';
-import { uiView } from '../layout/UiLayers';
+import { ButtonPress } from './ButtonPress';
+import { layerZoom, TEXT_RESOLUTION_KEY, UI_LAYER_KEY } from '../layout/UiLayers';
 
 /** The player's drawn frame at the moment of death, and where it is on screen. */
 export interface DeathCapture {
@@ -55,6 +56,11 @@ type Phase = 'hidden' | 'dying' | 'dead' | 'leaving';
  *  - leaving: everything fades out, then the respawn callback runs.
  * The full-screen overlay is interactive from the first frame of DYING, so no click reaches the HUD or the
  * world while the player is not alive. Only one set of objects exists; textures are replaced per death.
+ *
+ * In-game UI layers (UiLayers): everything is on the SCREEN layer - drawn and hit-tested last, above every window
+ * and the tutorial spotlight, in screen pixels like the captured body (the world camera never zooms). The title and
+ * the button take the windows' UI scale (scaled, text rendered at that resolution), so they look like the rest of
+ * the UI and are laid out with their scaled sizes - always on the screen.
  */
 export class DeathOverlay {
   private readonly overlay: Phaser.GameObjects.Rectangle;
@@ -71,8 +77,10 @@ export class DeathOverlay {
   private elapsed = 0;
   private hoverMs = 0;
   private lastDissolveStep = -1;
-  private pressed = false;
+  private readonly press = new ButtonPress();
   private clicked = false;
+  /** The windows' UI scale: the title and the button are drawn at it. */
+  private readonly zoom: number;
   private onDead: (() => void) | null = null;
   private onRespawn: (() => void) | null = null;
   private onGone: (() => void) | null = null;
@@ -82,26 +90,42 @@ export class DeathOverlay {
     private readonly scene: Phaser.Scene,
     private readonly depth: number,
   ) {
-    const { width: sw, height: sh } = uiView(scene, 'windows');
-    this.overlay = scene.add.rectangle(0, 0, sw, sh, 0x000000, 1).setOrigin(0, 0).setDepth(depth).setAlpha(0).setVisible(false);
-    this.title = scene.add.text(Math.round(sw / 2), Math.round(sh / 2) - 36, '', typo('display', '#cfc9c0', { stroke: '#000000', strokeThickness: 2 })).setOrigin(0.5).setDepth(depth + 3).setVisible(false);
-    const bx = Math.round(sw / 2 - BUTTON.width / 2);
+    const { width: sw, height: sh } = scene.scale;
+    const z = (this.zoom = layerZoom(scene, 'windows'));
+    const screen = <T extends Phaser.GameObjects.GameObject>(o: T): T => o.setData(UI_LAYER_KEY, 'screen');
+    this.overlay = screen(scene.add.rectangle(0, 0, sw, sh, 0x000000, 1).setOrigin(0, 0).setDepth(depth).setAlpha(0).setVisible(false));
+    this.title = screen(scene.add.text(Math.round(sw / 2), Math.round(sh / 2) - 36, '', typo('display', '#cfc9c0', { stroke: '#000000', strokeThickness: 2 })).setOrigin(0.5).setDepth(depth + 3).setVisible(false));
+    const bx = Math.round(sw / 2 - (BUTTON.width * z) / 2);
     const by = Math.round(sh / 2 + 6);
-    this.buttonBox = scene.add.graphics({ x: bx, y: by }).setDepth(depth + 3).setVisible(false);
-    this.buttonText = scene.add.text(Math.round(sw / 2), by + BUTTON.height / 2, '', typo('button', BUTTON.text)).setOrigin(0.5).setDepth(depth + 4).setVisible(false);
-    this.buttonBox.on('pointerover', () => this.setButton(true, false));
-    this.buttonBox.on('pointerout', () => this.setButton(false, false));
-    this.buttonBox.on('pointerdown', () => this.setButton(true, true));
+    this.buttonBox = screen(scene.add.graphics({ x: bx, y: by }).setDepth(depth + 3).setVisible(false));
+    this.buttonText = screen(scene.add.text(Math.round(sw / 2), by + (BUTTON.height * z) / 2, '', typo('button', BUTTON.text)).setOrigin(0.5).setDepth(depth + 4).setVisible(false));
+    for (const o of [this.title, this.buttonBox, this.buttonText]) o.setScale(z);
+    for (const o of [this.title, this.buttonText]) o.setData(TEXT_RESOLUTION_KEY, z);
+    // Hover and press are separate (ButtonPress): a touch tap gets pointerover after pointerdown - it must not
+    // cancel the press, or the release would not count and the player could not respawn.
+    this.buttonBox.on('pointerover', () => {
+      this.press.over();
+      this.drawButton();
+    });
+    this.buttonBox.on('pointerout', () => {
+      this.press.out();
+      this.drawButton();
+    });
+    this.buttonBox.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.button !== 0) return;
+      this.press.press();
+      this.drawButton();
+    });
     this.buttonBox.on('pointerup', () => {
-      const fire = this.pressed;
-      this.setButton(true, false);
-      if (fire) this.clickRespawn();
+      const click = this.press.release();
+      this.drawButton();
+      if (click) this.clickRespawn();
     });
     localize(scene, () => {
       this.title.setText(t('death.title'));
       this.buttonText.setText(t('death.respawn'));
     });
-    this.setButton(false, false);
+    this.resetButton();
   }
 
   get isActive(): boolean {
@@ -136,8 +160,8 @@ export class DeathOverlay {
 
     const place = (img: Phaser.GameObjects.Image) =>
       img.setOrigin(capture.originX, capture.originY).setScale(capture.scaleX, capture.scaleY).setFlipX(capture.flipX);
-    this.body = place(this.scene.add.image(capture.screenX, capture.screenY, keyBody)).setDepth(this.depth + 1);
-    this.ghost = place(this.scene.add.image(capture.screenX, capture.screenY, keyGhost)).setDepth(this.depth + 2).setAlpha(0);
+    this.body = place(this.scene.add.image(capture.screenX, capture.screenY, keyBody)).setDepth(this.depth + 1).setData(UI_LAYER_KEY, 'screen');
+    this.ghost = place(this.scene.add.image(capture.screenX, capture.screenY, keyGhost)).setDepth(this.depth + 2).setAlpha(0).setData(UI_LAYER_KEY, 'screen');
 
     // block every click from the first frame (the overlay is still transparent)
     this.overlay.setVisible(true).setAlpha(0).setInteractive();
@@ -241,7 +265,7 @@ export class DeathOverlay {
     this.buttonBox.setVisible(false);
     this.buttonText.setVisible(false);
     this.disableButton();
-    this.setButton(false, false);
+    this.resetButton();
   }
 
   /** Respawn button: accepted once per death (duplicate clicks are ignored). */
@@ -262,19 +286,22 @@ export class DeathOverlay {
     const headOffset = (capture.originY * capture.height - (rows?.top ?? 0)) * capture.scaleY;
     const ghostTop = Math.round(capture.screenY - headOffset - GHOST_RISE - HOVER_AMPLITUDE);
     const below = Math.round(capture.screenY + NAME_LABEL_SPACE);
-    const titleHalf = Math.ceil(this.title.height / 2);
+    const z = this.zoom;
+    const buttonW = BUTTON.width * z;
+    const buttonH = BUTTON.height * z;
+    const titleHalf = Math.ceil(this.title.displayHeight / 2);
     let titleY = ghostTop - 10 - titleHalf;
     let buttonY = below;
     if (titleY - titleHalf < 8) {
       titleY = below + titleHalf;
-      buttonY = below + this.title.height + 8;
+      buttonY = below + this.title.displayHeight + 8;
     }
-    buttonY = Math.min(buttonY, sh - BUTTON.height - 8);
-    const bx = Math.round(sw / 2 - BUTTON.width / 2);
+    buttonY = Math.round(Math.max(8, Math.min(buttonY, sh - buttonH - 8)));
+    const bx = Math.round(sw / 2 - buttonW / 2);
     this.title.setPosition(Math.round(sw / 2), Math.round(titleY));
     this.buttonBox.setPosition(bx, buttonY);
-    this.buttonText.setPosition(Math.round(sw / 2), Math.round(buttonY + BUTTON.height / 2));
-    this.setButton(false, false);
+    this.buttonText.setPosition(Math.round(sw / 2), Math.round(buttonY + buttonH / 2));
+    this.resetButton();
   }
 
   /**
@@ -302,8 +329,14 @@ export class DeathOverlay {
     putPixels(this.bodyTexture, dissolvePixels(this.bodyPixels, this.noise, step / 16), this.capture.width, this.capture.height);
   }
 
-  private setButton(hover: boolean, down: boolean): void {
-    this.pressed = down;
+  /** Back to the plain look (no hover, not pressed). */
+  private resetButton(): void {
+    this.press.reset();
+    this.drawButton();
+  }
+
+  private drawButton(): void {
+    const { hovered: hover, pressed: down } = this.press;
     const g = this.buttonBox;
     g.clear();
     g.fillStyle(down ? BUTTON.fillDown : hover ? BUTTON.fillHover : BUTTON.fill, 1);
@@ -317,7 +350,7 @@ export class DeathOverlay {
     // small dark-fantasy accent: inner corner ticks
     g.fillRect(3, 3, 3, 1).fillRect(3, 3, 1, 3);
     g.fillRect(BUTTON.width - 6, BUTTON.height - 4, 3, 1).fillRect(BUTTON.width - 4, BUTTON.height - 6, 1, 3);
-    this.buttonText.setY(Math.round(this.buttonBox.y + BUTTON.height / 2) + (down ? 1 : 0));
+    this.buttonText.setY(Math.round(this.buttonBox.y + (BUTTON.height * this.zoom) / 2 + (down ? this.zoom : 0)));
     this.buttonText.setColor(hover ? '#efebe3' : BUTTON.text);
   }
 }

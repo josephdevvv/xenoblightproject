@@ -26,12 +26,12 @@ export interface HotbarLayout {
 }
 
 /**
- * Mobile: the top-right menu bar (its frame, the six slots, icons, highlights, pips and touch areas) is drawn twice
- * as large (thumb-sized, as the reference mobile HUD's menu buttons), anchored at its top-right corner. The bar is the top 23 rows of 03_map_and_menu.png, the minimap frame
+ * Mobile: the top-right menu bar (its frame, the six slots, icons, highlights, pips and touch areas) is drawn 1.5x
+ * as large (thumb-sized; 2x until 2026-11-27, then 25 % smaller), anchored at its top-right corner. The bar is the top 23 rows of 03_map_and_menu.png, the minimap frame
  * starts at row 30: the map block under it (minimap, coordinates, map name, AUTO, notices) moves down by what the bar
  * grew, so the 7-row gap stays.
  */
-export const TOUCH_MENU = { scale: 2, barRows: 23, mapTopRow: 30 } as const;
+export const TOUCH_MENU = { scale: 1.5, barRows: 23, mapTopRow: 30 } as const;
 
 /** How far the map block moves down on mobile (whole pixels). */
 export function touchMapShift(): number {

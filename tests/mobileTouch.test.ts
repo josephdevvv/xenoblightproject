@@ -267,7 +267,7 @@ test('mobile resizing wiring: created at the screen\'s shape, resized on viewpor
   assert.doesNotMatch(read('src/scenes/BootScene.ts'), /GAME_WIDTH|GAME_HEIGHT/);
 });
 
-test('mobile menu bar: twice as large (frame, slots, icons, touch areas), anchored top-right; the map block moves down so the gap stays', async () => {
+test('mobile menu bar: 1.5x (25 % smaller than the former 2x; frame, slots, icons, touch areas), anchored top-right; the map block moves down so the gap stays', async () => {
   const { TOUCH_MENU, touchMapShift } = await import('../src/ui/hud/HotbarLayout');
   const { readPng } = await import('./helpers/png');
   const pack = (await import('../src/ui/hud/hudPack.generated.json')).default as { layers: { id: string; url: string }[] };
@@ -277,7 +277,8 @@ test('mobile menu bar: twice as large (frame, slots, icons, touch areas), anchor
   for (let y = 0; y < TOUCH_MENU.barRows; y++) assert.ok(opaqueRow(y), `bar row ${y}`);
   for (let y = TOUCH_MENU.barRows; y < TOUCH_MENU.mapTopRow; y++) assert.ok(!opaqueRow(y), `gap row ${y}`);
   assert.ok(opaqueRow(TOUCH_MENU.mapTopRow), 'the minimap frame starts there');
-  assert.equal(TOUCH_MENU.scale, 2);
+  assert.equal(TOUCH_MENU.scale, 1.5);
+  assert.equal(touchMapShift(), 12, 'the map block follows: 23 rows x 0.5');
   const dy = touchMapShift();
   const gapBefore = TOUCH_MENU.mapTopRow - TOUCH_MENU.barRows;
   const gapAfter = TOUCH_MENU.mapTopRow + dy - TOUCH_MENU.barRows * TOUCH_MENU.scale;

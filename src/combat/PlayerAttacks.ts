@@ -1,4 +1,5 @@
 import { combatSetFor, PLAYER_COMBAT_SETS, PLAYER_IMPACT_VFX, type PlayerCombatSheet } from '../characters/combat/PlayerCombatArt';
+import { modifiedSkillDamage, type SkillModifiers } from '../passives/PassiveProgress';
 import type { PlayerAttackClip } from './WeaponAttackClip';
 import { ATTACK_IMPACT_FRAME, impactDelayMs } from './AttackTiming';
 
@@ -20,14 +21,25 @@ export interface PlayerAttackDefinition {
   impactFrame: number;
   /** x ATK (1 = normal attack, 2 = 200 % ATK). */
   atkMultiplier: number;
+  /** A single-target attack SKILL: the Power Strike passive raises its damage (basic attacks never). */
+  singleTargetSkill: boolean;
   onHitVfx: 'impact';
   vfxScale: number;
 }
 
 export const PLAYER_ATTACKS: Readonly<Record<PlayerAttackId, PlayerAttackDefinition>> = {
-  basic: { id: 'basic', animation: 'dagger_thrust', impactFrame: ATTACK_IMPACT_FRAME, atkMultiplier: 1, onHitVfx: 'impact', vfxScale: PLAYER_IMPACT_VFX.scales.basicAttack },
-  drifter_lv1: { id: 'drifter_lv1', animation: 'dagger_thrust', impactFrame: ATTACK_IMPACT_FRAME, atkMultiplier: 2, onHitVfx: 'impact', vfxScale: PLAYER_IMPACT_VFX.scales.enhancedAttackSkill },
+  basic: { id: 'basic', animation: 'dagger_thrust', impactFrame: ATTACK_IMPACT_FRAME, atkMultiplier: 1, singleTargetSkill: false, onHitVfx: 'impact', vfxScale: PLAYER_IMPACT_VFX.scales.basicAttack },
+  drifter_lv1: { id: 'drifter_lv1', animation: 'dagger_thrust', impactFrame: ATTACK_IMPACT_FRAME, atkMultiplier: 2, singleTargetSkill: true, onHitVfx: 'impact', vfxScale: PLAYER_IMPACT_VFX.scales.enhancedAttackSkill },
 };
+
+/**
+ * The damage a landed hit really deals: a single-target attack skill gets the Power Strike passive (+5 % per rank,
+ * whole points, never less than rolled); a basic attack is unchanged. `mods`: the character's passive skill modifiers.
+ */
+export function attackDamage(attack: PlayerAttackDefinition, rolled: number, mods: SkillModifiers): number {
+  if (!attack.singleTargetSkill) return rolled;
+  return Math.max(rolled, Math.floor(modifiedSkillDamage(rolled, mods) + 1e-9));
+}
 
 /** The reference Drifter timing (the approved dagger_thrust), used when an appearance has no combat art. */
 const REFERENCE = Object.values(PLAYER_COMBAT_SETS)[0]?.actions.dagger_thrust ?? { frameMs: 100, frames: 8 };

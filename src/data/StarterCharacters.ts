@@ -10,8 +10,16 @@ import type { CharacterAppearance } from './CharacterData';
  *   male    bald             none                                 drifter  drifter
  *   male    mohawk           blonde | black | silver | brown | red drifter  drifter
  *   male    side_swept       blonde | black | silver | brown | red drifter  drifter
+ *   male    middle_part      blonde | black | silver | brown | red drifter  drifter
+ *   male    slicked_back     blonde | black | silver | brown | red drifter  drifter
+ *   male    long_middle_part blonde | black | silver | brown | red drifter  drifter
  *   female  bald             none                                 drifter  drifter
  *   female  straight_bangs   blonde | black | silver | brown | red drifter  drifter
+ *   female  bob              blonde | black | silver | brown | red drifter  drifter
+ *   female  ponytail         blonde | black | silver | brown | red drifter  drifter
+ *   female  twin_buns        blonde | black | silver | brown | red drifter  drifter
+ *   female  fluffy_curls     blonde | black | silver | brown | red drifter  drifter
+ *   female  long_side_part   blonde | black | silver | brown | red drifter  drifter
  *
  * These are exactly the appearances with approved Sprite Forge Drifter art (SpriteForgeCharacters.ts).
  * The wider catalog (HAIRSTYLES, HAIR_COLORS, OUTFITS) stays as the data model for later content.
@@ -26,8 +34,8 @@ export const NO_HAIR_COLOR_ID = 'none';
 
 /** Selectable hairstyles per gender, in display order. */
 export const STARTER_HAIRSTYLE_IDS: Readonly<Record<Gender, readonly string[]>> = {
-  male: [BALD_HAIRSTYLE_ID, 'mohawk', 'side_swept'],
-  female: [BALD_HAIRSTYLE_ID, 'straight_bangs'],
+  male: [BALD_HAIRSTYLE_ID, 'mohawk', 'side_swept', 'middle_part', 'slicked_back', 'long_middle_part'],
+  female: [BALD_HAIRSTYLE_ID, 'straight_bangs', 'bob', 'ponytail', 'twin_buns', 'fluffy_curls', 'long_side_part'],
 };
 
 /**
@@ -39,9 +47,24 @@ export const STARTER_HAIR_COLOR_IDS: Readonly<Record<string, readonly string[]>>
   mohawk: ['blonde', 'black', 'silver', 'brown', 'red'],
   straight_bangs: ['blonde', 'black', 'silver', 'brown', 'red'],
   side_swept: ['blonde', 'black', 'silver', 'brown', 'red'],
+  middle_part: ['blonde', 'black', 'silver', 'brown', 'red'],
+  slicked_back: ['blonde', 'black', 'silver', 'brown', 'red'],
+  long_middle_part: ['blonde', 'black', 'silver', 'brown', 'red'],
+  bob: ['blonde', 'black', 'silver', 'brown', 'red'],
+  ponytail: ['blonde', 'black', 'silver', 'brown', 'red'],
+  twin_buns: ['blonde', 'black', 'silver', 'brown', 'red'],
+  fluffy_curls: ['blonde', 'black', 'silver', 'brown', 'red'],
+  long_side_part: ['blonde', 'black', 'silver', 'brown', 'red'],
 };
 
 export const STARTER_GENDERS: readonly Gender[] = ['male', 'female'];
+
+/**
+ * Outfits the creation screen can put on the preview ("Trial Outfit"), in display order: the starter outfit first,
+ * then the plain base look. A preview only - a new character always starts in STARTER_OUTFIT_ID (starterAppearance).
+ * Every starter hairstyle / colour has approved art for both.
+ */
+export const TRIAL_OUTFIT_IDS: readonly string[] = [STARTER_OUTFIT_ID, 'basic'];
 
 /** What the player picks in character creation. */
 export interface StarterChoice {
@@ -72,14 +95,25 @@ export function hairColorFor(hairstyleId: string, requested?: string): string {
 
 /**
  * The full appearance for a starter choice. Invalid input never produces an unsupported look:
- * an unknown gender becomes the default gender, an unavailable hairstyle the default for that gender.
+ * an unknown gender becomes the default gender, an unavailable hairstyle the default for that gender (the
+ * default hairstyle when that gender has it, else its first hairstyle with hair).
  */
 export function starterAppearance(choice: Partial<StarterChoice>): CharacterAppearance {
   const gender: Gender = STARTER_GENDERS.includes(choice.gender as Gender) ? (choice.gender as Gender) : DEFAULT_STARTER_CHOICE.gender;
   const allowed = STARTER_HAIRSTYLE_IDS[gender];
-  const fallback = allowed.includes(DEFAULT_STARTER_CHOICE.hairstyleId) ? DEFAULT_STARTER_CHOICE.hairstyleId : allowed[allowed.length - 1];
+  const fallback = allowed.includes(DEFAULT_STARTER_CHOICE.hairstyleId) ? DEFAULT_STARTER_CHOICE.hairstyleId : (allowed.find((id) => id !== BALD_HAIRSTYLE_ID) ?? allowed[0]);
   const hairstyleId = choice.hairstyleId && allowed.includes(choice.hairstyleId) ? choice.hairstyleId : fallback;
   return { gender, hairstyleId, hairColorId: hairColorFor(hairstyleId, choice.hairColorId), outfitId: STARTER_OUTFIT_ID };
+}
+
+/** The look the creation preview shows: a starter appearance wearing a trial outfit (an unknown outfit = the starter one). */
+export function trialAppearance(appearance: CharacterAppearance, outfitId: string): CharacterAppearance {
+  return { ...appearance, outfitId: TRIAL_OUTFIT_IDS.includes(outfitId) ? outfitId : STARTER_OUTFIT_ID };
+}
+
+/** Every look the creation preview can show: all starter appearances in every trial outfit (for prefetching and tests). */
+export function allTrialAppearances(): CharacterAppearance[] {
+  return allStarterAppearances().flatMap((appearance) => TRIAL_OUTFIT_IDS.map((outfitId) => trialAppearance(appearance, outfitId)));
 }
 
 /** All starter appearances (for prefetching and tests). */

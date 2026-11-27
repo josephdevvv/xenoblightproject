@@ -1,0 +1,146 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-27T11:52:06.633Z",
+  "key": "female_ponytail_brown_base",
+  "displayName": {
+    "en": "Female Ponytail Brown (base)",
+    "th": "หญิง หางม้า น้ำตาล (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "female",
+    "hairstyleId": "ponytail",
+    "hairColorId": "brown",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "ponytail",
+    "hairColor": "brown",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_female_ponytail_brown_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/female/ponytail_brown/base/female_ponytail_brown_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "5761482c816cb340975eaf16f3d6cc78b0c886c07f97de616bdcf31017e172ed",
+    "directions": {
+      "S": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_south-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "E": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NE": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_north-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "N": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_north",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NW": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_north-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "W": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SW": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_south-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/female/ponytail_brown/base/female_ponytail_brown_base_walk_8dir.png",
+    "metadata": "assets/characters/female/ponytail_brown/base/female_ponytail_brown_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "3c68b436cb8b54589f82e40fa23c846ffb1c5292623357c9991a0b7a150a5185",
+    "directions": {
+      "S": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_ponytail_brown_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 8
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

@@ -10,7 +10,7 @@ import { DIRECTIONS } from '../core/Direction';
 import { TextureKeys } from '../assets/TextureKeys';
 import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
 import { CharacterView } from '../characters/CharacterView';
-import { GENDERS, type Gender } from '../data/AppearanceCatalog';
+import { findHairColor, type Gender } from '../data/AppearanceCatalog';
 import {
   createCharacterData,
   NAME_MAX_LENGTH,
@@ -20,12 +20,17 @@ import {
   type LocalizedMessage,
 } from '../data/CharacterData';
 import {
-  allStarterAppearances,
+  allTrialAppearances,
   DEFAULT_STARTER_CHOICE,
+  NO_HAIR_COLOR_ID,
+  STARTER_GENDERS,
+  STARTER_HAIR_COLOR_ID,
   STARTER_HAIRSTYLE_IDS,
   STARTER_OUTFIT_ID,
   starterAppearance,
   starterHairColors,
+  TRIAL_OUTFIT_IDS,
+  trialAppearance,
 } from '../data/StarterCharacters';
 import { CharacterStore } from '../data/CharacterStore';
 import { t, translate, type TranslationKey, type TranslationParams } from '../i18n';
@@ -35,6 +40,8 @@ import { CharacterStatusService } from '../status/CharacterStatusService';
 import { AtmosphereEffects } from '../world/AtmosphereEffects';
 import { Button } from '../ui/Button';
 import { createPanel, setPanelTitle } from '../ui/Panel';
+import { cycleIndex, selectorRowYs } from '../ui/selector/SelectorCycle';
+import { SelectorRow } from '../ui/SelectorRow';
 import { SettingsWindow } from '../ui/SettingsWindow';
 import { TextInputField } from '../ui/TextInputField';
 import { typo } from '../ui/UITheme';
@@ -46,10 +53,15 @@ const PANEL_TOP = 112;
 const PANEL_HEIGHT = 356;
 const HINT: LocalizedMessage = { key: 'creation.nameHint', params: { min: NAME_MIN_LENGTH, max: NAME_MAX_LENGTH } };
 
+/** The selector rows (and the name field under them): one bar per option, the same size and the same gap. */
+const SELECTOR = { x: 330, width: 260, height: 28, firstY: 146, step: 44 };
+
 /**
- * Character creation: Gender -> Hairstyle -> Hair colour -> Name -> Create. The player picks gender, a starter
- * hairstyle and - when that hairstyle has more than one approved colour (Mohawk, Side Swept, Straight Bangs) - the hair colour; the
- * Drifter outfit and class are fixed by StarterCharacters. The outfit row is a preview, not a choice.
+ * Character creation: Gender -> Hairstyle -> Hair colour -> Trial Outfit -> Name -> Create. Each of the four options
+ * is one arrow selector row ("<  value  >"): the arrows step through the options and the preview follows at once.
+ * The player picks gender, a starter hairstyle and - when that hairstyle has hair - its colour; the Drifter outfit and
+ * class are fixed by StarterCharacters. Trial Outfit only changes what the preview wears (TRIAL_OUTFIT_IDS): the new
+ * character always starts in the starter outfit.
  * The preview always shows the single complete sprite sheet resolved for the current selection.
  */
 export class CharacterCreationScene extends Phaser.Scene {
@@ -58,13 +70,14 @@ export class CharacterCreationScene extends Phaser.Scene {
   private preview: CharacterView | null = null;
   private previewDirection = DIRECTIONS.indexOf('S');
 
-  private genderButtons!: Map<Gender, Button>;
-  /** One button per starter hairstyle slot (Bald + the gender's hairstyles). */
-  private hairstyleButtons: Button[] = [];
-  /** One button per selectable hair colour slot (shown only when the hairstyle has several colours). */
-  private hairColorButtons: Button[] = [];
-  /** Shown instead of the colour buttons when the colour is fixed (e.g. Mohawk Blonde, Bald). */
-  private hairColorFixedText!: Phaser.GameObjects.Text;
+  /** The outfit the preview wears (never saved - see TRIAL_OUTFIT_IDS). */
+  private trialOutfitId: string = STARTER_OUTFIT_ID;
+  /** The colour last picked, kept while Bald (no colour) is shown so it comes back with the next hairstyle. */
+  private hairColorChoice: string = STARTER_HAIR_COLOR_ID;
+  private genderRow!: SelectorRow;
+  private hairstyleRow!: SelectorRow;
+  private hairColorRow!: SelectorRow;
+  private outfitRow!: SelectorRow;
   private settings!: SettingsWindow;
   /** The message under the name field, kept as a key so it can be re-translated. */
   private message: { text: LocalizedMessage; isError: boolean } = { text: HINT, isError: false };
@@ -87,8 +100,8 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.submitting = false;
     // Drop references from the previous run (its objects were destroyed on shutdown).
     this.preview = null;
-    this.hairstyleButtons = [];
-    this.hairColorButtons = [];
+    this.trialOutfitId = STARTER_OUTFIT_ID;
+    this.hairColorChoice = this.appearance.hairColorId === NO_HAIR_COLOR_ID ? STARTER_HAIR_COLOR_ID : this.appearance.hairColorId;
 
     this.createBackdrop();
     // laid out for 960 x 480 (GAME_WIDTH / GAME_HEIGHT below are its design size): centred in a wider / taller mobile view
@@ -99,7 +112,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     // The preview's sprite sheet is loaded on demand (deduplicated) before the UI is built,
     // so the first frame of the preview is already the real art.
     void GameServices.ready()
-      .then(() => AssetManager.ensureCharacterSheets(this, this.appearance, { walk: false }))
+      .then(() => AssetManager.ensureCharacterSheets(this, trialAppearance(this.appearance, this.trialOutfitId), { walk: false }))
       .then(() => {
         if (!this.sys.isActive()) return;
         this.createHeader();
@@ -170,68 +183,34 @@ export class CharacterCreationScene extends Phaser.Scene {
   private createOptionsPanel(): void {
     createPanel(this, 24, PANEL_TOP, 456, PANEL_HEIGHT);
     const labelX = 48;
-    const controlX = 330;
     const rowLabels: { text: Phaser.GameObjects.Text; key: TranslationKey }[] = [];
     const row = (y: number, step: string, key: TranslationKey): void => {
       this.add.text(labelX, y, step, typo('label', PALETTE.accentLight)).setOrigin(0, 0.5);
       rowLabels.push({ text: this.add.text(labelX + 26, y, '', typo('label', PALETTE.silver)).setOrigin(0, 0.5), key });
     };
 
-    // 01 Gender
-    row(146, '01', 'creation.gender');
-    this.genderButtons = new Map();
-    GENDERS.forEach((g, i) => {
-      const button = new Button(this, 264 + i * 132, 146, {
-        width: 124,
-        height: 28,
-        label: '',
-        onClick: () => this.selectGender(g.id),
-      });
-      this.genderButtons.set(g.id, button);
-    });
-
-    // 02 Hairstyle (up to three choices per gender, labels follow the gender)
-    row(192, '02', 'creation.hairstyle');
-    const hairSlots = Math.max(...Object.values(STARTER_HAIRSTYLE_IDS).map((ids) => ids.length));
-    this.hairstyleButtons = Array.from({ length: hairSlots }, (_, slot) => slot).map(
-      (slot) =>
-        new Button(this, 220 + slot * 92, 192, {
-          width: 84,
-          height: 28,
-          label: '',
-          onClick: () => this.selectHairstyle(slot),
-        }),
-    );
-
-    // 03 Hair colour (buttons when the hairstyle offers several colours, otherwise the fixed colour as text)
-    row(238, '03', 'creation.hairColor');
-    const colorSlots = Math.max(...allStarterAppearances().map((a) => starterHairColors(a.hairstyleId).length));
-    this.hairColorButtons = Array.from({ length: colorSlots }, (_, slot) => slot).map(
-      (slot) =>
-        new Button(this, 204 + slot * 56, 238, {
-          width: 52,
-          height: 24,
-          label: '',
-          role: 'small',
-          onClick: () => this.selectHairColor(slot),
-        }),
-    );
-    this.hairColorFixedText = this.add.text(202, 238, '', typo('body', PALETTE.white)).setOrigin(0, 0.5);
-
-    // 04 Outfit preview: always the Drifter starter outfit (not selectable)
-    row(282, '04', 'creation.outfitPreview');
-    const outfitName = this.add.text(202, 282, '', typo('body', PALETTE.white)).setOrigin(0, 0.5);
+    // 01-04: one arrow selector row per option, all the same bar, evenly spaced; 05 (the name) continues the column
+    const [genderY, hairstyleY, hairColorY, outfitY, nameY] = selectorRowYs(SELECTOR.firstY, SELECTOR.step, 5) as [number, number, number, number, number];
+    const selector = (y: number, onCycle: (delta: -1 | 1) => void): SelectorRow => new SelectorRow(this, SELECTOR.x, y, { width: SELECTOR.width, height: SELECTOR.height, onCycle });
+    row(genderY, '01', 'creation.gender');
+    this.genderRow = selector(genderY, (delta) => this.cycleGender(delta));
+    row(hairstyleY, '02', 'creation.hairstyle');
+    this.hairstyleRow = selector(hairstyleY, (delta) => this.cycleHairstyle(delta));
+    row(hairColorY, '03', 'creation.hairColor');
+    this.hairColorRow = selector(hairColorY, (delta) => this.cycleHairColor(delta));
+    row(outfitY, '04', 'creation.trialOutfit');
+    this.outfitRow = selector(outfitY, (delta) => this.cycleTrialOutfit(delta));
 
     // 05 Name
-    row(324, '05', 'creation.name');
-    this.nameInput = new TextInputField(this, controlX, 324, {
-      width: 260,
+    row(nameY, '05', 'creation.name');
+    this.nameInput = new TextInputField(this, SELECTOR.x, nameY, {
+      width: SELECTOR.width,
       placeholder: t('creation.namePlaceholder'),
       maxLength: NAME_MAX_LENGTH,
     });
     this.nameInput.onSubmit(() => this.submit());
     this.nameInput.onInput(() => this.showMessage(HINT, false));
-    this.messageText = this.add.text(200, 350, '', typo('small', PALETTE.gray)).setOrigin(0, 0.5);
+    this.messageText = this.add.text(SELECTOR.x - SELECTOR.width / 2, nameY + 26, '', typo('small', PALETTE.gray)).setOrigin(0, 0.5);
 
     // Create
     this.createButton = new Button(this, 252, 424, {
@@ -245,8 +224,6 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     localize(this, () => {
       for (const r of rowLabels) r.text.setText(t(r.key));
-      for (const [gender, button] of this.genderButtons) button.setLabel(labels.gender(gender));
-      outfitName.setText(labels.outfit(STARTER_OUTFIT_ID));
       this.nameInput.setPlaceholder(t('creation.namePlaceholder'));
       this.createButton.setLabel(t('creation.create'));
       this.showMessage(this.message.text, this.message.isError);
@@ -271,7 +248,7 @@ export class CharacterCreationScene extends Phaser.Scene {
       .setOrigin(0.5, 16 / 40)
       .setScale(PREVIEW_SCALE);
 
-    this.preview = new CharacterView(this, this.appearance, cx, feetY, { walk: false });
+    this.preview = new CharacterView(this, trialAppearance(this.appearance, this.trialOutfitId), cx, feetY, { walk: false });
     this.preview.setScale(PREVIEW_SCALE);
 
     new Button(this, cx - 84, 408, { width: 32, height: 26, label: '<', onClick: () => this.rotatePreview(-1) });
@@ -290,25 +267,38 @@ export class CharacterCreationScene extends Phaser.Scene {
   // Behaviour
   // -------------------------------------------------------------------------------------------
 
-  private selectGender(gender: Gender): void {
+  /** Left / right on Gender. The hairstyle keeps its slot (Bald stays Bald, hair stays hair) and the colour stays. */
+  private cycleGender(delta: number): void {
+    const gender: Gender = STARTER_GENDERS[cycleIndex(STARTER_GENDERS.indexOf(this.appearance.gender), delta, STARTER_GENDERS.length)]!;
     if (gender === this.appearance.gender) return;
-    // Keep the slot (Bald stays Bald, hair stays hair) so switching gender feels stable.
     const slot = Math.max(0, STARTER_HAIRSTYLE_IDS[this.appearance.gender].indexOf(this.appearance.hairstyleId));
-    this.appearance = starterAppearance({ gender, hairstyleId: STARTER_HAIRSTYLE_IDS[gender][slot] });
+    const styles = STARTER_HAIRSTYLE_IDS[gender];
+    this.choose(gender, styles[Math.min(slot, styles.length - 1)]!);
+  }
+
+  /** Left / right on Hairstyle: the next starter hairstyle of this gender, in the colour picked last. */
+  private cycleHairstyle(delta: number): void {
+    const styles = STARTER_HAIRSTYLE_IDS[this.appearance.gender];
+    this.choose(this.appearance.gender, styles[cycleIndex(styles.indexOf(this.appearance.hairstyleId), delta, styles.length)]!);
+  }
+
+  /** Left / right on Hair Colour: the next colour approved for this hairstyle (Bald has none - the arrows are off). */
+  private cycleHairColor(delta: number): void {
+    const colors = starterHairColors(this.appearance.hairstyleId);
+    if (colors.length < 2) return;
+    this.hairColorChoice = colors[cycleIndex(colors.indexOf(this.appearance.hairColorId), delta, colors.length)]!;
+    this.choose(this.appearance.gender, this.appearance.hairstyleId);
+  }
+
+  /** Left / right on Trial Outfit: what the preview wears. */
+  private cycleTrialOutfit(delta: number): void {
+    this.trialOutfitId = TRIAL_OUTFIT_IDS[cycleIndex(TRIAL_OUTFIT_IDS.indexOf(this.trialOutfitId), delta, TRIAL_OUTFIT_IDS.length)]!;
     this.refreshAll();
   }
 
-  private selectHairstyle(slot: number): void {
-    const hairstyleId = STARTER_HAIRSTYLE_IDS[this.appearance.gender][slot];
-    if (!hairstyleId || hairstyleId === this.appearance.hairstyleId) return;
-    this.appearance = starterAppearance({ gender: this.appearance.gender, hairstyleId });
-    this.refreshAll();
-  }
-
-  private selectHairColor(slot: number): void {
-    const hairColorId = starterHairColors(this.appearance.hairstyleId)[slot];
-    if (!hairColorId || hairColorId === this.appearance.hairColorId) return;
-    this.appearance = starterAppearance({ gender: this.appearance.gender, hairstyleId: this.appearance.hairstyleId, hairColorId });
+  /** The one place a selection changes: always a supported starter look (StarterCharacters), shown at once. */
+  private choose(gender: Gender, hairstyleId: string): void {
+    this.appearance = starterAppearance({ gender, hairstyleId, hairColorId: this.hairColorChoice });
     this.refreshAll();
   }
 
@@ -319,27 +309,21 @@ export class CharacterCreationScene extends Phaser.Scene {
   }
 
   private refreshAll(): void {
-    for (const [gender, button] of this.genderButtons) button.setSelected(gender === this.appearance.gender);
-    const styles = STARTER_HAIRSTYLE_IDS[this.appearance.gender];
-    this.hairstyleButtons.forEach((button, slot) => {
-      const id = styles[slot];
-      button.setVisible(Boolean(id));
-      if (id) button.setLabel(labels.hairstyle(id)).setSelected(id === this.appearance.hairstyleId);
-    });
-    const colors = starterHairColors(this.appearance.hairstyleId);
-    const choosable = colors.length > 1;
-    this.hairColorButtons.forEach((button, slot) => {
-      const id = colors[slot];
-      button.setVisible(choosable && Boolean(id));
-      if (choosable && id) button.setLabel(labels.hairColor(id)).setSelected(id === this.appearance.hairColorId);
-    });
-    this.hairColorFixedText.setVisible(!choosable).setText(this.appearance.hairColorId === 'none' ? '-' : labels.hairColor(this.appearance.hairColorId));
+    const { gender, hairstyleId, hairColorId } = this.appearance;
+    const hasColor = hairColorId !== NO_HAIR_COLOR_ID;
+    this.genderRow.setValue(labels.gender(gender), STARTER_GENDERS.length);
+    this.hairstyleRow.setValue(labels.hairstyle(hairstyleId), STARTER_HAIRSTYLE_IDS[gender].length);
+    this.hairColorRow.setValue(hasColor ? labels.hairColor(hairColorId) : '-', starterHairColors(hairstyleId).length, hasColor ? findHairColor(hairColorId).hex : null);
+    this.outfitRow.setValue(labels.outfit(this.trialOutfitId), TRIAL_OUTFIT_IDS.length);
 
-    this.preview?.setAppearance(this.appearance);
-    this.spriteIdText.setText(getCharacterSpriteId(this.appearance));
+    // the preview wears the trial outfit; everything else is the selection itself
+    const shown = trialAppearance(this.appearance, this.trialOutfitId);
+    this.preview?.setAppearance(shown);
+    this.spriteIdText.setText(getCharacterSpriteId(shown));
     this.refreshPreviewDirection();
-    // The starter looks are small: load them all so every switch is instant.
-    void AssetManager.prefetchStandingSheets(this, allStarterAppearances());
+    // The standing sheets are small: load every look of this gender (all hairstyles, colours, trial outfits) so each
+    // arrow press shows at once.
+    void AssetManager.prefetchStandingSheets(this, allTrialAppearances().filter((a) => a.gender === gender));
   }
 
   private refreshPreviewDirection(): void {

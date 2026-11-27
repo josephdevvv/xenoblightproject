@@ -1,0 +1,146 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-27T11:52:04.798Z",
+  "key": "female_bob_red_base",
+  "displayName": {
+    "en": "Female Bob Red (base)",
+    "th": "หญิง บ็อบ แดง (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "female",
+    "hairstyleId": "bob",
+    "hairColorId": "red",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "bob",
+    "hairColor": "red",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_female_bob_red_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/female/bob_red/base/female_bob_red_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "fc7fe2f35f44b0b9a7b5fdd34070b52fc9a779af077efb805a7fd6d231a47493",
+    "directions": {
+      "S": {
+        "asset": "female_bob_red_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "female_bob_red_white-tee-black-shorts_south-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "E": {
+        "asset": "female_bob_red_white-tee-black-shorts_east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NE": {
+        "asset": "female_bob_red_white-tee-black-shorts_north-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "N": {
+        "asset": "female_bob_red_white-tee-black-shorts_north",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NW": {
+        "asset": "female_bob_red_white-tee-black-shorts_north-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "W": {
+        "asset": "female_bob_red_white-tee-black-shorts_west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SW": {
+        "asset": "female_bob_red_white-tee-black-shorts_south-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/female/bob_red/base/female_bob_red_base_walk_8dir.png",
+    "metadata": "assets/characters/female/bob_red/base/female_bob_red_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "fc54b5bf10fe396df8fca88a364a7bb576dfa41b30183c9c8ee7b3a14c67a969",
+    "directions": {
+      "S": {
+        "asset": "female_bob_red_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "female_bob_red_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_bob_red_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_bob_red_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_bob_red_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_bob_red_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_bob_red_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_bob_red_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 7
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

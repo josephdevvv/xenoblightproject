@@ -1,0 +1,3268 @@
+{
+  "schema": "xenoblight-sprite-forge/animation@1",
+  "animation": "walk",
+  "character": {
+    "gender": "female",
+    "hairstyle": "ponytail",
+    "hairColor": "brown",
+    "outfit": "base_tee_shorts"
+  },
+  "status": "approved",
+  "approvedBy": "user (chat: \"Approve all\")",
+  "layout": {
+    "columns": 6,
+    "rows": 8,
+    "order": [
+      "S",
+      "SE",
+      "E",
+      "NE",
+      "N",
+      "NW",
+      "W",
+      "SW"
+    ],
+    "sheet": "female_ponytail_brown_walk_8dir.png"
+  },
+  "frameMs": 125,
+  "loop": true,
+  "anchorConvention": "edge coordinates: pixel centre = x + 0.5; root = feet centre at the bottom edge of the lowest solid row (alpha >= 128, lowest 4 rows); head = centre of the top 4 solid rows at the top edge; groundContact = root; hairAnchor = centre of the topmost solid row (scalp top) at its top edge; outfitAnchor = centre of the first row with >= 4 neckline-coloured px (#ffffff/#cbdbfc) at its top edge; mirrored x' = frameWidth - x",
+  "directionPolicy": {
+    "id": "mirror5-v1",
+    "sources": {
+      "S": "original",
+      "SE": "original",
+      "E": "original",
+      "NE": "original",
+      "N": "original",
+      "NW": "mirror(NE)",
+      "W": "mirror(E)",
+      "SW": "mirror(SE)"
+    },
+    "exceptions": []
+  },
+  "layerRole": "starter-outfit character reference (flattened skin + clothing; not a reusable under-clothing body layer)",
+  "provenance": {
+    "construction": "approved female bald base walk + ponytail hair layer (over)",
+    "hairLayerJob": "job_20261127_073154_810a6b",
+    "record": "approved/female/animations/female_ponytail_walk_drifter_sets_approved.json",
+    "templates": "candidates/female/job_20261127_073154_810a6b/female_ponytail_blonde_base_walk_metadata.json"
+  },
+  "sheetSha256": "3c68b436cb8b54589f82e40fa23c846ffb1c5292623357c9991a0b7a150a5185",
+  "outlineExceptions": [
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 30,
+      "y": 11,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 19,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 20,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 37,
+      "y": 21,
+      "reason": "artistic exception (user 2026-11-19): head-silhouette pixel of an approved PixelLab head outside the head-lock scope"
+    },
+    {
+      "dir": "E",
+      "frame": 0,
+      "x": 38,
+      "y": 52,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 37,
+      "y": 31,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 38,
+      "y": 32,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    },
+    {
+      "dir": "E",
+      "frame": 5,
+      "x": 39,
+      "y": 33,
+      "reason": "artistic exception (user 2026-11-19): 1-px thin hand/foot tip; recolouring to outline would erase it"
+    }
+  ],
+  "frames": [
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 35.328,
+        "y": 0
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35.5,
+        "y": 0
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 2
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south",
+          "layerFile": "female_ponytail_blonde_hair_south.png",
+          "offset": {
+            "dx": 0,
+            "dy": -1
+          },
+          "pixels": 218,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -1,
+          "score": 1
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.306,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 36.365,
+        "y": 0
+      },
+      "validation": "FAIL",
+      "groundContact": {
+        "x": 33.306,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 36.5,
+        "y": 0
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 1
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south",
+          "layerFile": "female_ponytail_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -2
+          },
+          "pixels": 218,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -2,
+          "score": 0.994
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.786,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 36.328,
+        "y": 0
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.786,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 36.5,
+        "y": 0
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 2
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south",
+          "layerFile": "female_ponytail_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 218,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.994
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.389,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 36.328,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.389,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 36.5,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 4
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south",
+          "layerFile": "female_ponytail_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 218,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.994
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.389,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 36.328,
+        "y": 0
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.389,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 36.5,
+        "y": 0
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 2
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south",
+          "layerFile": "female_ponytail_blonde_hair_south.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 218,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.994
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "S",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.5,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 35.365,
+        "y": 0
+      },
+      "validation": "FAIL",
+      "groundContact": {
+        "x": 28.5,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 35.5,
+        "y": 0
+      },
+      "outfitAnchor": {
+        "x": 35,
+        "y": 1
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south",
+          "layerFile": "female_ponytail_blonde_hair_south.png",
+          "offset": {
+            "dx": 0,
+            "dy": -2
+          },
+          "pixels": 218,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": -2,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": -2
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": -2,
+          "score": 0.987
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.056,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 25.893,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.056,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 26,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-east",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 245,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.985
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.63,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 25.893,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.63,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 26,
+        "y": 7
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-east",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 3
+          },
+          "pixels": 245,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 3,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 3
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 3,
+          "score": 0.991
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.643,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 25.893,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.643,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 26,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-east",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 245,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.991
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.7,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 25.893,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.7,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 26,
+        "y": 4
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-east",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 245,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.991
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.462,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 25.893,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.462,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 26,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-east",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 245,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 1
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.348,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 25.893,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.348,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 26,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-east",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 1
+          },
+          "pixels": 245,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 1,
+          "score": 0.984
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_south-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.871,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 27.474,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.871,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 26.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_east",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": 2,
+            "dy": 2
+          },
+          "pixels": 232,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 2,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 2,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 2,
+          "dy": 2,
+          "score": 0.959
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.735,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 27.474,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.735,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 26,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 26.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_east",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": 2,
+            "dy": 2
+          },
+          "pixels": 232,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 2,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 2,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 2,
+          "dy": 2,
+          "score": 0.993
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.855,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 26.474,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.855,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 25,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 25.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_east",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 232,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.997
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.638,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 26.474,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.638,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 25,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 25.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_east",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 232,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 1
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.349,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 27.474,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.349,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 26,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 26.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_east",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": 2,
+            "dy": 2
+          },
+          "pixels": 232,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 2,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 2,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 2,
+          "dy": 2,
+          "score": 1
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "E",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 37.597,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 26.474,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 37.597,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 25,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 25.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_east",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 2
+          },
+          "pixels": 232,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 2,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 2
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 2,
+          "score": 0.99
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.7,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.75,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.7,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 27,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-east",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.923
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north-east_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.824,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.75,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.824,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 27,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-east",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 263,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.993
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north-east_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.9,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.75,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.9,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 27,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-east",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": -1
+          },
+          "pixels": 263,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": -1,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": -1
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": -1,
+          "score": 0.993
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north-east_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.342,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.75,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.342,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 27,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-east",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north-east_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.553,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.75,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.553,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 27,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-east",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.98
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north-east_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NE",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.113,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 29.75,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.113,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 27,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 28,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-east",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": 1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 1,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 1,
+          "dy": 0,
+          "score": 0.98
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north-east_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.474,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.714,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.474,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30.25,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 0
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north",
+          "layerFile": "female_ponytail_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 209,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.308,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.714,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.308,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30.25,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 1
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north",
+          "layerFile": "female_ponytail_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 209,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.915
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.607,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 30.714,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.607,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30.25,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 2
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north",
+          "layerFile": "female_ponytail_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 209,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 1,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.915
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.419,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.714,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.419,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30.25,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 3
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north",
+          "layerFile": "female_ponytail_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 209,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.994
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 27.2,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 30.714,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 27.2,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30.25,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 4
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north",
+          "layerFile": "female_ponytail_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 209,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.946
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "N",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "original",
+      "sourceFrame": null,
+      "mirrorOf": null,
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.962,
+        "y": 56
+      },
+      "headAnchor": {
+        "x": 30.714,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.962,
+        "y": 56
+      },
+      "hairAnchor": {
+        "x": 31,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 30.25,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north_walk",
+          "frame": 5
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north",
+          "layerFile": "female_ponytail_blonde_hair_north.png",
+          "offset": {
+            "dx": 0,
+            "dy": 0
+          },
+          "pixels": 209,
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": 0,
+        "dy": 0,
+        "fromAnchors": {
+          "dx": 0,
+          "dy": 0
+        },
+        "fromMatch": {
+          "dx": 0,
+          "dy": 0,
+          "score": 0.987
+        }
+      },
+      "file": "female_ponytail_blonde_base_walk_north_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#0",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.3,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.25,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.3,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 0,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-west",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_ponytail_blonde_base_walk_north-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#1",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.176,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.25,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.176,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 1,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-west",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": -1
+          },
+          "pixels": 263,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_ponytail_blonde_base_walk_north-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#2",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 34.1,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.25,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 34.1,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 2,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-west",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": -1
+          },
+          "pixels": 263,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": -1,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_ponytail_blonde_base_walk_north-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#3",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.658,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.25,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.658,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 3,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-west",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_ponytail_blonde_base_walk_north-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#4",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 33.447,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.25,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 33.447,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 4,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-west",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_ponytail_blonde_base_walk_north-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "NW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "NE#5",
+      "mirrorOf": "NE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.887,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 34.25,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.887,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 36,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_north-east_walk",
+          "frame": 5,
+          "mirroredFrom": "NE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_north-west",
+          "layerFile": "female_ponytail_blonde_hair_north-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 263,
+          "mirroredFrom": "NE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "NE"
+      },
+      "file": "female_ponytail_blonde_base_walk_north-west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#0",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.129,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 36.526,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.129,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 38,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 37.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 0,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_west",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": -2,
+            "dy": 2
+          },
+          "pixels": 232,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -2,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_ponytail_blonde_base_walk_west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#1",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 36.265,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 36.526,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 36.265,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 38,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 37.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 1,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_west",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": -2,
+            "dy": 2
+          },
+          "pixels": 232,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -2,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_ponytail_blonde_base_walk_west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#2",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 35.145,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 37.526,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 35.145,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 39,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 38.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 2,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_west",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 232,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_ponytail_blonde_base_walk_west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#3",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 29.362,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 37.526,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 29.362,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 39,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 38.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 3,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_west",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 232,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_ponytail_blonde_base_walk_west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#4",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 28.651,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 36.526,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 28.651,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 38,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 37.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 4,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_west",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": -2,
+            "dy": 2
+          },
+          "pixels": 232,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -2,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_ponytail_blonde_base_walk_west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "W",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "E#5",
+      "mirrorOf": "E",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 26.403,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 37.526,
+        "y": 6
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 26.403,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 39,
+        "y": 6
+      },
+      "outfitAnchor": {
+        "x": 38.5,
+        "y": 8
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_east_walk",
+          "frame": 5,
+          "mirroredFrom": "E"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_west",
+          "layerFile": "female_ponytail_blonde_hair_east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 232,
+          "mirroredFrom": "E",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "E"
+      },
+      "file": "female_ponytail_blonde_base_walk_west_05.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 0,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#0",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.944,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 38.107,
+        "y": 4
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.944,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 4
+      },
+      "outfitAnchor": {
+        "x": 38,
+        "y": 6
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 0,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-west",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 2
+          },
+          "pixels": 245,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 2,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_ponytail_blonde_base_walk_south-west_00.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 1,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#1",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.37,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 38.107,
+        "y": 5
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.37,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 5
+      },
+      "outfitAnchor": {
+        "x": 38,
+        "y": 7
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 1,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-west",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 3
+          },
+          "pixels": 245,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 3,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_ponytail_blonde_base_walk_south-west_01.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 2,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#2",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.357,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 38.107,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.357,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 38,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 2,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-west",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 245,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_ponytail_blonde_base_walk_south-west_02.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 3,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#3",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 32.3,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 38.107,
+        "y": 2
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 32.3,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 2
+      },
+      "outfitAnchor": {
+        "x": 38,
+        "y": 4
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 3,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-west",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 0
+          },
+          "pixels": 245,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 0,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_ponytail_blonde_base_walk_south-west_03.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 4,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#4",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 31.538,
+        "y": 57
+      },
+      "headAnchor": {
+        "x": 38.107,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 31.538,
+        "y": 57
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 38,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 4,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-west",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 245,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_ponytail_blonde_base_walk_south-west_04.png"
+    },
+    {
+      "animation": "walk",
+      "direction": "SW",
+      "frameIndex": 5,
+      "frameCount": 6,
+      "sourceMethod": "mirror",
+      "sourceFrame": "SE#5",
+      "mirrorOf": "SE",
+      "durationMs": 125,
+      "rootAnchor": {
+        "x": 30.652,
+        "y": 58
+      },
+      "headAnchor": {
+        "x": 38.107,
+        "y": 3
+      },
+      "validation": "PASS",
+      "groundContact": {
+        "x": 30.652,
+        "y": 58
+      },
+      "hairAnchor": {
+        "x": 37.5,
+        "y": 3
+      },
+      "outfitAnchor": {
+        "x": 38,
+        "y": 5
+      },
+      "layers": [
+        {
+          "id": "base",
+          "kind": "body",
+          "order": 0,
+          "source": "female_bald_none_white-tee-black-shorts_south-east_walk",
+          "frame": 5,
+          "mirroredFrom": "SE"
+        },
+        {
+          "id": "hair:ponytail",
+          "kind": "hair",
+          "order": 20,
+          "occlusion": "over",
+          "source": "female_ponytail_brown_white-tee-black-shorts_south-west",
+          "layerFile": "female_ponytail_blonde_hair_south-east.png",
+          "offset": {
+            "dx": -1,
+            "dy": 1
+          },
+          "pixels": 245,
+          "mirroredFrom": "SE",
+          "recolor": "role recolour blonde -> brown"
+        }
+      ],
+      "hairPlacement": {
+        "dx": -1,
+        "dy": 1,
+        "mirroredFrom": "SE"
+      },
+      "file": "female_ponytail_blonde_base_walk_south-west_05.png"
+    }
+  ]
+}

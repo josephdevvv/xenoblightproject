@@ -27,7 +27,7 @@ test('attack clip: empty weapon slot = Unarmed Punch, a weapon = its own attack 
 
 test('every male / female hairstyle and colour with combat art has the punch, timed like the thrust: same hit frame and delay', () => {
   const sets = Object.values(PLAYER_COMBAT_SETS);
-  assert.equal(sets.length, 15);
+  assert.equal(sets.length, 55);
   for (const set of sets) {
     const punch = set.optional.unarmed_punch;
     assert.ok(punch, `${set.spriteId}: unarmed_punch exported`);

@@ -16,6 +16,7 @@ import {
   type PassiveTutorialStep,
 } from '../../passives/PassiveProgress';
 import { passiveNode, type PassiveEffect, type PassiveNodeDefinition } from '../../passives/PassiveTree';
+import { skillsAffectedBy } from '../../skills/SkillDefinitions';
 import { PassiveTreeService } from '../../passives/PassiveTreeService';
 import { CharacterStatusService } from '../../status/CharacterStatusService';
 import { DERIVED_DISPLAY, formatStatValue } from '../../status/DerivedStats';
@@ -478,9 +479,7 @@ export class PassiveTreeWindow {
     fitText(this.effectTexts[0], node.maxRank === 1 ? t('passive.effect', { effect: perRank }) : t('passive.perRank', { effect: perRank }), width);
     fitText(this.effectTexts[1], rank > 0 ? t('passive.current', { effect: effectText(node.effects, rank) }) : t('passive.noneYet'), width);
     this.effectTexts[1].setColor(rank > 0 ? PALETTE.white : PALETTE.gray);
-    const futureOnly = node.effects.some((e) => e.kind === 'skill');
-    fitText(this.effectTexts[2], futureOnly ? t('passive.notActive') : '', width);
-    this.effectTexts[2].setColor(C.redText);
+    this.effectTexts[2].setText(''); // (a third line: free - every node's effect is active)
 
     const maxed = rank >= node.maxRank;
     this.unlockButton.label.setText(t(maxed ? 'passive.maxed' : rank > 0 ? 'passive.upgrade' : 'passive.unlock'));
@@ -510,7 +509,9 @@ export function effectText(effects: readonly PassiveEffect[], rank: number): str
       const value = formatStatValue(e.amount * rank);
       if (e.kind === 'flat') return `${labels.derived(e.stat)} +${value}${PERCENT_STATS.has(e.stat) ? '%' : ''}`;
       if (e.kind === 'maxHpPercent') return t('passive.effects.maxHpPercent', { value });
-      return t(`passive.effects.${e.modifier}`, { value });
+      // a skill passive names the skills it acts on now (Power Thrust, Heal), in the current language
+      const skills = skillsAffectedBy(e.modifier).map((id) => labels.skillName(id)).join(', ');
+      return t(`passive.effects.${e.modifier}`, { value, skills });
     })
     .join(', ');
 }

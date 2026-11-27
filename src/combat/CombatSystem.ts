@@ -13,8 +13,11 @@ import { getCharacterSpriteId } from '../characters/CharacterAssetIds';
 import { PLAYER_IMPACT_VFX } from '../characters/combat/PlayerCombatArt';
 import { monsterVfxAnimKey, monsterVfxKey } from '../monsters/art/MonsterArt';
 import { attackClipFor, equippedWeaponType } from './WeaponAttackClip';
-import { PLAYER_ATTACKS, playerImpactDelayMs, playerSwingMs, swingTimeScale, type PlayerAttackDefinition, type PlayerAttackId } from './PlayerAttacks';
+import { passiveSkillModifiers } from '../passives/PassiveProgress';
+import { attackDamage, PLAYER_ATTACKS, playerImpactDelayMs, playerSwingMs, swingTimeScale, type PlayerAttackDefinition, type PlayerAttackId } from './PlayerAttacks';
 import type { AttackVfxLayer, VfxTarget } from './vfx/AttackVfxLayer';
+import type { SkillVfxLayer, SkillVfxRequest } from './vfx/SkillVfxLayer';
+import { skillVfxDelayMs, skillVfxOf } from '../characters/combat/SkillVfxArt';
 import { spriteHitAnchor } from './vfx/HitAnchor';
 import { monsterExpReward } from '../progression/MonsterExpRewards';
 import { monsterGoldReward } from '../progression/MonsterGoldRewards';
@@ -59,6 +62,8 @@ export class CombatSystem {
   private defeated = false;
   /** A conversation is open: no player commands, and the player cannot be fought (see setSuspended). */
   private suspended = false;
+  /** A self-cast (Self-Heal) holds the player: no approach, no turn, no swing until it is over - monsters still attack. */
+  private actionLocked = false;
   private elapsed = 0;
   private readonly rng: () => number;
   readonly monsterContext: MonsterCombatContext;
@@ -68,7 +73,11 @@ export class CombatSystem {
   onPlayerDefeated: (() => void) | null = null;
   /** Attack VFX layer (on-hit effects drawn on the target's body). Set by the scene. */
   vfx: AttackVfxLayer | null = null;
+  /** Skill effects on the player (the Drifter's red stab), started on the combat clock like the hits. */
+  skillVfx: SkillVfxLayer | null = null;
   private pendingHits: PendingPlayerHit[] = [];
+  /** Skill effects waiting for their moment in the swing (the peak frame on the hit frame). */
+  private pendingVfx: { at: number; request: SkillVfxRequest }[] = [];
   private queuedSkill: PlayerAttackId | null = null;
   /** Pays for the queued skill when its swing starts (SP, cooldown); false = the swing stays a basic attack. */
   private queuedActivate: (() => boolean) | null = null;
@@ -137,6 +146,7 @@ export class CombatSystem {
     this.queuedActivate = null;
     if (this.pendingHits.length) {
       this.pendingHits = [];
+      this.pendingVfx = [];
       this.player.actions.reset?.();
     }
   }
@@ -162,6 +172,11 @@ export class CombatSystem {
    * Talking to an NPC: the target and any pending swing are dropped, and - as while defeated - monsters
    * see no player to fight (they walk home), since the player cannot act.
    */
+  /** The cast lock (GameScene): the target is kept, the attack loop waits; death and respawn clear it. */
+  setActionLocked(on: boolean): void {
+    this.actionLocked = on;
+  }
+
   setSuspended(on: boolean): void {
     this.suspended = on;
     if (!on) return;
@@ -255,8 +270,17 @@ export class CombatSystem {
     if (this.defeated) return; // dead: no regeneration, no target, nothing hits the player
     this.regenerate(deltaMs);
     if (this.suspended) return;
+    this.startPendingVfx();
     this.resolvePendingHits();
     this.updateTarget(deltaMs);
+  }
+
+  private startPendingVfx(): void {
+    if (!this.pendingVfx.length) return;
+    const due = this.pendingVfx.filter((v) => v.at <= this.elapsed);
+    if (!due.length) return;
+    this.pendingVfx = this.pendingVfx.filter((v) => v.at > this.elapsed);
+    for (const v of due) this.skillVfx?.spawn(v.request);
   }
 
   /** Call after the monsters moved: keeps the target ring under the target's feet. */
@@ -272,6 +296,10 @@ export class CombatSystem {
     if (!t) return;
     if (!t.isAlive()) {
       this.clearTarget();
+      return;
+    }
+    if (this.actionLocked) {
+      this.player.stopPath(); // held in a cast: the attack loop goes on when it is over
       return;
     }
     const me = this.player.getTilePosition();
@@ -320,8 +348,13 @@ export class CombatSystem {
     const clip = attackClipFor(equippedWeaponType(this.character.inventory));
     // ASPD: a swing longer than the attack interval plays faster, its hit frame (and so the damage) with it
     const speed = swingTimeScale(playerSwingMs(this.spriteId, attack, clip), stats.attackIntervalMs);
-    this.player.actions.play('attack', this.player.actionFacingTowards(target.position), speed, clip);
-    this.pendingHits.push({ target, attack, at: this.elapsed + playerImpactDelayMs(this.spriteId, attack, clip) / speed });
+    const facing = this.player.actionFacingTowards(target.position);
+    this.player.actions.play('attack', facing, speed, clip);
+    const impactMs = playerImpactDelayMs(this.spriteId, attack, clip) / speed;
+    this.pendingHits.push({ target, attack, at: this.elapsed + impactMs });
+    // the attack skill's own effect on the player (basic attacks have none): its peak on the hit frame
+    const art = skillVfxOf(attack.id);
+    if (art) this.pendingVfx.push({ at: this.elapsed + skillVfxDelayMs(art, impactMs, speed), request: { art, facing, gender: this.character.appearance.gender, speed } });
   }
 
   private resolvePendingHits(): void {
@@ -352,9 +385,11 @@ export class CombatSystem {
       target.takeDamage(0); // provokes it all the same
       return;
     }
-    if (!target.takeDamage(result.damage)) return; // already dying: no duplicate damage
+    // an attack skill's damage with the Power Strike passive (basic attacks as rolled)
+    const damage = attackDamage(h.attack, result.damage, passiveSkillModifiers(this.character.passives));
+    if (!target.takeDamage(damage)) return; // already dying: no duplicate damage
     this.vfx?.spawn({ texture: PLAYER_IMPACT_VFX.key, anim: PLAYER_IMPACT_VFX.animKey, target: { hitAnchor: () => spriteHitAnchor(target.sprite) }, scale: h.attack.vfxScale });
-    this.numbers.show(w.x, top, String(result.damage), result.crit ? 'crit' : 'damage');
+    this.numbers.show(w.x, top, String(damage), result.crit ? 'crit' : 'damage');
     if (!target.isAlive()) this.onKill(target);
   }
 
@@ -442,6 +477,9 @@ export class CombatSystem {
     this.defeated = true;
     this.clearTarget();
     this.pendingHits = [];
+    this.pendingVfx = [];
+    this.skillVfx?.clear();
+    this.actionLocked = false; // death overrides a cast lock
     this.queuedSkill = null;
     this.player.actions.reset?.();
     this.player.halt();
@@ -457,7 +495,10 @@ export class CombatSystem {
    */
   respawnAt(point: Point): void {
     this.clearTarget();
+    this.actionLocked = false;
     this.pendingHits = [];
+    this.pendingVfx = [];
+    this.skillVfx?.clear();
     this.queuedSkill = null;
     this.lastCombatAt = -Infinity;
     this.player.actions.reset?.();

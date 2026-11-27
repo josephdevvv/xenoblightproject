@@ -1,0 +1,149 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-27T11:52:04.922Z",
+  "key": "female_fluffy_curls_blonde_base",
+  "displayName": {
+    "en": "Female Fluffy Curls Blonde (base)",
+    "th": "หญิง ลอนฟู บลอนด์ (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "female",
+    "hairstyleId": "fluffy_curls",
+    "hairColorId": "blonde",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "fluffy_curls",
+    "hairColor": "blonde",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_female_fluffy_curls_blonde_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/female/fluffy_curls_blonde/base/female_fluffy_curls_blonde_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "4fcfb2c51273e67c9187e44214cb893391b96816596931cd5a213a2b578e31ad",
+    "directions": {
+      "S": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_south-east",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_east",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_north-east",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_north",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_north-west_r2",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_west_r2",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_south-west_r2",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/female/fluffy_curls_blonde/base/female_fluffy_curls_blonde_base_walk_8dir.png",
+    "metadata": "assets/characters/female/fluffy_curls_blonde/base/female_fluffy_curls_blonde_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "4b401b068e56256ce217f9c7522eb4a58c5e8fbdceef241e38c43f304f41c8b6",
+    "directions": {
+      "S": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "female_fluffy-curls_blonde_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 7
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

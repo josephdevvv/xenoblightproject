@@ -20,7 +20,10 @@ export type PassiveIconId =
   | 'eye'
   | 'star';
 
-/** Skill / combat modifiers kept for future systems (no active skills exist yet: not applied in gameplay). */
+/**
+ * Skill modifiers, applied to the Drifter's skills: single-target attack skills (Power Thrust) deal more damage, HP
+ * heals (Heal / Self-Heal) restore more (PassiveProgress modifiedSkillDamage / modifiedHealPercent).
+ */
 export type SkillModifierId = 'singleTargetSkillDamagePercent' | 'healPercent';
 
 /** What ONE rank gives. */

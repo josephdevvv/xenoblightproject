@@ -124,7 +124,7 @@ test('combat timing: the basic attack interval is 20 x (81 - ASPD); a swing long
   const swing = combat.slice(combat.indexOf('private playerAttack('));
   assert.match(swing, /this\.attackCooldownMs = stats\.attackIntervalMs;/);
   assert.match(swing, /swingTimeScale\(playerSwingMs\(this\.spriteId, attack, clip\), stats\.attackIntervalMs\)/);
-  assert.match(swing, /actions\.play\('attack', [^)]*\), speed, clip\)/);
+  assert.match(swing, /const facing = this\.player\.actionFacingTowards\(target\.position\);\s*this\.player\.actions\.play\('attack', facing, speed, clip\);/);
   assert.match(swing, /playerImpactDelayMs\(this\.spriteId, attack, clip\) \/ speed/, 'the hit moves with the animation');
   // manual attacks and Auto Combat share this path; HP / SP follow a lower maximum at once
   assert.match(combat, /this\.playerHp = Math\.min\(this\.playerHp, this\.playerStats\(\)\.maxHp\);\s*this\.playerSp = Math\.min\(this\.playerSp, this\.getPlayerMaxSp\(\)\);/);

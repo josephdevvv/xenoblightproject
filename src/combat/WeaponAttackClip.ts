@@ -13,6 +13,11 @@ export type PlayerAttackClip = 'unarmed_punch' | 'dagger_thrust';
 /** Each weapon type's attack animation (a new weapon type needs its entry - the type check enforces it). */
 export const WEAPON_ATTACK_CLIPS: Readonly<Record<WeaponType, PlayerAttackClip>> = { dagger: 'dagger_thrust' };
 
+/** A player clip is one of the attack animations (a swing is playing). */
+export function isAttackClip(clip: string | null): boolean {
+  return clip === 'unarmed_punch' || (Object.values(WEAPON_ATTACK_CLIPS) as string[]).includes(clip ?? '');
+}
+
 /** Weapon slot empty -> Unarmed Punch; a weapon -> its own attack animation. */
 export function attackClipFor(weaponType: WeaponType | null): PlayerAttackClip {
   return weaponType === null ? 'unarmed_punch' : WEAPON_ATTACK_CLIPS[weaponType];

@@ -3,6 +3,8 @@ import { test } from 'node:test';
 import type Phaser from 'phaser';
 import { loadPlayerCombatAssets } from '../src/characters/combat/PlayerCombatAssets';
 import { PLAYER_COMBAT_ACTIONS, PLAYER_COMBAT_SETS, PLAYER_IMPACT_VFX, PLAYER_OPTIONAL_COMBAT_ACTIONS, playerCombatAnimKey, playerCombatSheetKey } from '../src/characters/combat/PlayerCombatArt';
+import { DRIFTER_RED_STAB, skillVfxAnimKey } from '../src/characters/combat/SkillVfxArt';
+import { HEAL_GREEN } from '../src/combat/vfx/HealVfxArt';
 import { GameServices, type Services } from '../src/systems/GameServices';
 import { DEFAULT_GC_GRACE_MS, ResourceCacheManager } from '../src/systems/ResourceCacheManager';
 
@@ -13,7 +15,10 @@ const SET = PLAYER_COMBAT_SETS[MOHAWK];
 // the 4 required sheets + the optional ones this export has (Mohawk Blonde r2: unarmed_punch)
 const COMBAT_ACTIONS = [...PLAYER_COMBAT_ACTIONS, ...PLAYER_OPTIONAL_COMBAT_ACTIONS.filter((a) => SET.optional[a])];
 const COMBAT_KEYS = COMBAT_ACTIONS.map((a) => playerCombatSheetKey(SET, a));
-const ALL_KEYS = [PLAYER_IMPACT_VFX.key, ...COMBAT_KEYS];
+const HEAL_LAYERS = [HEAL_GREEN.layers.behind, HEAL_GREEN.layers.front];
+const ALL_KEYS = [PLAYER_IMPACT_VFX.key, DRIFTER_RED_STAB.key, ...HEAL_LAYERS.map((l) => l.key), ...COMBAT_KEYS];
+/** The shared player VFX animations (every character): the impact, the Drifter red stab's four facings and the heal's two layers. */
+const SHARED_ANIMS = [PLAYER_IMPACT_VFX.animKey, ...DRIFTER_RED_STAB.rows.map((f) => skillVfxAnimKey(DRIFTER_RED_STAB, f)), ...HEAL_LAYERS.map((l) => l.animKey)];
 
 interface FakeFrame {
   name: number;
@@ -106,7 +111,7 @@ class World {
   }
 
   playEverything(withCombatArt = true): void {
-    this.play(PLAYER_IMPACT_VFX.animKey);
+    for (const key of SHARED_ANIMS) this.play(key);
     if (withCombatArt) for (const action of PLAYER_COMBAT_ACTIONS) for (const facing of SET.actions[action].rows) this.play(playerCombatAnimKey(SET, action, facing));
     if (withCombatArt) for (const action of PLAYER_OPTIONAL_COMBAT_ACTIONS) for (const facing of SET.optional[action]?.rows ?? []) this.play(playerCombatAnimKey(SET, action, facing));
   }
@@ -168,13 +173,13 @@ test('unused art is still cleaned up - with its animations - and rebuilt when it
   const w = new World();
   await w.enter(MOHAWK);
   const all = w.animationKeys;
-  assert.equal(all.length, 1 + COMBAT_ACTIONS.length * 4, 'every combat clip (4 facings each) + the impact');
+  assert.equal(all.length, SHARED_ANIMS.length + COMBAT_ACTIONS.length * 4, 'every combat clip (4 facings each) + the impact + the red stab');
   w.leave();
   await w.enter(BALD);
   assert.ok(COMBAT_KEYS.every((k) => w.textureKeys.includes(k)), 'kept during the grace period');
   w.now += DEFAULT_GC_GRACE_MS + 1;
   assert.deepEqual(w.cache.collectGarbage().sort(), [...COMBAT_KEYS].sort(), 'the Mohawk sheets are freed, the shared impact is not');
-  assert.deepEqual(w.animationKeys, [PLAYER_IMPACT_VFX.animKey], 'no animation is left pointing at them');
+  assert.deepEqual(w.animationKeys, [...SHARED_ANIMS].sort(), 'no animation is left pointing at them');
   w.playEverything(false);
   w.leave();
   w.now += DEFAULT_GC_GRACE_MS + 1;
@@ -197,7 +202,7 @@ test('many transitions between characters: nothing accumulates, everything alway
     w.now += seed % 70_000;
     w.leave();
     if (seed % 3 === 0) w.now += seed % 90_000;
-    assert.ok(w.textureKeys.length <= ALL_KEYS.length && w.animationKeys.length <= 1 + COMBAT_ACTIONS.length * 4, `round ${i}`);
+    assert.ok(w.textureKeys.length <= ALL_KEYS.length && w.animationKeys.length <= SHARED_ANIMS.length + COMBAT_ACTIONS.length * 4, `round ${i}`);
     const { tracked, inUse } = w.cache.stats();
     assert.ok(tracked <= ALL_KEYS.length && inUse === 0, 'nobody holds anything in character creation');
   }

@@ -172,7 +172,7 @@ test('status: other bonus sources combine with passives instead of being overwri
   assert.deepEqual(passiveDerivedBonus(createPassiveProgress()), emptyDerivedBonus(), 'no ranks = no bonus');
 });
 
-test('future combat: Power Strike and Recovery are stored modifiers (Heal 30 % -> 36 % at Recovery 2)', () => {
+test('skill passives: Power Strike and Recovery as modifiers (Heal 30 % -> 36 % at Recovery 2)', () => {
   const p = progressWith(10, 'drifters_resolve', 'combat_training', 'precision', 'power_strike', 'power_strike', 'basic_guard', 'vitality', 'recovery', 'recovery');
   const mods = passiveSkillModifiers(p);
   assert.deepEqual(mods, { singleTargetSkillDamagePercent: 10, healPercent: 20 });
@@ -304,4 +304,81 @@ test('art: chrome layers halved to 1-px lines, 10 crisp icons sliced from the sh
   // the source sheet is stored unchanged (a PNG with transparency, despite the .jpg export name)
   const src = fs.readFileSync(path.join(process.cwd(), 'art-source/ui/passive_tree_icons/drifter_skill_icon_sheet.png'));
   assert.equal(src.readUInt32BE(0), 0x89504e47);
+});
+
+// ------------------------------------------------------------------------------------------- skill passives in play
+
+const read = (f: string): string => fs.readFileSync(path.join(process.cwd(), f), 'utf8').replace(/\r\n/g, '\n');
+
+test('Power Strike raises Power Thrust\'s damage (+5 % per rank) - never a basic attack; Recovery raises Heal (30 -> 33 -> 36 % of Max HP)', async () => {
+  const { attackDamage, PLAYER_ATTACKS } = await import('../src/combat/PlayerAttacks');
+  const { SKILL_DEFINITIONS, skillHealAmount, skillHealPercent, skillsAffectedBy, skillAtkPercent } = await import('../src/skills/SkillDefinitions');
+  const none = passiveSkillModifiers(progressWith(10, 'drifters_resolve'));
+  const strike1 = passiveSkillModifiers(progressWith(10, 'drifters_resolve', 'combat_training', 'precision', 'power_strike'));
+  const strike2 = passiveSkillModifiers(progressWith(10, 'drifters_resolve', 'combat_training', 'precision', 'power_strike', 'power_strike'));
+  const thrust = PLAYER_ATTACKS.drifter_lv1;
+  assert.deepEqual([attackDamage(thrust, 100, none), attackDamage(thrust, 100, strike1), attackDamage(thrust, 100, strike2)], [100, 105, 110]);
+  assert.deepEqual([attackDamage(thrust, 20, strike1), attackDamage(thrust, 7, strike1), attackDamage(thrust, 1, strike2)], [21, 7, 1], 'whole points, never less than rolled');
+  assert.equal(attackDamage(PLAYER_ATTACKS.basic, 100, strike2), 100, 'basic attacks are not skills');
+  assert.deepEqual([PLAYER_ATTACKS.basic.singleTargetSkill, thrust.singleTargetSkill, thrust.atkMultiplier], [false, true, 2], 'Power Thrust itself unchanged: 200 % ATK');
+  assert.equal(skillAtkPercent(SKILL_DEFINITIONS.drifter_lv1), 200);
+  // Heal
+  const heal = SKILL_DEFINITIONS.drifter_heal;
+  const rec1 = passiveSkillModifiers(progressWith(10, 'drifters_resolve', 'basic_guard', 'vitality', 'recovery'));
+  const rec2 = passiveSkillModifiers(progressWith(10, 'drifters_resolve', 'basic_guard', 'vitality', 'recovery', 'recovery'));
+  assert.deepEqual([skillHealPercent(heal), skillHealPercent(heal, none), Math.round(skillHealPercent(heal, rec1)), Math.round(skillHealPercent(heal, rec2))], [30, 30, 33, 36]);
+  assert.deepEqual([skillHealAmount(heal, 100), skillHealAmount(heal, 100, none), skillHealAmount(heal, 100, rec1), skillHealAmount(heal, 100, rec2)], [30, 30, 33, 36]);
+  assert.deepEqual([heal.spCost, heal.cooldownMs, heal.healPercentMaxHp], [15, 30_000, 30], 'SP cost, cooldown and the base heal untouched');
+  // which skills a modifier acts on (the tree names them)
+  assert.deepEqual([skillsAffectedBy('singleTargetSkillDamagePercent'), skillsAffectedBy('healPercent')], [['drifter_lv1'], ['drifter_heal']]);
+  // wiring: the hit and the heal read the character's passives
+  const combat = read('src/combat/CombatSystem.ts');
+  assert.match(combat, /const damage = attackDamage\(h\.attack, result\.damage, passiveSkillModifiers\(this\.character\.passives\)\);\s*if \(!target\.takeDamage\(damage\)\) return;/);
+  assert.match(combat, /this\.numbers\.show\(w\.x, top, String\(damage\)/, 'the number shown is the damage dealt');
+  assert.match(read('src/scenes/GameScene.ts'), /skillHealAmount\(def, maxHp, passiveSkillModifiers\(this\.character\.passives\)\)/);
+});
+
+test('Passive Tree descriptions (TH / EN): every node says what it does now - Power Thrust and Heal by name, no "future skills" left', async () => {
+  const { initLanguage, setLanguage, translate } = await import('../src/i18n');
+  const { labels } = await import('../src/i18n/labels');
+  const { skillsAffectedBy } = await import('../src/skills/SkillDefinitions');
+  initLanguage(null);
+  const describe = (modifier: 'singleTargetSkillDamagePercent' | 'healPercent', value: number): string =>
+    translate(`passive.effects.${modifier}`, { value, skills: skillsAffectedBy(modifier).map((id) => labels.skillName(id)).join(', ') });
+  setLanguage('en');
+  assert.equal(describe('singleTargetSkillDamagePercent', 5), 'Power Thrust damage +5%');
+  assert.equal(describe('healPercent', 10), 'Heal restores 10% more HP');
+  setLanguage('th');
+  assert.equal(describe('singleTargetSkillDamagePercent', 5), 'ความเสียหายสกิล ทิ่มสุดแรง +5%');
+  assert.equal(describe('healPercent', 10), 'สกิล ฟื้นฟู ฟื้น HP เพิ่มขึ้น 10%');
+  for (const f of ['src/i18n/en.ts', 'src/i18n/th.ts']) {
+    const text = read(f);
+    const block = text.slice(text.indexOf('  passive: {'), text.indexOf('  inventory: {'));
+    assert.doesNotMatch(block, /notActive|future skills|not active yet|อนาคต|ยังไม่มีผล/, `${f}: nothing about unimplemented skills`);
+    assert.match(block, /singleTargetSkillDamagePercent: '[^']*\{skills\}[^']*\{value\}%'/);
+    assert.match(block, /healPercent: '[^']*\{skills\}[^']*\{value\}%[^']*'/);
+  }
+  const window = read('src/ui/passiveTree/PassiveTreeWindow.ts');
+  assert.doesNotMatch(window, /notActive|futureOnly/);
+  assert.match(window, /const skills = skillsAffectedBy\(e\.modifier\)\.map\(\(id\) => labels\.skillName\(id\)\)\.join\(', '\);/);
+  // effects, values and layout of the tree itself: untouched
+  assert.deepEqual(DRIFTER_TREE.nodes.map((n) => [n.id, n.maxRank, n.branch, n.step]), [
+    ['drifters_resolve', 1, 'center', 0],
+    ['combat_training', 2, 'left', 1],
+    ['precision', 2, 'left', 2],
+    ['power_strike', 2, 'left', 3],
+    ['basic_guard', 2, 'right', 1],
+    ['vitality', 2, 'right', 2],
+    ['recovery', 2, 'right', 3],
+    ['swiftness', 2, 'down', 1],
+    ['evasion', 2, 'down', 2],
+    ['opportunity', 2, 'down', 3],
+  ]);
+  assert.deepEqual(DRIFTER_TREE.nodes.find((n) => n.id === 'power_strike')!.effects, [{ kind: 'skill', modifier: 'singleTargetSkillDamagePercent', amount: 5 }]);
+  assert.deepEqual(DRIFTER_TREE.nodes.find((n) => n.id === 'recovery')!.effects, [{ kind: 'skill', modifier: 'healPercent', amount: 10 }]);
+  // the Skill window shows the numbers the passives really give
+  const skills = read('src/ui/skills/SkillWindow.ts');
+  assert.match(skills, /t\('skillWindow\.effectHeal', \{ percent: formatStatValue\(skillHealPercent\(def, mods\)\) \}\)/);
+  assert.match(skills, /t\('skillWindow\.damageBonus', \{ value: formatStatValue\(mods\.singleTargetSkillDamagePercent\), node: labels\.passiveNode\('power_strike'\) \}\)/);
+  setLanguage('th');
 });

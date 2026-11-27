@@ -1,0 +1,453 @@
+{
+  "schema": "xenoblight-sprite-forge/vfx@1",
+  "status": "approved",
+  "id": "vfx_drifter_red_stab",
+  "animation": "drifter_red_stab",
+  "library": "Drifter skill VFX (red, skill-specific; not part of the grayscale shared library)",
+  "category": "skill",
+  "skill": "Drifter active attack skill (single-target stab)",
+  "frameCount": 4,
+  "frameSize": {
+    "width": 64,
+    "height": 64
+  },
+  "loop": false,
+  "frameMs": 100,
+  "frameDurationsMs": [
+    100,
+    100,
+    100,
+    100
+  ],
+  "beats": [
+    "F1 startup spark / narrow red trail on the thrust path",
+    "F2 strongest forward piercing burst (peak, on the hit)",
+    "F3 short lingering streak and impact flare",
+    "F4 fast fade-out"
+  ],
+  "directionPolicy": {
+    "id": "combat4-mirror-v1",
+    "canonical": [
+      "SE",
+      "NE"
+    ],
+    "mirrors": {
+      "SW": "SE",
+      "NW": "NE"
+    },
+    "order": [
+      "SE",
+      "SW",
+      "NE",
+      "NW"
+    ],
+    "mirrorsExact": {
+      "SW": true,
+      "NW": true
+    }
+  },
+  "sheet": {
+    "file": "vfx_drifter_red_stab_4dir.png",
+    "width": 256,
+    "height": 256,
+    "columns": 4,
+    "rows": 4,
+    "rowOrder": [
+      "SE",
+      "SW",
+      "NE",
+      "NW"
+    ],
+    "sha256": "53f295ea5cfd4b810ead31fd2eeeb966ab2ac0d17d9bacbb3defa7b4d72a5c08"
+  },
+  "strips": {
+    "SE": "vfx_drifter_red_stab_south-east_4f.png",
+    "SW": "vfx_drifter_red_stab_south-west_4f.png",
+    "NE": "vfx_drifter_red_stab_north-east_4f.png",
+    "NW": "vfx_drifter_red_stab_north-west_4f.png"
+  },
+  "frames": {
+    "SE": [
+      "frames/vfx_drifter_red_stab_south-east_00.png",
+      "frames/vfx_drifter_red_stab_south-east_01.png",
+      "frames/vfx_drifter_red_stab_south-east_02.png",
+      "frames/vfx_drifter_red_stab_south-east_03.png"
+    ],
+    "SW": [
+      "frames/vfx_drifter_red_stab_south-west_00.png",
+      "frames/vfx_drifter_red_stab_south-west_01.png",
+      "frames/vfx_drifter_red_stab_south-west_02.png",
+      "frames/vfx_drifter_red_stab_south-west_03.png"
+    ],
+    "NE": [
+      "frames/vfx_drifter_red_stab_north-east_00.png",
+      "frames/vfx_drifter_red_stab_north-east_01.png",
+      "frames/vfx_drifter_red_stab_north-east_02.png",
+      "frames/vfx_drifter_red_stab_north-east_03.png"
+    ],
+    "NW": [
+      "frames/vfx_drifter_red_stab_north-west_00.png",
+      "frames/vfx_drifter_red_stab_north-west_01.png",
+      "frames/vfx_drifter_red_stab_north-west_02.png",
+      "frames/vfx_drifter_red_stab_north-west_03.png"
+    ]
+  },
+  "previews": {
+    "SE": "previews/vfx_drifter_red_stab_south-east_preview_x4.gif",
+    "SW": "previews/vfx_drifter_red_stab_south-west_preview_x4.gif",
+    "NE": "previews/vfx_drifter_red_stab_north-east_preview_x4.gif",
+    "NW": "previews/vfx_drifter_red_stab_north-west_preview_x4.gif",
+    "attached": {
+      "SE": "previews/vfx_drifter_red_stab_south-east_on_female_drifter_x3.gif",
+      "SW": "previews/vfx_drifter_red_stab_south-west_on_female_drifter_x3.gif",
+      "NE": "previews/vfx_drifter_red_stab_north-east_on_female_drifter_x3.gif",
+      "NW": "previews/vfx_drifter_red_stab_north-west_on_female_drifter_x3.gif"
+    }
+  },
+  "anchor": {
+    "note": "hit point inside the 64x64 VFX canvas (the effect is built to centre on it)",
+    "SE": {
+      "x": 52,
+      "y": 36
+    },
+    "SW": {
+      "x": 11,
+      "y": 36
+    },
+    "NE": {
+      "x": 52,
+      "y": 17
+    },
+    "NW": {
+      "x": 11,
+      "y": 17
+    }
+  },
+  "attach": {
+    "layer": "separate top layer, drawn above the character (and above hair)",
+    "filtering": "nearest-neighbor only, scale 1",
+    "rule": "draw the VFX frame with its top-left at character frame top-left + offset (both 64x64 frames, same origin); the anchor then lands 3 px in front of the dagger tip of the impact frame",
+    "timing": {
+      "attachTo": "dagger_thrust",
+      "thrustFrameMs": 100,
+      "thrustImpactFrame": 5,
+      "spawnOnThrustFrame": 4,
+      "vfxPeakFrame": 2,
+      "alignment": "VFX F1-F4 play on thrust F4-F7; VFX F2 (peak) = thrust F5 (impact / damage frame)"
+    },
+    "thrustAngleDeg": {
+      "SE": 15,
+      "NE": -35
+    },
+    "offsets": {
+      "female": {
+        "SE": {
+          "daggerTipF5": [
+            58,
+            33
+          ],
+          "hitPoint": [
+            61,
+            34
+          ],
+          "offset": [
+            9,
+            -2
+          ]
+        },
+        "SW": {
+          "daggerTipF5": [
+            5,
+            33
+          ],
+          "hitPoint": [
+            2,
+            34
+          ],
+          "offset": [
+            -9,
+            -2
+          ]
+        },
+        "NE": {
+          "daggerTipF5": [
+            52,
+            11
+          ],
+          "hitPoint": [
+            54,
+            9
+          ],
+          "offset": [
+            2,
+            -8
+          ]
+        },
+        "NW": {
+          "daggerTipF5": [
+            11,
+            11
+          ],
+          "hitPoint": [
+            9,
+            9
+          ],
+          "offset": [
+            -2,
+            -8
+          ]
+        }
+      },
+      "male": {
+        "SE": {
+          "daggerTipF5": [
+            58,
+            30
+          ],
+          "hitPoint": [
+            61,
+            31
+          ],
+          "offset": [
+            9,
+            -5
+          ]
+        },
+        "SW": {
+          "daggerTipF5": [
+            5,
+            30
+          ],
+          "hitPoint": [
+            2,
+            31
+          ],
+          "offset": [
+            -9,
+            -5
+          ]
+        },
+        "NE": {
+          "daggerTipF5": [
+            53,
+            11
+          ],
+          "hitPoint": [
+            55,
+            9
+          ],
+          "offset": [
+            3,
+            -8
+          ]
+        },
+        "NW": {
+          "daggerTipF5": [
+            10,
+            11
+          ],
+          "hitPoint": [
+            8,
+            9
+          ],
+          "offset": [
+            -3,
+            -8
+          ]
+        }
+      }
+    },
+    "implemented": false
+  },
+  "palette": {
+    "rule": "DB32 only, binary alpha; red #ac3232 / #d95763, white #ffffff highlights, #222034 outline",
+    "colorsUsed": {
+      "#222034": 830,
+      "#d95763": 738,
+      "#ffffff": 574,
+      "#ac3232": 390
+    },
+    "remapped": {
+      "#040d1a": 415
+    }
+  },
+  "validation": {
+    "frames": [
+      {
+        "id": "SE#1",
+        "pixels": 85,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "SE#2",
+        "pixels": 392,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "SE#3",
+        "pixels": 133,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "SE#4",
+        "pixels": 27,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "SW#1",
+        "pixels": 85,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "SW#2",
+        "pixels": 392,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "SW#3",
+        "pixels": 133,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "SW#4",
+        "pixels": 27,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NE#1",
+        "pixels": 75,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NE#2",
+        "pixels": 397,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NE#3",
+        "pixels": 128,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NE#4",
+        "pixels": 29,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NW#1",
+        "pixels": 75,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NW#2",
+        "pixels": 397,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NW#3",
+        "pixels": 128,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "id": "NW#4",
+        "pixels": 29,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      }
+    ],
+    "characterSkinPx": 0,
+    "background": "transparent (no baked background)",
+    "characterPixels": "none"
+  },
+  "source": {
+    "tool": "PixelLab VFX Workbench (free, no generations)",
+    "effects": {
+      "SE": {
+        "name": "Drifter Red Stab SE",
+        "id": "5652410f-9633-4745-8629-141246ddecdd",
+        "step": "1b2ba93f-c3dd-465c-b254-62614cfbb644"
+      },
+      "NE": {
+        "name": "Drifter Red Stab NE",
+        "id": "790e25fe-c838-4c57-98c8-67e5a891fb31",
+        "step": "5f0cdf48-38ad-45d1-8155-4d861c284b61"
+      }
+    },
+    "parts": "thrust_streak (x1.6, reach 1.1, facing 15 / -35; its own first-frame wedge hidden) + hit_star (x0.8, 0.25-1.0) + startup (F1 only: a narrow red beam and a small spark between the dagger hand and the hit point, so F1 sits on the thrust path in front of the body, not on the torso)",
+    "firstPass": "raw_first_pass/ (F1 wedge sat on the torso; superseded)",
+    "ramp": [
+      "#45283c",
+      "#ac3232",
+      "#d95763",
+      "#ffffff"
+    ]
+  },
+  "approvedAt": "2026-11-27T11:12:48.048Z",
+  "approvedBy": "user (chat: \"Approve VFX\")",
+  "revision": 1,
+  "candidateSource": "candidates/vfx/drifter_red_stab_v001",
+  "files": {
+    "vfx_drifter_red_stab_4dir.png": "53f295ea5cfd4b810ead31fd2eeeb966ab2ac0d17d9bacbb3defa7b4d72a5c08",
+    "vfx_drifter_red_stab_south-east_4f.png": "41a8dd2f1c0a0cc26fcf353bef7885a05c10e1a49a07f26687332430b3dbe5d1",
+    "vfx_drifter_red_stab_south-west_4f.png": "e2d22276deac4856bcfcf41a31e83dc1b9e138ebdb73faf9a613b78eef981623",
+    "vfx_drifter_red_stab_north-east_4f.png": "4b53f836cf59fffab9ec6711eedcbd88405172aadc92c600223a42cad4ac54bf",
+    "vfx_drifter_red_stab_north-west_4f.png": "bf3e9d0e12ccf00599e85ef5e69ce656049c598052d164596397c3b4a7949b3e",
+    "frames/vfx_drifter_red_stab_south-east_00.png": "a0a9bb9c4e24d05e816683a194977ee3d33b65e77bd406af8c21dcc295b05ab2",
+    "frames/vfx_drifter_red_stab_south-east_01.png": "c6f50115da1656ea9dd50cdd2b4f7ba668e8de0c39d85977c2d0662e01bba758",
+    "frames/vfx_drifter_red_stab_south-east_02.png": "731c7f86a1634cd5f46655e1a743ed7fa64b6aa2536aa134fdc5e588c75e2730",
+    "frames/vfx_drifter_red_stab_south-east_03.png": "b5f027474417a1d515b62a393aba38b7985a27831dd7b6005ed7b3f7f299c6cb",
+    "frames/vfx_drifter_red_stab_south-west_00.png": "ba96804adc301e3863dce8a7be3b464a8218fab86001cfc0b3be9e795b27a995",
+    "frames/vfx_drifter_red_stab_south-west_01.png": "2ba3a1a9c349391ab3f9ac31e448dbc6d0c65e03adddc249390542c63d9a66d5",
+    "frames/vfx_drifter_red_stab_south-west_02.png": "dffb09561c2b5634c397f4af030ba43ad4d1c9867432835d7bc8e4b4b2f422ec",
+    "frames/vfx_drifter_red_stab_south-west_03.png": "90d21d2fc042ea06d736825b7111bc24d24f032545366d67b38e215c56a31ab2",
+    "frames/vfx_drifter_red_stab_north-east_00.png": "d9d2ff9e777bdf925255a15f87adc6dc6504e9e27ee4f4237b6021a129cf224e",
+    "frames/vfx_drifter_red_stab_north-east_01.png": "cc21c03f4b7ff6a7938879ccf291b386e8e718d48e27ff2ad7bf007f6c8864b0",
+    "frames/vfx_drifter_red_stab_north-east_02.png": "a28d859c403d16e2091a2dc2cf766f60f108514a4a894d2e653dfad66dc0955f",
+    "frames/vfx_drifter_red_stab_north-east_03.png": "e42613204ca1e7597cc87e4a6070a26cb073dbf86c9536a2ccbd8df1a546f4b1",
+    "frames/vfx_drifter_red_stab_north-west_00.png": "4376bc199cddc46a3395a1acfc5d4a9b61402bac9a6b684fc50667da1a6ef390",
+    "frames/vfx_drifter_red_stab_north-west_01.png": "68208c9ece8c5046333cc0cf5944321733c890c0d5f05b3705d207a332fece8d",
+    "frames/vfx_drifter_red_stab_north-west_02.png": "b76d7d11d4b9bfcc80387d8165ca2f16d7d71c536422319703070a8d34430f33",
+    "frames/vfx_drifter_red_stab_north-west_03.png": "34e53493103bedfe5a1b6707671145d689fa5926397788eefb44c8070fca6e62",
+    "previews/vfx_drifter_red_stab_south-east_preview_x4.gif": "c904e0c7355368b862013e520bc921c6bf65c0f48c33d93530c37fe0594b4427",
+    "previews/vfx_drifter_red_stab_south-west_preview_x4.gif": "104c21f59890160cf055547f7e9af56a7501431e061783c6e86da352acef156c",
+    "previews/vfx_drifter_red_stab_north-east_preview_x4.gif": "b1dedee02ef63ab3edca191ab7384c57645fd183c2fc1e7f4681b98f74df87be",
+    "previews/vfx_drifter_red_stab_north-west_preview_x4.gif": "fb3ebfab595d5e64d4d05e1e05b1dc47eee5ef20c91c562bf7c99e8f6fabe3d5",
+    "previews/vfx_drifter_red_stab_south-east_on_female_drifter_x3.gif": "0b42fe0ab7e629ca469b5515d5f111fc7f76d0b55b5f1d14af6f03d631d98126",
+    "previews/vfx_drifter_red_stab_south-west_on_female_drifter_x3.gif": "69664d1c1f94e099f71d3af4643016d52f13ffe2b76fa89a9ab17e84011a03d7",
+    "previews/vfx_drifter_red_stab_north-east_on_female_drifter_x3.gif": "9eb70c2ed1ea399eb8b5a2af59e17a862adae6cf70276ab1f7c3467886d181ff",
+    "previews/vfx_drifter_red_stab_north-west_on_female_drifter_x3.gif": "d989b1141892cee8e58f7a353cc86fb89aa8722a8632ec603fc8589ba9c0c676",
+    "review/vfx_drifter_red_stab_review_x4.png": "d5f3da5896c51847cdd126014963a7a6dcca96bba53925e2260ed3c6a454e7e2",
+    "review/vfx_drifter_red_stab_on_female_drifter_x3.png": "969f41762c50eb0e0a4fe0628c48cd6270f6d01d22f0ecc841c9c17362de0274"
+  }
+}

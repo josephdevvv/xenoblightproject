@@ -4,7 +4,9 @@ import type { CharacterData } from '../../data/CharacterData';
 import { t } from '../../i18n';
 import { labels } from '../../i18n/labels';
 import { localize } from '../../i18n/phaser';
-import { DRIFTER_SKILLS, SKILL_DEFINITIONS, skillAtkPercent, type SkillId } from '../../skills/SkillDefinitions';
+import { passiveSkillModifiers } from '../../passives/PassiveProgress';
+import { DRIFTER_SKILLS, SKILL_DEFINITIONS, skillAtkPercent, skillHealPercent, type SkillId } from '../../skills/SkillDefinitions';
+import { formatStatValue } from '../../status/DerivedStats';
 import { SkillService } from '../../skills/SkillService';
 import { skillIcon } from '../hotbar/hotbarIcons';
 import { drawOutline, drawPanelFrame, drawSlotFrame, INV_COLORS } from '../inventory/inventoryTheme';
@@ -216,7 +218,11 @@ export class SkillWindow {
     this.detailState.setText(t(learned ? 'skillWindow.learned' : 'skillWindow.locked')).setColor(learned ? PALETTE.silver : INV_COLORS.redText);
     const description = learned ? labels.skillDescription(id) : `${labels.skillDescription(id)} ${t('skillWindow.lockedHint', { scroll: labels.itemName(def.scrollItemId) })}`;
     this.description.setText(description);
-    this.effect.setText(def.kind === 'attack' ? t('skillWindow.effectAttack', { percent: skillAtkPercent(def) ?? 0 }) : t('skillWindow.effectHeal', { percent: def.healPercentMaxHp }));
+    // with the Passive Tree: Recovery raises the heal (the real % of Max HP), Power Strike the attack skill's damage
+    const mods = passiveSkillModifiers(this.character.passives);
+    const attackLine = t('skillWindow.effectAttack', { percent: skillAtkPercent(def) ?? 0 });
+    const bonus = mods.singleTargetSkillDamagePercent > 0 ? `  ·  ${t('skillWindow.damageBonus', { value: formatStatValue(mods.singleTargetSkillDamagePercent), node: labels.passiveNode('power_strike') })}` : '';
+    this.effect.setText(def.kind === 'attack' ? attackLine + bonus : t('skillWindow.effectHeal', { percent: formatStatValue(skillHealPercent(def, mods)) }));
     const cooldown = def.cooldownMs > 0 ? t('skillWindow.cooldown', { seconds: Math.round(def.cooldownMs / 1000) }) : t('skillWindow.noCooldown');
     this.cooldown.setText(`${cooldown}  ·  ${t('skillWindow.spCost', { cost: def.spCost })}`);
   }

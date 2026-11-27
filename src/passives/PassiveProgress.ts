@@ -159,8 +159,8 @@ export function passiveDerivedBonus(p: PassiveProgress | undefined): DerivedBonu
 }
 
 /**
- * Skill / combat modifiers of the active tree, stored for FUTURE skills (no active skills exist yet,
- * so nothing reads them in gameplay): single-target skill damage % and Heal amount %.
+ * Skill modifiers of the active tree: Power Strike - single-target attack skill damage % (Power Thrust), Recovery -
+ * HP heal amount % (Heal). Applied by CombatSystem (the skill's hit) and skillHealAmount (the heal).
  */
 export function passiveSkillModifiers(p: PassiveProgress | undefined): SkillModifiers {
   const mods: SkillModifiers = { singleTargetSkillDamagePercent: 0, healPercent: 0 };
@@ -174,14 +174,14 @@ export function passiveSkillModifiers(p: PassiveProgress | undefined): SkillModi
 }
 
 /**
- * For the future Heal skill: Recovery multiplies the ORIGINAL heal amount (30 % of Max HP at Recovery
- * rank 2 -> 36 %). Cooldowns are not affected.
+ * The Heal skill: Recovery multiplies the ORIGINAL heal amount (30 % of Max HP at Recovery rank 2 -> 36 %).
+ * Cooldowns and SP costs are not affected.
  */
 export function modifiedHealPercent(baseHealPercent: number, mods: SkillModifiers): number {
   return baseHealPercent * (1 + mods.healPercent / 100);
 }
 
-/** For future single-target attack skills: skill damage x (1 + Power Strike %). */
+/** Single-target attack skills (Power Thrust): the damage it dealt x (1 + Power Strike %). */
 export function modifiedSkillDamage(baseDamage: number, mods: SkillModifiers): number {
   return baseDamage * (1 + mods.singleTargetSkillDamagePercent / 100);
 }

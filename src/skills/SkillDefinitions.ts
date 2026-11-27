@@ -1,5 +1,6 @@
 import { PLAYER_ATTACKS, type PlayerAttackId } from '../combat/PlayerAttacks';
-import type { PassiveIconId } from '../passives/PassiveTree';
+import { modifiedHealPercent, type SkillModifiers } from '../passives/PassiveProgress';
+import type { PassiveIconId, SkillModifierId } from '../passives/PassiveTree';
 
 /**
  * Active skills - data only (no Phaser), unit-tested. Every skill is LOCKED until its skill scroll is used
@@ -54,7 +55,20 @@ export function needsTarget(def: SkillDefinition): boolean {
   return def.kind === 'attack';
 }
 
-/** HP a heal restores for this max HP (whole points). */
-export function skillHealAmount(def: SkillDefinition, maxHp: number): number {
-  return def.kind === 'heal' ? Math.round((maxHp * def.healPercentMaxHp) / 100) : 0;
+/** % of Max HP a heal restores: its own value x (1 + the Recovery passive %) - 30 -> 33 / 36 at Recovery 1 / 2. */
+export function skillHealPercent(def: SkillDefinition, mods?: SkillModifiers): number {
+  if (def.kind !== 'heal') return 0;
+  return mods ? modifiedHealPercent(def.healPercentMaxHp, mods) : def.healPercentMaxHp;
+}
+
+/** HP a heal restores for this max HP (whole points), with the Recovery passive's bonus. */
+export function skillHealAmount(def: SkillDefinition, maxHp: number, mods?: SkillModifiers): number {
+  return def.kind === 'heal' ? Math.round((maxHp * skillHealPercent(def, mods)) / 100) : 0;
+}
+
+
+/** The skills a passive skill modifier acts on (the Passive Tree names them in its descriptions). */
+export function skillsAffectedBy(modifier: SkillModifierId): SkillId[] {
+  const kind = modifier === 'healPercent' ? 'heal' : 'attack';
+  return SKILL_IDS.filter((id) => SKILL_DEFINITIONS[id].kind === kind);
 }

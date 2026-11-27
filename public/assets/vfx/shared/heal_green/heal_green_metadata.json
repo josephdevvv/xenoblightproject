@@ -1,0 +1,308 @@
+{
+  "schema": "xenoblight-sprite-forge/vfx@1",
+  "status": "approved",
+  "id": "vfx_heal_green",
+  "name": "heal_green",
+  "animation": "heal_green",
+  "library": "shared HP-healing VFX",
+  "category": "heal",
+  "usage": {
+    "for": "every HP healing skill (e.g. Drifter Self-Heal)",
+    "notFor": "consumable potions",
+    "shared": "direction-, gender-, hairstyle-, outfit- and class-independent",
+    "filtering": "nearest-neighbor only, scale 1"
+  },
+  "frameCount": 8,
+  "frameMs": 100,
+  "durationMs": 800,
+  "frameDurationsMs": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+  ],
+  "loop": false,
+  "beats": [
+    "F1-F2 green energy appears: aura and ground ring start, first streaks",
+    "F3-F5 peak: full aura, ground ring, rising streaks, peak glint (F4-F5)",
+    "F6-F8 green motes rise and fade (F8 empty)"
+  ],
+  "canvas": {
+    "width": 64,
+    "height": 80
+  },
+  "direction": "none (one set for every direction)",
+  "anchor": {
+    "kind": "feet",
+    "x": 32,
+    "y": 72,
+    "note": "put this canvas point on the character's feet (root anchor)"
+  },
+  "layers": {
+    "behind": {
+      "sheet": "heal_green_behind_sheet.png",
+      "frames": [
+        "frames/heal_green_behind_00.png",
+        "frames/heal_green_behind_01.png",
+        "frames/heal_green_behind_02.png",
+        "frames/heal_green_behind_03.png",
+        "frames/heal_green_behind_04.png",
+        "frames/heal_green_behind_05.png",
+        "frames/heal_green_behind_06.png",
+        "frames/heal_green_behind_07.png"
+      ],
+      "drawOrder": "under the character sprite (and its outfit / hair)",
+      "contents": "green aura and ground ring; only the part outside the character silhouette shows"
+    },
+    "front": {
+      "sheet": "heal_green_front_sheet.png",
+      "frames": [
+        "frames/heal_green_front_00.png",
+        "frames/heal_green_front_01.png",
+        "frames/heal_green_front_02.png",
+        "frames/heal_green_front_03.png",
+        "frames/heal_green_front_04.png",
+        "frames/heal_green_front_05.png",
+        "frames/heal_green_front_06.png",
+        "frames/heal_green_front_07.png"
+      ],
+      "drawOrder": "over the character sprite (hair included)",
+      "contents": "rising streaks, motes, peak glint"
+    },
+    "combinedReference": {
+      "sheet": "heal_green_combined_reference_sheet.png",
+      "note": "behind + front in one image, for previews only: drawn on top it would hide the character behind the aura"
+    }
+  },
+  "sheetLayout": {
+    "columns": 8,
+    "rows": 1,
+    "frameWidth": 64,
+    "frameHeight": 80
+  },
+  "attach": {
+    "rule": "VFX canvas top-left = character feet - anchor; for the 64x64 characters (feet at 31,57) that is character frame top-left + (-1, -15)",
+    "characterFrameOffset": {
+      "x": -1,
+      "y": -15
+    },
+    "characterFeet": {
+      "x": 31,
+      "y": 57
+    },
+    "timing": {
+      "attachTo": "self_heal (and any HP-heal skill)",
+      "selfHealFrameMs": 100,
+      "selfHealCastFrame": 5,
+      "spawnOnSelfHealFrame": 2,
+      "vfxPeakFrame": 4,
+      "alignment": "VFX F4 (peak) plays on Self-Heal F5 (cast frame); start at the heal event instead when a skill has no cast frame"
+    },
+    "implemented": false
+  },
+  "palette": {
+    "rule": "DB32 only, binary alpha, no outline colour",
+    "colorsUsed": {
+      "#37946e": 3400,
+      "#6abe30": 2577,
+      "#99e550": 577,
+      "#4b692f": 10
+    }
+  },
+  "validation": {
+    "behind": [
+      {
+        "frame": 1,
+        "pixels": 300,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 2,
+        "pixels": 868,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 3,
+        "pixels": 1340,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 4,
+        "pixels": 1448,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 5,
+        "pixels": 1212,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 6,
+        "pixels": 936,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 7,
+        "pixels": 160,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 8,
+        "pixels": 0,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      }
+    ],
+    "front": [
+      {
+        "frame": 1,
+        "pixels": 0,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 2,
+        "pixels": 21,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 3,
+        "pixels": 46,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 4,
+        "pixels": 86,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 5,
+        "pixels": 85,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 6,
+        "pixels": 54,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 7,
+        "pixels": 8,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      },
+      {
+        "frame": 8,
+        "pixels": 0,
+        "semiAlpha": 0,
+        "offDB32": 0,
+        "canvasEdgePx": 0
+      }
+    ],
+    "crossCheckVsWorkbenchWholeClipPx": 0,
+    "characterPixels": "none (the reference sprite is only in the workbench whole-with-sprite clip, which is not used)"
+  },
+  "source": {
+    "tool": "PixelLab VFX Workbench (free, 0 generations)",
+    "effect": {
+      "name": "heal_green",
+      "id": "aa531780-2c9e-4aa3-8dcc-01af4539d757",
+      "step": "87512d78-5a5b-47cf-a442-c1f77fb3dac0"
+    },
+    "designReferenceSprite": "approved/female/female_bald_none_drifter_south.png",
+    "layers": "aura (glow behind, tall oval r 14->24, squash 1.8), ground_ring (ring on the ground r 6->15), flow (rising streaks), motes (rising sparkles), peak_glint (4-ray glint)",
+    "ramps": {
+      "main": [
+        "#4b692f",
+        "#37946e",
+        "#6abe30",
+        "#99e550"
+      ],
+      "aura": [
+        "#37946e",
+        "#6abe30",
+        "#99e550"
+      ]
+    }
+  },
+  "files": {
+    "previews": {
+      "effectOnly": "previews/heal_green_preview_x4.gif",
+      "female_drifter_s": "previews/heal_green_on_female_drifter_s_x3.gif",
+      "male_drifter_s": "previews/heal_green_on_male_drifter_s_x3.gif",
+      "female_drifter_ne": "previews/heal_green_on_female_drifter_ne_x3.gif",
+      "female_tee_sw": "previews/heal_green_on_female_tee_sw_x3.gif"
+    },
+    "review": [
+      "review/heal_green_on_characters_x3.png",
+      "review/heal_green_layers_x4.png"
+    ]
+  },
+  "sheetSha256": {
+    "behind": "f6c4af41d10c0cea330d7c63480d462230aa22d30c39a080ab7e060710b2e835",
+    "front": "5090a3b3d9bf3112f1b3bd2dbaebc7a81a253e5fb0cce5237ccb63d25e81072b"
+  },
+  "approvedAt": "2026-11-27T11:17:22.134Z",
+  "approvedBy": "user (chat: \"Approve VFX\")",
+  "revision": 1,
+  "candidateSource": "candidates/vfx/heal_green_v001",
+  "fileSha256": {
+    "heal_green_behind_sheet.png": "f6c4af41d10c0cea330d7c63480d462230aa22d30c39a080ab7e060710b2e835",
+    "heal_green_front_sheet.png": "5090a3b3d9bf3112f1b3bd2dbaebc7a81a253e5fb0cce5237ccb63d25e81072b",
+    "heal_green_combined_reference_sheet.png": "45013980a82ef9da705865cb4cea0df7ae1c9b7caff9426872332bc34be9f2b3",
+    "frames/heal_green_behind_00.png": "0b9486a87105aaff713c9cd194540674e384c266e00099324aaf7077097e3e0c",
+    "frames/heal_green_behind_01.png": "8c65df84db6ff22782872db86103394b81cbb97e593a15edf00bebe1201acd8d",
+    "frames/heal_green_behind_02.png": "176f5de3635e7235c4c5b0d623b968be34179205aae223105135ceb8d33d0d15",
+    "frames/heal_green_behind_03.png": "61445cd32f22e919fb3fb38ef415b6c53c054edf2f4d141e6d1f985ae7104ebb",
+    "frames/heal_green_behind_04.png": "f5b7286f13cb5d7c6c3fd78f55058ddf6de4ad48d16c9c65198d1b91ec771775",
+    "frames/heal_green_behind_05.png": "d221ec66e274777ca35688bc8c057f8694a17cd5eadcf709a4afc3d933460a41",
+    "frames/heal_green_behind_06.png": "221ae55bbce3a341709cb08c9abe05dd543da978d4a58b2da3df83c1b9b48c94",
+    "frames/heal_green_behind_07.png": "c783f522519bc0cf245a63aa6ae00e48f5a6e99685626f4ac011380fc7c3a076",
+    "frames/heal_green_front_00.png": "c783f522519bc0cf245a63aa6ae00e48f5a6e99685626f4ac011380fc7c3a076",
+    "frames/heal_green_front_01.png": "dc7faf82e32ad74caedb3a1adaeffe41eb7d467590528bfe399ed4e05bbd4313",
+    "frames/heal_green_front_02.png": "127647409d750596fd2682e4a53b88deca406d12964bfa869b17297497ce7e90",
+    "frames/heal_green_front_03.png": "7e42aa5a5e37df2523d3bbe93e6c28a5804c37ba2d079941a39638a234cad349",
+    "frames/heal_green_front_04.png": "9ba9be6fa06704ca0913ee201d494506e6302e234302fa2d7e7f5702502d1902",
+    "frames/heal_green_front_05.png": "5d4fbbdfde8436bdf03668bd04547c7079e81a697cd80ab9c22c5afd3ca25020",
+    "frames/heal_green_front_06.png": "f268fc38ca27e4b648d23997b669a5b1c833a35c4df4773791cfa7509a736ab1",
+    "frames/heal_green_front_07.png": "c783f522519bc0cf245a63aa6ae00e48f5a6e99685626f4ac011380fc7c3a076",
+    "previews/heal_green_preview_x4.gif": "416611d0c0e1ac206ee9a856c6dcbffd72d1139d96d83c9aa9c40972ef237c7f",
+    "previews/heal_green_on_female_drifter_s_x3.gif": "7a3a664b97d77edc987a47cee0e1d6814db18dc6fca2acd12d9a391e36d72d0d",
+    "previews/heal_green_on_male_drifter_s_x3.gif": "64229996d145ab1f6fca25e99981850330e78c52b46072677c1c0da3bbe4b267",
+    "previews/heal_green_on_female_drifter_ne_x3.gif": "c601d40f0b0e0cd9fae314e93df7163e6b77b9baae91490e1ff7f3d71852135d",
+    "previews/heal_green_on_female_tee_sw_x3.gif": "407fb57fffca55f1b1823b918a68c48829ff54c1065adf7bd7efe5e1c94a0258",
+    "review/heal_green_on_characters_x3.png": "c06222c96f847f455b4053e53d412ac2cf3ae13931a901d078b8cf1f7fea2a62",
+    "review/heal_green_layers_x4.png": "a70bcd4b10035ecddb0ad2d51eea1dc383e626df650c39eeb67c799986c5eae3"
+  }
+}

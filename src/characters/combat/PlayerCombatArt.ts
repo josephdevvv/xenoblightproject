@@ -14,6 +14,46 @@ import maleSideSweptBlackDrifter from '../../../public/assets/characters/male/si
 import maleSideSweptSilverDrifter from '../../../public/assets/characters/male/side_swept_silver/drifter/combat/male_side_swept_silver_drifter_combat.json';
 import maleSideSweptBrownDrifter from '../../../public/assets/characters/male/side_swept_brown/drifter/combat/male_side_swept_brown_drifter_combat.json';
 import maleSideSweptRedDrifter from '../../../public/assets/characters/male/side_swept_red/drifter/combat/male_side_swept_red_drifter_combat.json';
+import maleMiddlePartBlondeDrifter from '../../../public/assets/characters/male/middle_part_blonde/drifter/combat/male_middle_part_blonde_drifter_combat.json';
+import maleMiddlePartBlackDrifter from '../../../public/assets/characters/male/middle_part_black/drifter/combat/male_middle_part_black_drifter_combat.json';
+import maleMiddlePartSilverDrifter from '../../../public/assets/characters/male/middle_part_silver/drifter/combat/male_middle_part_silver_drifter_combat.json';
+import maleMiddlePartBrownDrifter from '../../../public/assets/characters/male/middle_part_brown/drifter/combat/male_middle_part_brown_drifter_combat.json';
+import maleMiddlePartRedDrifter from '../../../public/assets/characters/male/middle_part_red/drifter/combat/male_middle_part_red_drifter_combat.json';
+import maleSlickedBackBlondeDrifter from '../../../public/assets/characters/male/slicked_back_blonde/drifter/combat/male_slicked_back_blonde_drifter_combat.json';
+import maleSlickedBackBlackDrifter from '../../../public/assets/characters/male/slicked_back_black/drifter/combat/male_slicked_back_black_drifter_combat.json';
+import maleSlickedBackSilverDrifter from '../../../public/assets/characters/male/slicked_back_silver/drifter/combat/male_slicked_back_silver_drifter_combat.json';
+import maleSlickedBackBrownDrifter from '../../../public/assets/characters/male/slicked_back_brown/drifter/combat/male_slicked_back_brown_drifter_combat.json';
+import maleSlickedBackRedDrifter from '../../../public/assets/characters/male/slicked_back_red/drifter/combat/male_slicked_back_red_drifter_combat.json';
+import maleLongMiddlePartBlondeDrifter from '../../../public/assets/characters/male/long_middle_part_blonde/drifter/combat/male_long_middle_part_blonde_drifter_combat.json';
+import maleLongMiddlePartBlackDrifter from '../../../public/assets/characters/male/long_middle_part_black/drifter/combat/male_long_middle_part_black_drifter_combat.json';
+import maleLongMiddlePartSilverDrifter from '../../../public/assets/characters/male/long_middle_part_silver/drifter/combat/male_long_middle_part_silver_drifter_combat.json';
+import maleLongMiddlePartBrownDrifter from '../../../public/assets/characters/male/long_middle_part_brown/drifter/combat/male_long_middle_part_brown_drifter_combat.json';
+import maleLongMiddlePartRedDrifter from '../../../public/assets/characters/male/long_middle_part_red/drifter/combat/male_long_middle_part_red_drifter_combat.json';
+import femaleBobBlondeDrifter from '../../../public/assets/characters/female/bob_blonde/drifter/combat/female_bob_blonde_drifter_combat.json';
+import femaleBobBlackDrifter from '../../../public/assets/characters/female/bob_black/drifter/combat/female_bob_black_drifter_combat.json';
+import femaleBobSilverDrifter from '../../../public/assets/characters/female/bob_silver/drifter/combat/female_bob_silver_drifter_combat.json';
+import femaleBobBrownDrifter from '../../../public/assets/characters/female/bob_brown/drifter/combat/female_bob_brown_drifter_combat.json';
+import femaleBobRedDrifter from '../../../public/assets/characters/female/bob_red/drifter/combat/female_bob_red_drifter_combat.json';
+import femaleFluffyCurlsBlondeDrifter from '../../../public/assets/characters/female/fluffy_curls_blonde/drifter/combat/female_fluffy_curls_blonde_drifter_combat.json';
+import femaleFluffyCurlsBlackDrifter from '../../../public/assets/characters/female/fluffy_curls_black/drifter/combat/female_fluffy_curls_black_drifter_combat.json';
+import femaleFluffyCurlsSilverDrifter from '../../../public/assets/characters/female/fluffy_curls_silver/drifter/combat/female_fluffy_curls_silver_drifter_combat.json';
+import femaleFluffyCurlsBrownDrifter from '../../../public/assets/characters/female/fluffy_curls_brown/drifter/combat/female_fluffy_curls_brown_drifter_combat.json';
+import femaleFluffyCurlsRedDrifter from '../../../public/assets/characters/female/fluffy_curls_red/drifter/combat/female_fluffy_curls_red_drifter_combat.json';
+import femaleLongSidePartBlondeDrifter from '../../../public/assets/characters/female/long_side_part_blonde/drifter/combat/female_long_side_part_blonde_drifter_combat.json';
+import femaleLongSidePartBlackDrifter from '../../../public/assets/characters/female/long_side_part_black/drifter/combat/female_long_side_part_black_drifter_combat.json';
+import femaleLongSidePartSilverDrifter from '../../../public/assets/characters/female/long_side_part_silver/drifter/combat/female_long_side_part_silver_drifter_combat.json';
+import femaleLongSidePartBrownDrifter from '../../../public/assets/characters/female/long_side_part_brown/drifter/combat/female_long_side_part_brown_drifter_combat.json';
+import femaleLongSidePartRedDrifter from '../../../public/assets/characters/female/long_side_part_red/drifter/combat/female_long_side_part_red_drifter_combat.json';
+import femalePonytailBlondeDrifter from '../../../public/assets/characters/female/ponytail_blonde/drifter/combat/female_ponytail_blonde_drifter_combat.json';
+import femalePonytailBlackDrifter from '../../../public/assets/characters/female/ponytail_black/drifter/combat/female_ponytail_black_drifter_combat.json';
+import femalePonytailSilverDrifter from '../../../public/assets/characters/female/ponytail_silver/drifter/combat/female_ponytail_silver_drifter_combat.json';
+import femalePonytailBrownDrifter from '../../../public/assets/characters/female/ponytail_brown/drifter/combat/female_ponytail_brown_drifter_combat.json';
+import femalePonytailRedDrifter from '../../../public/assets/characters/female/ponytail_red/drifter/combat/female_ponytail_red_drifter_combat.json';
+import femaleTwinBunsBlondeDrifter from '../../../public/assets/characters/female/twin_buns_blonde/drifter/combat/female_twin_buns_blonde_drifter_combat.json';
+import femaleTwinBunsBlackDrifter from '../../../public/assets/characters/female/twin_buns_black/drifter/combat/female_twin_buns_black_drifter_combat.json';
+import femaleTwinBunsSilverDrifter from '../../../public/assets/characters/female/twin_buns_silver/drifter/combat/female_twin_buns_silver_drifter_combat.json';
+import femaleTwinBunsBrownDrifter from '../../../public/assets/characters/female/twin_buns_brown/drifter/combat/female_twin_buns_brown_drifter_combat.json';
+import femaleTwinBunsRedDrifter from '../../../public/assets/characters/female/twin_buns_red/drifter/combat/female_twin_buns_red_drifter_combat.json';
 import impactVfx from '../../../public/assets/vfx/player/combat/impact.json';
 import type { ActionDirection } from '../../core/Direction';
 
@@ -86,7 +126,7 @@ function fromExport(e: CombatExport): PlayerCombatSet {
 
 /** Combat sets by character sprite id. */
 export const PLAYER_COMBAT_SETS: Readonly<Record<string, PlayerCombatSet>> = Object.fromEntries(
-  [maleSpikeBlondeDrifter, maleSpikeBlackDrifter, maleSpikeSilverDrifter, maleSpikeBrownDrifter, maleSpikeRedDrifter, femaleStraightBangsBlondeDrifter, femaleStraightBangsBlackDrifter, femaleStraightBangsSilverDrifter, femaleStraightBangsBrownDrifter, femaleStraightBangsRedDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
+  [maleSpikeBlondeDrifter, maleSpikeBlackDrifter, maleSpikeSilverDrifter, maleSpikeBrownDrifter, maleSpikeRedDrifter, femaleStraightBangsBlondeDrifter, femaleStraightBangsBlackDrifter, femaleStraightBangsSilverDrifter, femaleStraightBangsBrownDrifter, femaleStraightBangsRedDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter, maleMiddlePartBlondeDrifter, maleMiddlePartBlackDrifter, maleMiddlePartSilverDrifter, maleMiddlePartBrownDrifter, maleMiddlePartRedDrifter, maleSlickedBackBlondeDrifter, maleSlickedBackBlackDrifter, maleSlickedBackSilverDrifter, maleSlickedBackBrownDrifter, maleSlickedBackRedDrifter, maleLongMiddlePartBlondeDrifter, maleLongMiddlePartBlackDrifter, maleLongMiddlePartSilverDrifter, maleLongMiddlePartBrownDrifter, maleLongMiddlePartRedDrifter, femaleBobBlondeDrifter, femaleBobBlackDrifter, femaleBobSilverDrifter, femaleBobBrownDrifter, femaleBobRedDrifter, femaleFluffyCurlsBlondeDrifter, femaleFluffyCurlsBlackDrifter, femaleFluffyCurlsSilverDrifter, femaleFluffyCurlsBrownDrifter, femaleFluffyCurlsRedDrifter, femaleLongSidePartBlondeDrifter, femaleLongSidePartBlackDrifter, femaleLongSidePartSilverDrifter, femaleLongSidePartBrownDrifter, femaleLongSidePartRedDrifter, femalePonytailBlondeDrifter, femalePonytailBlackDrifter, femalePonytailSilverDrifter, femalePonytailBrownDrifter, femalePonytailRedDrifter, femaleTwinBunsBlondeDrifter, femaleTwinBunsBlackDrifter, femaleTwinBunsSilverDrifter, femaleTwinBunsBrownDrifter, femaleTwinBunsRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
 );
 
 export function combatSetFor(spriteId: string): PlayerCombatSet | null {

@@ -1,3 +1,5 @@
+import { DRIFTER_RED_STAB, skillVfxAnimKey } from './SkillVfxArt';
+import { HEAL_GREEN, HEAL_VFX_LAYERS } from '../../combat/vfx/HealVfxArt';
 import type Phaser from 'phaser';
 import { GameServices } from '../../systems/GameServices';
 import {
@@ -61,6 +63,53 @@ function impactSheet(): Sheet {
   };
 }
 
+/** The shared HP-healing VFX: its two layers (behind / front), one one-shot animation each, the approved frame timing. */
+function healSheets(): Sheet[] {
+  const v = HEAL_GREEN;
+  const base = Math.min(...v.frameDurationsMs);
+  return HEAL_VFX_LAYERS.map((id) => {
+    const layer = v.layers[id];
+    return {
+      key: layer.key,
+      url: layer.url,
+      frameWidth: v.frameWidth,
+      frameHeight: v.frameHeight,
+      animations: [
+        {
+          key: layer.animKey,
+          build: () => ({
+            key: layer.animKey,
+            frames: v.frameDurationsMs.map((ms, frame) => ({ key: layer.key, frame, duration: ms - base })),
+            frameRate: 1000 / base,
+            repeat: v.loop ? -1 : 0,
+          }),
+        },
+      ],
+    };
+  });
+}
+
+/** The Drifter's red stab (attack-skill VFX): one sheet, a one-shot animation per facing row, the approved frame timing. */
+function redStabSheet(): Sheet {
+  const v = DRIFTER_RED_STAB;
+  const base = Math.min(...v.frameDurationsMs);
+  return {
+    key: v.key,
+    url: v.url,
+    frameWidth: v.frameWidth,
+    frameHeight: v.frameHeight,
+    animations: v.rows.map((facing, row) => ({
+      key: skillVfxAnimKey(v, facing),
+      build: () => ({
+        key: skillVfxAnimKey(v, facing),
+        frames: v.frameDurationsMs.map((ms, f) => ({ key: v.key, frame: row * v.frames + f, duration: ms - base })),
+        frameRate: 1000 / base,
+        repeat: 0,
+      }),
+    })),
+  };
+}
+
 /** The sheets of a combat set (4 required + the optional ones it has) with their per-facing animations (rows / frames / timing / loop from its metadata). */
 function combatSheets(set: PlayerCombatSet): Sheet[] {
   const entries: [PlayerCombatAction | PlayerOptionalCombatAction, PlayerCombatSheet][] = [
@@ -105,7 +154,7 @@ function ensureAnimation(scene: Phaser.Scene, sheet: Sheet, animation: Sheet['an
 export async function loadPlayerCombatAssets(scene: Phaser.Scene, spriteId: string, owner: string): Promise<PlayerCombatSet | null> {
   const services = await GameServices.ready();
   const set = combatSetFor(spriteId);
-  const sheets = [impactSheet(), ...(set ? combatSheets(set) : [])];
+  const sheets = [impactSheet(), redStabSheet(), ...healSheets(), ...(set ? combatSheets(set) : [])];
   const anims = scene.anims;
   for (const s of sheets) services.cache.retain(s.key, owner);
 

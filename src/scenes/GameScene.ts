@@ -45,6 +45,7 @@ import { hpRestored, scrollProblem, spRestored, useProblem, type ScrollProblem, 
 import { itemDefinition } from '../items/ItemCatalog';
 import { SkillService } from '../skills/SkillService';
 import { isSkillId, needsTarget, SKILL_DEFINITIONS, skillHealAmount, type SkillId } from '../skills/SkillDefinitions';
+import { passiveSkillModifiers } from '../passives/PassiveProgress';
 import { labels } from '../i18n/labels';
 import type { ActionDirection, Direction } from '../core/Direction';
 import { monsterSheetKey } from '../monsters/art/MonsterArt';
@@ -69,6 +70,11 @@ import { GameHud } from '../ui/GameHud';
 import { PassiveTreeWindow } from '../ui/passiveTree/PassiveTreeWindow';
 import { PlayerDeathController } from '../player/death/PlayerDeathController';
 import { AttackVfxLayer } from '../combat/vfx/AttackVfxLayer';
+import { SkillVfxLayer } from '../combat/vfx/SkillVfxLayer';
+import { HealVfxLayer, type HealVfxTarget } from '../combat/vfx/HealVfxLayer';
+import { healVfxDelayMs } from '../combat/vfx/HealVfxArt';
+import { isAttackClip } from '../combat/WeaponAttackClip';
+import { CastLock, castLockMs } from '../combat/CastLock';
 import { getCharacterSpriteId, walkSpriteIdOf } from '../characters/CharacterAssetIds';
 import { PlayerCombatAnimator } from '../characters/combat/PlayerCombatAnimator';
 import { loadPlayerCombatAssets } from '../characters/combat/PlayerCombatAssets';
@@ -123,6 +129,15 @@ export class GameScene extends Phaser.Scene {
   private hud!: GameHud;
   /** Attack / on-hit VFX, drawn on the target's body above every character (DEPTH.AttackVfx). */
   attackVfx!: AttackVfxLayer;
+  skillVfx!: SkillVfxLayer;
+  /** The HP-healing VFX of every healing skill, drawn around whoever was healed. */
+  healVfx!: HealVfxLayer;
+  /** Self-Heal holds the character in its cast clip until the last frame is over (CastLock). */
+  private readonly castLock = new CastLock();
+  /** Mobile: what the joystick held when the cast began / holds now - walking goes on with it when the cast is over. */
+  private steerAfterCast: Point | null = null;
+  /** The player as a heal target (the aura ends if the player dies). */
+  private readonly playerHealTarget: HealVfxTarget = { sprite: () => this.player?.view.sprite ?? null, alive: () => this.death?.life.isAlive() ?? false };
   /** Player combat clips (combat idle / dagger thrust / hit reaction), when the appearance has combat art. */
   playerCombat: PlayerCombatAnimator | null = null;
   private combatSet: PlayerCombatSet | null = null;
@@ -194,6 +209,8 @@ export class GameScene extends Phaser.Scene {
     this.scene.settings.data = {}; // Phaser would hand the same data to the next start without any
     this.ready = false;
     this.failed = false;
+    this.castLock.clear();
+    this.steerAfterCast = null;
     this.skillReadyAt.clear();
     this.potionGuardUntil = 0;
     this.skillTargeting = null;
@@ -247,6 +264,8 @@ export class GameScene extends Phaser.Scene {
       this.ready = false;
       this.input.keyboard?.off('keydown-ESC', onEscape);
       this.attackVfx?.dispose();
+      this.skillVfx?.dispose();
+      this.healVfx?.dispose();
       this.input.off(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
       this.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
       this.input.off(Phaser.Input.Events.GAME_OUT, this.onPointerOut, this);
@@ -268,10 +287,14 @@ export class GameScene extends Phaser.Scene {
     if (!this.ready) return;
     // Combat decides first (target approach / attacks), then the player moves - only while alive.
     const alive = this.death.life.isAlive();
+    // the cast lock runs on the game clock and ends by itself; death overrides it at once
+    if (!alive) this.endCastLock(false);
+    else if (this.castLock.update(delta)) this.endCastLock(true);
     this.combat.update(delta);
     if (this.touch) this.updateTouch(alive);
     this.updateAutoPlay(alive);
-    if (alive && !this.isTalking()) this.player.update(delta);
+    // (held in a cast: the character does not move, whatever still asks it to)
+    if (alive && !this.isTalking() && !this.castLock.locked) this.player.update(delta);
     if (alive) this.npcInteraction.update();
     else this.npcInteraction.cancel();
     if (alive) this.updatePortalStep();
@@ -297,6 +320,8 @@ export class GameScene extends Phaser.Scene {
     }
     this.combat.updateMarker();
     this.attackVfx.update();
+    this.skillVfx.update();
+    this.healVfx.update(delta);
     // target-select mode ends by itself when the player can no longer use it (window, conversation, death)
     if (this.skillTargeting && (!alive || !this.canPerform('attack') || this.uiScene()?.worldBlocked)) this.cancelSkillTargeting();
     // pointer outside the canvas keeps its last position: only a pointer over the game can hover
@@ -438,6 +463,14 @@ export class GameScene extends Phaser.Scene {
     this.attackVfx = new AttackVfxLayer(this);
     this.combat.vfx = this.attackVfx;
     this.playerCombat = this.combatSet ? new PlayerCombatAnimator(view, this.combatSet) : null;
+    // skill effects on the player: only while its attack clip plays (a walk or a death ends them); without combat art
+    // (no clip to watch) an effect simply plays out
+    this.skillVfx = new SkillVfxLayer(this, {
+      sprite: () => this.player.view.sprite,
+      stillSwinging: () => this.death.life.isAlive() && (!this.playerCombat || isAttackClip(this.playerCombat.getActing())),
+    });
+    this.combat.skillVfx = this.skillVfx;
+    this.healVfx = new HealVfxLayer(this);
     if (this.playerCombat) this.player.actions = this.playerCombat;
     this.npcInteraction = new NpcInteraction<NpcEntity>(this.player, (npc) => this.talkTo(npc));
     this.navigation = new QuestNavigation<InteractableNpc>(this.player);
@@ -562,6 +595,8 @@ export class GameScene extends Phaser.Scene {
    */
   steer(direction: Point | null): void {
     if (!this.ready) return;
+    // held in a cast: remembered (or forgotten, when the stick is let go) for the moment the cast is over
+    if (this.castLock.locked) this.steerAfterCast = direction;
     const next = direction && this.death.life.isAlive() && this.canPerform('move') && !this.isTalking() ? direction : null;
     if (next && !this.steerDir) {
       this.npcInteraction.cancel();
@@ -642,6 +677,8 @@ export class GameScene extends Phaser.Scene {
   /** Gameplay action gate: nothing but chat while dying / dead or in a conversation. */
   canPerform(action: PlayerAction): boolean {
     if (!this.death?.life.canPerform(action)) return false;
+    // Self-Heal playing: no walking, attacking, casting or talking until its last frame is over
+    if (!this.castLock.allows(action)) return false;
     return action === 'chat' || !this.isTalking();
   }
 
@@ -1300,9 +1337,41 @@ export class GameScene extends Phaser.Scene {
     const maxHp = this.combat.getPlayerMaxHp();
     if (this.combat.getPlayerHp() >= maxHp) return 'hpFull';
     if (!this.activateSkill(id)) return 'blocked'; // SP paid, cooldown started - only now
-    this.player.actions.play('cast', CAST_FACING[this.player.getFacing()]);
-    this.combat.healPlayer(skillHealAmount(def, maxHp));
+    this.beginCastLock();
+    const casting = this.player.actions.play('cast', CAST_FACING[this.player.getFacing()]);
+    const healed = this.combat.healPlayer(skillHealAmount(def, maxHp, passiveSkillModifiers(this.character.passives)));
+    // the heal resolved: the green aura around the healed character (here the caster), its peak on the cast frame
+    if (healed > 0) this.healVfx.play(this.playerHealTarget, healVfxDelayMs(casting ? this.castFrameTiming() : null));
     return null;
+  }
+
+  /**
+   * A self-cast starts: the character stands still and is held for the cast clip's length (manual and Auto Combat
+   * alike - both act through canPerform); the attack loop on the current target waits.
+   */
+  private beginCastLock(): void {
+    this.steerAfterCast = this.steerDir;
+    this.steerDir = null;
+    this.player.halt();
+    this.castLock.lock(castLockMs(this.combatSet?.spriteId ?? ''));
+    this.combat.setActionLocked(true);
+  }
+
+  /** The cast is over (its last frame done), or death cut it: everything is free again. `resume`: a held joystick walks on. */
+  private endCastLock(resume: boolean): void {
+    const held = this.steerAfterCast;
+    this.steerAfterCast = null;
+    if (!this.castLock.locked && !resume) return; // nothing was held
+    this.castLock.clear();
+    this.combat.setActionLocked(false);
+    if (resume && held) this.steer(held);
+  }
+
+  /** The cast frame of the player's cast clip, from its own export (null: no clip, or none recorded). */
+  private castFrameTiming(): { castFrame: number; frameMs: number } | null {
+    const clip = this.combatSet?.actions.self_heal_cast;
+    const castFrame = clip?.events.castFrame;
+    return clip && typeof castFrame === 'number' ? { castFrame, frameMs: clip.frameMs } : null;
   }
 
   /** A target skill on a monster: the target click and Auto Play. It replaces the next swing on that monster. */

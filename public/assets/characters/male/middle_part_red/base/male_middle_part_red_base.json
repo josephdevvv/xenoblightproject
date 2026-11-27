@@ -1,0 +1,146 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-27T03:08:35.818Z",
+  "key": "male_middle_part_red_base",
+  "displayName": {
+    "en": "Male Middle Part Red (base)",
+    "th": "ชาย แสกกลาง แดง (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "middle_part",
+    "hairColorId": "red",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "middle_part",
+    "hairColor": "red",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_male_middle_part_red_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/male/middle_part_red/base/male_middle_part_red_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "5c1203293fcc8f376dda79036f53bb388b0a5b4c427018c3cbf78cd77da9510d",
+    "directions": {
+      "S": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_south-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "E": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NE": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_north-east",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "N": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_north",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "NW": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_north-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "W": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SW": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_south-west",
+        "sourceMethod": "original (pre-mirror-policy)"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/male/middle_part_red/base/male_middle_part_red_base_walk_8dir.png",
+    "metadata": "assets/characters/male/middle_part_red/base/male_middle_part_red_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "a9c5acafa328ebb08abf5e30b70f05bf8e7fe2918f0fb4d2cd538e9a83fe7e22",
+    "directions": {
+      "S": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_middle-part_red_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 0
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

@@ -190,13 +190,18 @@ export class CharacterCreationScene extends Phaser.Scene {
       this.genderButtons.set(g.id, button);
     });
 
-    // 02 Hairstyle (up to three choices per gender, labels follow the gender)
+    // 02 Hairstyle (one button per starter hairstyle of the gender, labels follow the gender). Up to three slots keep the
+    // original 84 px buttons (x 178-446); four or more share the same span inside the panel (x 178-472) with narrower buttons.
     row(192, '02', 'creation.hairstyle');
     const hairSlots = Math.max(...Object.values(STARTER_HAIRSTYLE_IDS).map((ids) => ids.length));
+    const hairGap = 6;
+    // even width so every button centre stays on a whole pixel
+    const hairWidth = hairSlots <= 3 ? 84 : Math.floor((472 - 178 - hairGap * (hairSlots - 1)) / hairSlots / 2) * 2;
+    const hairStep = hairSlots <= 3 ? 92 : hairWidth + hairGap;
     this.hairstyleButtons = Array.from({ length: hairSlots }, (_, slot) => slot).map(
       (slot) =>
-        new Button(this, 220 + slot * 92, 192, {
-          width: 84,
+        new Button(this, 178 + hairWidth / 2 + slot * hairStep, 192, {
+          width: hairWidth,
           height: 28,
           label: '',
           onClick: () => this.selectHairstyle(slot),

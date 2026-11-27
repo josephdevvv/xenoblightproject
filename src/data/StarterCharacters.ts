@@ -10,6 +10,7 @@ import type { CharacterAppearance } from './CharacterData';
  *   male    bald             none                                 drifter  drifter
  *   male    mohawk           blonde | black | silver | brown | red drifter  drifter
  *   male    side_swept       blonde | black | silver | brown | red drifter  drifter
+ *   male    middle_part      blonde | black | silver | brown | red drifter  drifter
  *   female  bald             none                                 drifter  drifter
  *   female  straight_bangs   blonde | black | silver | brown | red drifter  drifter
  *
@@ -26,7 +27,7 @@ export const NO_HAIR_COLOR_ID = 'none';
 
 /** Selectable hairstyles per gender, in display order. */
 export const STARTER_HAIRSTYLE_IDS: Readonly<Record<Gender, readonly string[]>> = {
-  male: [BALD_HAIRSTYLE_ID, 'mohawk', 'side_swept'],
+  male: [BALD_HAIRSTYLE_ID, 'mohawk', 'side_swept', 'middle_part'],
   female: [BALD_HAIRSTYLE_ID, 'straight_bangs'],
 };
 
@@ -39,6 +40,7 @@ export const STARTER_HAIR_COLOR_IDS: Readonly<Record<string, readonly string[]>>
   mohawk: ['blonde', 'black', 'silver', 'brown', 'red'],
   straight_bangs: ['blonde', 'black', 'silver', 'brown', 'red'],
   side_swept: ['blonde', 'black', 'silver', 'brown', 'red'],
+  middle_part: ['blonde', 'black', 'silver', 'brown', 'red'],
 };
 
 export const STARTER_GENDERS: readonly Gender[] = ['male', 'female'];

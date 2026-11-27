@@ -14,6 +14,11 @@ import maleSideSweptBlackDrifter from '../../../public/assets/characters/male/si
 import maleSideSweptSilverDrifter from '../../../public/assets/characters/male/side_swept_silver/drifter/combat/male_side_swept_silver_drifter_combat.json';
 import maleSideSweptBrownDrifter from '../../../public/assets/characters/male/side_swept_brown/drifter/combat/male_side_swept_brown_drifter_combat.json';
 import maleSideSweptRedDrifter from '../../../public/assets/characters/male/side_swept_red/drifter/combat/male_side_swept_red_drifter_combat.json';
+import maleMiddlePartBlondeDrifter from '../../../public/assets/characters/male/middle_part_blonde/drifter/combat/male_middle_part_blonde_drifter_combat.json';
+import maleMiddlePartBlackDrifter from '../../../public/assets/characters/male/middle_part_black/drifter/combat/male_middle_part_black_drifter_combat.json';
+import maleMiddlePartSilverDrifter from '../../../public/assets/characters/male/middle_part_silver/drifter/combat/male_middle_part_silver_drifter_combat.json';
+import maleMiddlePartBrownDrifter from '../../../public/assets/characters/male/middle_part_brown/drifter/combat/male_middle_part_brown_drifter_combat.json';
+import maleMiddlePartRedDrifter from '../../../public/assets/characters/male/middle_part_red/drifter/combat/male_middle_part_red_drifter_combat.json';
 import impactVfx from '../../../public/assets/vfx/player/combat/impact.json';
 import type { ActionDirection } from '../../core/Direction';
 
@@ -86,7 +91,7 @@ function fromExport(e: CombatExport): PlayerCombatSet {
 
 /** Combat sets by character sprite id. */
 export const PLAYER_COMBAT_SETS: Readonly<Record<string, PlayerCombatSet>> = Object.fromEntries(
-  [maleSpikeBlondeDrifter, maleSpikeBlackDrifter, maleSpikeSilverDrifter, maleSpikeBrownDrifter, maleSpikeRedDrifter, femaleStraightBangsBlondeDrifter, femaleStraightBangsBlackDrifter, femaleStraightBangsSilverDrifter, femaleStraightBangsBrownDrifter, femaleStraightBangsRedDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
+  [maleSpikeBlondeDrifter, maleSpikeBlackDrifter, maleSpikeSilverDrifter, maleSpikeBrownDrifter, maleSpikeRedDrifter, femaleStraightBangsBlondeDrifter, femaleStraightBangsBlackDrifter, femaleStraightBangsSilverDrifter, femaleStraightBangsBrownDrifter, femaleStraightBangsRedDrifter, maleSideSweptBlondeDrifter, maleSideSweptBlackDrifter, maleSideSweptSilverDrifter, maleSideSweptBrownDrifter, maleSideSweptRedDrifter, maleMiddlePartBlondeDrifter, maleMiddlePartBlackDrifter, maleMiddlePartSilverDrifter, maleMiddlePartBrownDrifter, maleMiddlePartRedDrifter].map((e) => e as CombatExport).map((e) => [e.spriteId, fromExport(e)]),
 );
 
 export function combatSetFor(spriteId: string): PlayerCombatSet | null {

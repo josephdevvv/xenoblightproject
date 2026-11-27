@@ -59,11 +59,11 @@ test('player combat sheets: metadata matches the PNGs (frames, rows SE/SW/NE/NW,
   }
 });
 
-test('Male Side Swept: combat art for all 5 colours (4 actions + optional unarmed_punch, same timing as the Mohawk set)', () => {
+test('Male Side Swept and Middle Part: combat art for all 5 colours (4 actions + optional unarmed_punch, same timing as the Mohawk set)', () => {
   const ref = combatSetFor('char_male_mohawk_blonde_drifter')!;
-  for (const c of ['blonde', 'black', 'silver', 'brown', 'red']) {
-    const s = combatSetFor(`char_male_side_swept_${c}_drifter`);
-    assert.ok(s, `side_swept ${c} has combat art`);
+  for (const hair of ['side_swept', 'middle_part']) for (const c of ['blonde', 'black', 'silver', 'brown', 'red']) {
+    const s = combatSetFor(`char_male_${hair}_${c}_drifter`);
+    assert.ok(s, `${hair} ${c} has combat art`);
     for (const action of PLAYER_COMBAT_ACTIONS) {
       assert.equal(s!.actions[action].frames, ref.actions[action].frames, `${c} ${action} frames`);
       assert.equal(s!.actions[action].frameMs, ref.actions[action].frameMs, `${c} ${action} timing`);

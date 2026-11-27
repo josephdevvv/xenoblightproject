@@ -1,0 +1,1903 @@
+{
+  "schema": "xenoblight-sprite-forge/game-combat-export@1",
+  "exportedAt": "2026-11-27T03:08:41.564Z",
+  "key": "male_middle_part_blonde_drifter",
+  "spriteId": "char_male_middle_part_blonde_drifter",
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "middle_part",
+    "hairColorId": "blonde",
+    "outfitId": "drifter"
+  },
+  "forge": {
+    "hairstyle": "middle_part",
+    "hairColor": "blonde",
+    "outfit": "drifter"
+  },
+  "basePath": "assets/characters/male/middle_part_blonde/drifter/combat/",
+  "rows": [
+    "SE",
+    "SW",
+    "NE",
+    "NW"
+  ],
+  "anchorConvention": "edge coordinates inside a 64x64 frame: root = feet centre at the bottom edge of the lowest solid row; head = centre of the top 4 solid rows (hair included); anchors[facing] = frame 1 root",
+  "directionPolicy": "SE and NE are original artwork; SW = exact mirror of SE, NW = exact mirror of NE (weapon/cast hand switches - accepted)",
+  "vfx": {
+    "attackVFX": {
+      "thrust": {
+        "status": "pending",
+        "note": "shared grayscale Thrust VFX - not created yet; no placeholder"
+      }
+    },
+    "onHitVFX": {
+      "impact": {
+        "file": "assets/vfx/player/combat/impact.png",
+        "metadata": "assets/vfx/player/combat/impact.json",
+        "scales": {
+          "basicAttack": 1,
+          "enhancedAttackSkill": 1.5
+        },
+        "trigger": "server-confirmed hit, on the attack impactFrame"
+      }
+    }
+  },
+  "actions": {
+    "combat_idle": {
+      "file": "combat_idle.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 6,
+      "rows": [
+        "SE",
+        "SW",
+        "NE",
+        "NW"
+      ],
+      "frameMs": 150,
+      "frameRate": 6.667,
+      "loop": true,
+      "repeat": -1,
+      "events": {},
+      "anchors": {
+        "SE": {
+          "x": 31,
+          "y": 57
+        },
+        "SW": {
+          "x": 33,
+          "y": 57
+        },
+        "NE": {
+          "x": 33,
+          "y": 57
+        },
+        "NW": {
+          "x": 31,
+          "y": 57
+        }
+      },
+      "frameAnchors": {
+        "SE": [
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.938,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.087,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.087,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.087,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          }
+        ],
+        "SW": [
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.063,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.913,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.913,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.913,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          }
+        ],
+        "NE": [
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.846,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          }
+        ],
+        "NW": [
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.154,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          }
+        ]
+      },
+      "forge": {
+        "registryAnimation": "combat_idle",
+        "metadata": "approved/male/animations/male_middle_part_blonde_drifter_combat_idle_metadata.json",
+        "sheetSha256": "50d44c20d7d49d8578782df59945a8c9e757a07510c3c6def90d5d4693db028e",
+        "directions": {
+          "SE": {
+            "asset": "male_middle-part_blonde_drifter_south-east_combat-idle",
+            "sha256": "3c1d4cca3a0f0fb259b310dc082f9176eb4ca11ca245bb5a90dd2c102d868d9c",
+            "sourceMethod": "original"
+          },
+          "SW": {
+            "asset": "male_middle-part_blonde_drifter_south-west_combat-idle",
+            "sha256": "ad95c48586e41d19a7c73f78ce21e1407711de45d5908dbc292620a7a181f06b",
+            "sourceMethod": "mirror",
+            "mirrorOf": "SE"
+          },
+          "NE": {
+            "asset": "male_middle-part_blonde_drifter_north-east_combat-idle",
+            "sha256": "16ef9de94ceb8a245ef1e4b2e2c46062f1dd89e4c1f322528e54463494817ec3",
+            "sourceMethod": "original"
+          },
+          "NW": {
+            "asset": "male_middle-part_blonde_drifter_north-west_combat-idle",
+            "sha256": "a573bf540b4989ef8dc2fbd3d6894b82fcd5cf274a35b44f89cd5ef257ba174d",
+            "sourceMethod": "mirror",
+            "mirrorOf": "NE"
+          }
+        }
+      }
+    },
+    "dagger_thrust": {
+      "file": "dagger_thrust.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 8,
+      "rows": [
+        "SE",
+        "SW",
+        "NE",
+        "NW"
+      ],
+      "frameMs": 100,
+      "frameRate": 10,
+      "loop": false,
+      "repeat": 0,
+      "events": {
+        "impactFrame": 5,
+        "hitCount": 1,
+        "attackVFX": "thrust",
+        "onHitVFX": "impact",
+        "combatEvents": {
+          "damageFrame": 5,
+          "condition": "attack connects",
+          "implemented": false
+        }
+      },
+      "anchors": {
+        "SE": {
+          "x": 31,
+          "y": 57
+        },
+        "SW": {
+          "x": 33,
+          "y": 57
+        },
+        "NE": {
+          "x": 33,
+          "y": 57
+        },
+        "NW": {
+          "x": 31,
+          "y": 57
+        }
+      },
+      "frameAnchors": {
+        "SE": [
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 28.6,
+              "y": 57
+            },
+            "head": {
+              "x": 30.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 28,
+              "y": 57
+            },
+            "head": {
+              "x": 29.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.153,
+              "y": 57
+            },
+            "head": {
+              "x": 35.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.153,
+              "y": 57
+            },
+            "head": {
+              "x": 35.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31,
+              "y": 57
+            },
+            "head": {
+              "x": 34.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 30.917,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          }
+        ],
+        "SW": [
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 35.4,
+              "y": 57
+            },
+            "head": {
+              "x": 33.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 36,
+              "y": 57
+            },
+            "head": {
+              "x": 34.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.847,
+              "y": 57
+            },
+            "head": {
+              "x": 28.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.847,
+              "y": 57
+            },
+            "head": {
+              "x": 28.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 33,
+              "y": 57
+            },
+            "head": {
+              "x": 29.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 33.083,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          }
+        ],
+        "NE": [
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 31.023,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.481,
+              "y": 57
+            },
+            "head": {
+              "x": 31.023,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 33.594,
+              "y": 57
+            },
+            "head": {
+              "x": 35.023,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 33.558,
+              "y": 57
+            },
+            "head": {
+              "x": 34.023,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 33.023,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          }
+        ],
+        "NW": [
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 32.977,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.519,
+              "y": 57
+            },
+            "head": {
+              "x": 32.977,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 30.406,
+              "y": 57
+            },
+            "head": {
+              "x": 28.977,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 30.442,
+              "y": 57
+            },
+            "head": {
+              "x": 29.977,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 30.977,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          }
+        ]
+      },
+      "forge": {
+        "registryAnimation": "dagger_thrust",
+        "metadata": "approved/male/animations/male_middle_part_blonde_drifter_dagger_thrust_metadata.json",
+        "sheetSha256": "d9b962acf26faf7b4c0117571cccf4de125eb08aed16a596dae89a97687506d9",
+        "directions": {
+          "SE": {
+            "asset": "male_middle-part_blonde_drifter_south-east_dagger-thrust",
+            "sha256": "51c4803a07beb43d6c2d23f3e8feb8bb732e7cb1aa48d82ec57b0ce83c45c7cf",
+            "sourceMethod": "original"
+          },
+          "SW": {
+            "asset": "male_middle-part_blonde_drifter_south-west_dagger-thrust",
+            "sha256": "342c24b54b47717d1a0e06060bbeb7f369180011ea884969a21978c5d337d90a",
+            "sourceMethod": "mirror",
+            "mirrorOf": "SE"
+          },
+          "NE": {
+            "asset": "male_middle-part_blonde_drifter_north-east_dagger-thrust",
+            "sha256": "1ffbac4ba47e01fcb25cabca79e979f5dba464af634917b7dc1e95130b2bc980",
+            "sourceMethod": "original"
+          },
+          "NW": {
+            "asset": "male_middle-part_blonde_drifter_north-west_dagger-thrust",
+            "sha256": "31e086717c5c4727531ed83c72d74805c68bd0573bb105c6d45ddd4aa1bd351f",
+            "sourceMethod": "mirror",
+            "mirrorOf": "NE"
+          }
+        }
+      }
+    },
+    "self_heal_cast": {
+      "file": "self_heal_cast.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 8,
+      "rows": [
+        "SE",
+        "SW",
+        "NE",
+        "NW"
+      ],
+      "frameMs": 100,
+      "frameRate": 10,
+      "loop": false,
+      "repeat": 0,
+      "previewFrameDurationsMs": [
+        150,
+        100,
+        100,
+        120,
+        200,
+        100,
+        100,
+        150
+      ],
+      "events": {
+        "castFrame": 5,
+        "skill": {
+          "target": "self",
+          "healAmount": "30% MaxHP",
+          "healAmountRatioOfMaxHP": 0.3,
+          "cooldownMs": 30000,
+          "implemented": false,
+          "note": "heal applies on castFrame; record only, no healing logic yet"
+        }
+      },
+      "anchors": {
+        "SE": {
+          "x": 31,
+          "y": 57
+        },
+        "SW": {
+          "x": 33,
+          "y": 57
+        },
+        "NE": {
+          "x": 33,
+          "y": 57
+        },
+        "NW": {
+          "x": 31,
+          "y": 57
+        }
+      },
+      "frameAnchors": {
+        "SE": [
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.01,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.292,
+              "y": 57
+            },
+            "head": {
+              "x": 31.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.063,
+              "y": 57
+            },
+            "head": {
+              "x": 34.808,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.063,
+              "y": 57
+            },
+            "head": {
+              "x": 34.808,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.917,
+              "y": 57
+            },
+            "head": {
+              "x": 31.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.063,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          }
+        ],
+        "SW": [
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.99,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.708,
+              "y": 57
+            },
+            "head": {
+              "x": 32.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.938,
+              "y": 57
+            },
+            "head": {
+              "x": 29.192,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.938,
+              "y": 57
+            },
+            "head": {
+              "x": 29.192,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.083,
+              "y": 57
+            },
+            "head": {
+              "x": 32.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.938,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          }
+        ],
+        "NE": [
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 28.308,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.519,
+              "y": 57
+            },
+            "head": {
+              "x": 28.308,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.846,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          }
+        ],
+        "NW": [
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 35.692,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.481,
+              "y": 57
+            },
+            "head": {
+              "x": 35.692,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.154,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          }
+        ]
+      },
+      "forge": {
+        "registryAnimation": "self_heal",
+        "metadata": "approved/male/animations/male_middle_part_blonde_drifter_self_heal_metadata.json",
+        "sheetSha256": "7b1e28b264a7dbd94db6a24caf1cd4ded7c821fe6db3de160e7a0d71870c9754",
+        "directions": {
+          "SE": {
+            "asset": "male_middle-part_blonde_drifter_south-east_self-heal",
+            "sha256": "7ab9a42e44003b11aac06a08d7752bdb67bb76ea045b090e9afef6b9a56d1104",
+            "sourceMethod": "original"
+          },
+          "SW": {
+            "asset": "male_middle-part_blonde_drifter_south-west_self-heal",
+            "sha256": "cb09122643f3d9b51038d814ea7ac154b07d64f4d6d052dd2ab96d6e96cfb071",
+            "sourceMethod": "mirror",
+            "mirrorOf": "SE"
+          },
+          "NE": {
+            "asset": "male_middle-part_blonde_drifter_north-east_self-heal",
+            "sha256": "302da18357dbe8d9fcacfa3db591490d17812b1000c3819868b823a02e1ecfa4",
+            "sourceMethod": "original"
+          },
+          "NW": {
+            "asset": "male_middle-part_blonde_drifter_north-west_self-heal",
+            "sha256": "f4b8bed8ad936d6085f6b7e7741cd60e532ccf26f871dc326277af7cee93d83a",
+            "sourceMethod": "mirror",
+            "mirrorOf": "NE"
+          }
+        }
+      }
+    },
+    "hit_reaction": {
+      "file": "hit_reaction.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 6,
+      "rows": [
+        "SE",
+        "SW",
+        "NE",
+        "NW"
+      ],
+      "frameMs": 100,
+      "frameRate": 10,
+      "loop": false,
+      "repeat": 0,
+      "previewFrameDurationsMs": [
+        100,
+        70,
+        80,
+        90,
+        100,
+        120
+      ],
+      "events": {
+        "reactionFrame": 2,
+        "returnsTo": "combat_idle"
+      },
+      "anchors": {
+        "SE": {
+          "x": 31,
+          "y": 57
+        },
+        "SW": {
+          "x": 33,
+          "y": 57
+        },
+        "NE": {
+          "x": 33,
+          "y": 57
+        },
+        "NW": {
+          "x": 31,
+          "y": 57
+        }
+      },
+      "frameAnchors": {
+        "SE": [
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.883,
+              "y": 57
+            },
+            "head": {
+              "x": 26.221,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 30.883,
+              "y": 57
+            },
+            "head": {
+              "x": 27.221,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 31,
+              "y": 57
+            },
+            "head": {
+              "x": 29.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.266,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.074,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          }
+        ],
+        "SW": [
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.117,
+              "y": 57
+            },
+            "head": {
+              "x": 37.779,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 33.117,
+              "y": 57
+            },
+            "head": {
+              "x": 36.779,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 33,
+              "y": 57
+            },
+            "head": {
+              "x": 34.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.734,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.926,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          }
+        ],
+        "NE": [
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.037,
+              "y": 57
+            },
+            "head": {
+              "x": 25.023,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 33.037,
+              "y": 57
+            },
+            "head": {
+              "x": 26.023,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 32.87,
+              "y": 57
+            },
+            "head": {
+              "x": 26.023,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 32.746,
+              "y": 57
+            },
+            "head": {
+              "x": 29.023,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 32.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          }
+        ],
+        "NW": [
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.963,
+              "y": 57
+            },
+            "head": {
+              "x": 38.977,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 30.963,
+              "y": 57
+            },
+            "head": {
+              "x": 37.977,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 31.13,
+              "y": 57
+            },
+            "head": {
+              "x": 37.977,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 31.254,
+              "y": 57
+            },
+            "head": {
+              "x": 34.977,
+              "y": 5
+            }
+          },
+          {
+            "root": {
+              "x": 31.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          }
+        ]
+      },
+      "forge": {
+        "registryAnimation": "hit_reaction",
+        "metadata": "approved/male/animations/male_middle_part_blonde_drifter_hit_reaction_metadata.json",
+        "sheetSha256": "2ac49768be161f6b3695ded0ef07a786d681982e24e03a34f617a892417b86d5",
+        "directions": {
+          "SE": {
+            "asset": "male_middle-part_blonde_drifter_south-east_hit-reaction",
+            "sha256": "ce38079380d55e11c17dcbb784f9be6b60274b4c557191322431e09f6bd3dbec",
+            "sourceMethod": "original"
+          },
+          "SW": {
+            "asset": "male_middle-part_blonde_drifter_south-west_hit-reaction",
+            "sha256": "b7c325ef10e7d8fb09f3c5a36039355065f04a1a12818bfc29981b2349541616",
+            "sourceMethod": "mirror",
+            "mirrorOf": "SE"
+          },
+          "NE": {
+            "asset": "male_middle-part_blonde_drifter_north-east_hit-reaction",
+            "sha256": "0b96d3051d4908f0a186e5ecd04d091c9cc10cb572ca3373f6c50783252f3fa5",
+            "sourceMethod": "original"
+          },
+          "NW": {
+            "asset": "male_middle-part_blonde_drifter_north-west_hit-reaction",
+            "sha256": "5b10728f7c9c0eb94931082aa97a98e8a3636f6ac1fb8f7e0459e61e3c241ad7",
+            "sourceMethod": "mirror",
+            "mirrorOf": "NE"
+          }
+        }
+      }
+    },
+    "unarmed_punch": {
+      "file": "unarmed_punch.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frames": 8,
+      "rows": [
+        "SE",
+        "SW",
+        "NE",
+        "NW"
+      ],
+      "frameMs": 100,
+      "frameRate": 10,
+      "loop": false,
+      "repeat": 0,
+      "events": {
+        "impactFrame": 5,
+        "hitCount": 1,
+        "onHitVFX": "impact"
+      },
+      "anchors": {
+        "SE": {
+          "x": 31,
+          "y": 57
+        },
+        "SW": {
+          "x": 33,
+          "y": 57
+        },
+        "NE": {
+          "x": 34,
+          "y": 57
+        },
+        "NW": {
+          "x": 30,
+          "y": 57
+        }
+      },
+      "frameAnchors": {
+        "SE": [
+          {
+            "root": {
+              "x": 30.786,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.849,
+              "y": 56
+            },
+            "head": {
+              "x": 29.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.217,
+              "y": 56
+            },
+            "head": {
+              "x": 28.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.542,
+              "y": 57
+            },
+            "head": {
+              "x": 37.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.542,
+              "y": 57
+            },
+            "head": {
+              "x": 36.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.8,
+              "y": 57
+            },
+            "head": {
+              "x": 35.221,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.4,
+              "y": 57
+            },
+            "head": {
+              "x": 33.221,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.786,
+              "y": 57
+            },
+            "head": {
+              "x": 32.221,
+              "y": 6
+            }
+          }
+        ],
+        "SW": [
+          {
+            "root": {
+              "x": 33.214,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.151,
+              "y": 56
+            },
+            "head": {
+              "x": 34.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.783,
+              "y": 56
+            },
+            "head": {
+              "x": 35.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.458,
+              "y": 57
+            },
+            "head": {
+              "x": 26.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.458,
+              "y": 57
+            },
+            "head": {
+              "x": 27.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.2,
+              "y": 57
+            },
+            "head": {
+              "x": 28.779,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.6,
+              "y": 57
+            },
+            "head": {
+              "x": 30.779,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.214,
+              "y": 57
+            },
+            "head": {
+              "x": 31.779,
+              "y": 6
+            }
+          }
+        ],
+        "NE": [
+          {
+            "root": {
+              "x": 33.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.481,
+              "y": 57
+            },
+            "head": {
+              "x": 31.023,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 32.3,
+              "y": 57
+            },
+            "head": {
+              "x": 30.023,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 33.519,
+              "y": 57
+            },
+            "head": {
+              "x": 35.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.519,
+              "y": 57
+            },
+            "head": {
+              "x": 35.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.519,
+              "y": 57
+            },
+            "head": {
+              "x": 34.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 32.519,
+              "y": 57
+            },
+            "head": {
+              "x": 33.023,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 33.67,
+              "y": 57
+            },
+            "head": {
+              "x": 32.023,
+              "y": 6
+            }
+          }
+        ],
+        "NW": [
+          {
+            "root": {
+              "x": 30.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.519,
+              "y": 57
+            },
+            "head": {
+              "x": 32.977,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 31.7,
+              "y": 57
+            },
+            "head": {
+              "x": 33.977,
+              "y": 7
+            }
+          },
+          {
+            "root": {
+              "x": 30.481,
+              "y": 57
+            },
+            "head": {
+              "x": 28.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.481,
+              "y": 57
+            },
+            "head": {
+              "x": 28.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.481,
+              "y": 57
+            },
+            "head": {
+              "x": 29.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 31.481,
+              "y": 57
+            },
+            "head": {
+              "x": 30.977,
+              "y": 6
+            }
+          },
+          {
+            "root": {
+              "x": 30.33,
+              "y": 57
+            },
+            "head": {
+              "x": 31.977,
+              "y": 6
+            }
+          }
+        ]
+      },
+      "forge": {
+        "registryAnimation": "unarmed_punch",
+        "metadata": "approved/male/animations/male_middle_part_blonde_drifter_unarmed_punch_metadata.json",
+        "sheetSha256": "a481524ba06cd1f8f8860f48985b1b727882481206131b76f068402e44d21798",
+        "directions": {
+          "SE": {
+            "asset": "male_middle-part_blonde_drifter_south-east_unarmed-punch",
+            "sha256": "9aa77248e57c3be428cb0a703e2431d61f5cced7e55e98c5082ecb60bb69a62f",
+            "sourceMethod": "original"
+          },
+          "SW": {
+            "asset": "male_middle-part_blonde_drifter_south-west_unarmed-punch",
+            "sha256": "5c20912ba5fe36153cbedc87d2ea6072546badc4aa79f4451eacde5c22430a88",
+            "sourceMethod": "mirror",
+            "mirrorOf": "SE"
+          },
+          "NE": {
+            "asset": "male_middle-part_blonde_drifter_north-east_unarmed-punch",
+            "sha256": "a5cb23424a40da98db4fc4070688ea59872aca22bc1c6862bd85814d93f00fa3",
+            "sourceMethod": "original"
+          },
+          "NW": {
+            "asset": "male_middle-part_blonde_drifter_north-west_unarmed-punch",
+            "sha256": "fb7532b5eea1ef6998b39f66e367ef5fbaa73e37c5011a62b6643fbe63bfd9db",
+            "sourceMethod": "mirror",
+            "mirrorOf": "NE"
+          }
+        }
+      }
+    }
+  },
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

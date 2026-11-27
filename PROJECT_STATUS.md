@@ -346,3 +346,28 @@ level 50+ mutation subclasses.
 - All 20 new static / walk sheets load at the expected size, and every walk row loops 6 frames in 8 directions.
 - All 220 combat clips (Mohawk 5 × 5 actions × 4 facings, Straight Bangs 5 × 6 actions × 4 facings) play their full frame count and complete.
 - A female Straight Bangs Red character entered the game: walk played, and all 32 of its animations were registered.
+
+## Male Middle Part hairstyle (Sprite Forge export, 2026-11-27)
+
+**Exported art** (approved, unchanged)
+- Male Middle Part in blonde, black, silver, brown and red, each in base and Drifter (10 new variants): static 8-direction sheet, walk 6x8 at 125 ms plus walk metadata, and an info JSON (`public/assets/characters/male/middle_part_<colour>/`).
+- Drifter combat sets for all 5 colours: `combat_idle`, `dagger_thrust`, `self_heal_cast`, `hit_reaction`, `unarmed_punch` (same frame counts and timing as the other male Drifter sets).
+
+**Registry / loading**
+- `SpriteForgeCharacters.ts`: 10 variants appended (44 in total); existing entries unchanged.
+- `PlayerCombatArt.ts`: 20 combat sets (Middle Part ×5 added).
+
+**Character creation**
+- Male hairstyles: Bald, Mohawk, Side Swept, Middle Part, with the 5-colour row for Middle Part.
+- The hairstyle row now sizes its buttons from the slot count: up to 3 slots keep the old 84 px buttons; 4 slots use 68 px buttons in the same panel span (x 178-468). Thai and English captions fit ("Middle Part" 62 px).
+
+**Save / Load:** Middle Part in every colour round-trips through profiles and save files (approved-sprite check covers it).
+
+**Tests:** 494/494, plus typecheck and build. Updated: starter hairstyles / colours / appearances, Drifter sheet paths, 44 registry variants, body/scale pairs vs bald, combat art for Side Swept + Middle Part, save-file and profile round trips, labels, unarmed punch on all 20 combat sets.
+
+**Verified in the dev server**
+- Creation screen: 4 male hairstyle buttons inside the panel (Thai and English), Middle Part preview in the chosen colour.
+- All 10 static / walk sheets load at 256x128 / 384x512, and each has 8 walk animations of 6 frames.
+- All 100 Middle Part combat clips (5 colours × 5 actions × 4 facings) are registered with the exported frame count, timing and looping.
+- A Middle Part Silver character entered the game: walk played in all 8 directions; thrust, punch, heal and hit played to the end in SE/SW/NE/NW; combat idle looped; no console errors.
+- Not committed.

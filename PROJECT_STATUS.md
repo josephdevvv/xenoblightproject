@@ -346,3 +346,50 @@ level 50+ mutation subclasses.
 - All 20 new static / walk sheets load at the expected size, and every walk row loops 6 frames in 8 directions.
 - All 220 combat clips (Mohawk 5 × 5 actions × 4 facings, Straight Bangs 5 × 6 actions × 4 facings) play their full frame count and complete.
 - A female Straight Bangs Red character entered the game: walk played, and all 32 of its animations were registered.
+
+## Male Middle Part hairstyle (Sprite Forge export, 2026-11-27)
+
+**Exported art** (approved, unchanged)
+- Male Middle Part in blonde, black, silver, brown and red, each in base and Drifter (10 new variants): static 8-direction sheet, walk 6x8 at 125 ms plus walk metadata, and an info JSON (`public/assets/characters/male/middle_part_<colour>/`).
+- Drifter combat sets for all 5 colours: `combat_idle`, `dagger_thrust`, `self_heal_cast`, `hit_reaction`, `unarmed_punch` (same frame counts and timing as the other male Drifter sets).
+
+**Registry / loading**
+- `SpriteForgeCharacters.ts`: 10 variants appended (44 in total); existing entries unchanged.
+- `PlayerCombatArt.ts`: 20 combat sets (Middle Part ×5 added).
+
+**Character creation**
+- Male hairstyles: Bald, Mohawk, Side Swept, Middle Part, with the 5-colour row for Middle Part.
+- The hairstyle row now sizes its buttons from the slot count: up to 3 slots keep the old 84 px buttons; 4 slots use 68 px buttons in the same panel span (x 178-468). Thai and English captions fit ("Middle Part" 62 px).
+
+**Save / Load:** Middle Part in every colour round-trips through profiles and save files (approved-sprite check covers it).
+
+**Tests:** 494/494, plus typecheck and build. Updated: starter hairstyles / colours / appearances, Drifter sheet paths, 44 registry variants, body/scale pairs vs bald, combat art for Side Swept + Middle Part, save-file and profile round trips, labels, unarmed punch on all 20 combat sets.
+
+**Verified in the dev server**
+- Creation screen: 4 male hairstyle buttons inside the panel (Thai and English), Middle Part preview in the chosen colour.
+- All 10 static / walk sheets load at 256x128 / 384x512, and each has 8 walk animations of 6 frames.
+- All 100 Middle Part combat clips (5 colours × 5 actions × 4 facings) are registered with the exported frame count, timing and looping.
+- A Middle Part Silver character entered the game: walk played in all 8 directions; thrust, punch, heal and hit played to the end in SE/SW/NE/NW; combat idle looped; no console errors.
+- Not committed.
+
+## Male Slicked Back and Long Middle Part hairstyles (Sprite Forge export, 2026-11-27)
+
+**Exported art** (approved, unchanged)
+- Slicked Back and Long Middle Part in blonde, black, silver, brown and red, base + Drifter (20 new variants): static 8-direction sheet, walk 6x8 at 125 ms + walk metadata, info JSON (`public/assets/characters/male/{slicked_back,long_middle_part}_<colour>/`).
+- Drifter combat sets for all 10: `combat_idle`, `dagger_thrust`, `self_heal_cast`, `hit_reaction`, `unarmed_punch`. Male Drifter stance stays combat_idle frame 1.
+
+**Registry / loading**
+- `SpriteForgeCharacters.ts`: 20 variants appended (64 in total). `PlayerCombatArt.ts`: 30 combat sets.
+
+**Character creation**
+- Male hairstyles: Bald, Mohawk, Side Swept, Middle Part, Slicked Back, Long Middle Part (all with the 5-colour row).
+- With 5+ hairstyle slots the row becomes a 2 x 3 grid (94 px buttons, small captions, y 180 / 206) between the gender and hair-colour rows; 3 or 4 slots keep the earlier one-row layouts. Longest caption: "Long Middle Part" 75 px. Female still shows Bald + Straight Bangs.
+
+**Save / Load:** every new look round-trips through profiles and save files.
+
+**Tests:** 514/514, typecheck, build. Updated starter lists, sheet paths, 64 registry variants, scale pairs, combat art, save-file / profile round trips, labels, punch on all 30 combat sets.
+
+**Verified in the dev server**
+- Creation screen in Thai and English with the 2 x 3 grid; previews follow hairstyle and colour.
+- All 20 new static / walk sheets load (256x128 / 384x512, 8 walk anims x 6 frames); all 10 new combat sets ready with 100 full clips.
+- A Long Middle Part Red character: walk in 8 directions, thrust / punch / heal / hit to the end in SE/SW/NE/NW. A Slicked Back Black character entered the world on a fresh load with no errors and no failed requests.

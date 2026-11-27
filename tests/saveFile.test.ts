@@ -207,7 +207,7 @@ test('no gameplay code can write to the browser: only the settings use storage',
 
 test('save files keep every hairstyle look in every colour (export -> load, unchanged)', () => {
   withoutStorage(() => {
-    for (const [gender, hairstyleId] of [['male', 'side_swept'], ['male', 'mohawk'], ['female', 'straight_bangs']] as const) for (const colour of ['blonde', 'black', 'silver', 'brown', 'red']) {
+    for (const [gender, hairstyleId] of [['male', 'side_swept'], ['male', 'middle_part'], ['male', 'slicked_back'], ['male', 'long_middle_part'], ['male', 'mohawk'], ['female', 'straight_bangs']] as const) for (const colour of ['blonde', 'black', 'silver', 'brown', 'red']) {
       const c = newCharacter(`Look ${colour}`);
       c.appearance = { gender, hairstyleId, hairColorId: colour, outfitId: 'drifter' };
       const r = parseSave(serializeSave(c, LOCATION));

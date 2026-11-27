@@ -1,0 +1,149 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-27T04:34:46.708Z",
+  "key": "male_slicked_back_blonde_base",
+  "displayName": {
+    "en": "Male Slicked Back Blonde (base)",
+    "th": "ชาย ปัดหลัง บลอนด์ (พื้นฐาน)"
+  },
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "slicked_back",
+    "hairColorId": "blonde",
+    "outfitId": "basic"
+  },
+  "forge": {
+    "hairstyle": "slicked_back",
+    "hairColor": "blonde",
+    "outfit": "base_tee_shorts"
+  },
+  "spriteId": "char_male_slicked_back_blonde_basic",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/male/slicked_back_blonde/base/male_slicked_back_blonde_base_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "assembled 1:1 from the approved per-direction assets",
+    "sha256": "2d6db6d6426a166d5706f014308a024bf426159b970f358ee168544e57f969ad",
+    "directions": {
+      "S": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_south",
+        "sourceMethod": "original (pre-mirror-policy)"
+      },
+      "SE": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_south-east",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_east",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_north-east",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_north",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_north-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_south-west",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    }
+  },
+  "walk": {
+    "file": "assets/characters/male/slicked_back_blonde/base/male_slicked_back_blonde_base_walk_8dir.png",
+    "metadata": "assets/characters/male/slicked_back_blonde/base/male_slicked_back_blonde_base_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "68f00533f80dcd0d64282e43e72088ef63bdc0732ada9eb2b45f2ae1511df0db",
+    "directions": {
+      "S": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_slicked-back_blonde_white-tee-black-shorts_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 0
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}

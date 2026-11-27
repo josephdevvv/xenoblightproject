@@ -1,0 +1,113 @@
+{
+  "schema": "xenoblight-sprite-forge/game-export@1",
+  "exportedAt": "2026-11-27T03:08:35.503Z",
+  "key": "male_middle_part_black_drifter",
+  "displayName": {
+    "en": "Male Middle Part Black Drifter",
+    "th": "ชาย แสกกลาง ดำ ดริฟเตอร์"
+  },
+  "appearance": {
+    "gender": "male",
+    "hairstyleId": "middle_part",
+    "hairColorId": "black",
+    "outfitId": "drifter"
+  },
+  "forge": {
+    "hairstyle": "middle_part",
+    "hairColor": "black",
+    "outfit": "drifter"
+  },
+  "spriteId": "char_male_middle_part_black_drifter",
+  "aliasSpriteIds": [],
+  "frame": {
+    "width": 64,
+    "height": 64
+  },
+  "static": {
+    "file": "assets/characters/male/middle_part_black/drifter/male_middle_part_black_drifter_static_8dir.png",
+    "sheet": {
+      "width": 256,
+      "height": 128,
+      "columns": 4,
+      "rows": 2,
+      "order": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "source": "approved sheet approved/male/layers/drifter/male_middle-part_black_drifter_static_8dir.png (per-direction assets not registered; sheet approved with the outfit set)",
+    "sha256": "7dd10a7f83aa4d0dac903b0273b6ba23a1c78768db6f0d5d28baee07498acf5c",
+    "directions": "see the approved outfit set record (mirrors flipped from SE/E/NE)"
+  },
+  "walk": {
+    "file": "assets/characters/male/middle_part_black/drifter/male_middle_part_black_drifter_walk_8dir.png",
+    "metadata": "assets/characters/male/middle_part_black/drifter/male_middle_part_black_drifter_walk_metadata.json",
+    "sheet": {
+      "width": 384,
+      "height": 512,
+      "columns": 6,
+      "rows": 8,
+      "rowOrder": [
+        "S",
+        "SE",
+        "E",
+        "NE",
+        "N",
+        "NW",
+        "W",
+        "SW"
+      ]
+    },
+    "framesPerDirection": 6,
+    "frames": 48,
+    "frameMs": 125,
+    "loop": true,
+    "sha256": "70b82d47ff9c36a6632c14b1ae584a86d8b11fccf0bcb7744f6de2643d25fb4f",
+    "directions": {
+      "S": {
+        "asset": "male_middle-part_black_drifter_south_walk",
+        "sourceMethod": "original"
+      },
+      "SE": {
+        "asset": "male_middle-part_black_drifter_south-east_walk",
+        "sourceMethod": "original"
+      },
+      "E": {
+        "asset": "male_middle-part_black_drifter_east_walk",
+        "sourceMethod": "original"
+      },
+      "NE": {
+        "asset": "male_middle-part_black_drifter_north-east_walk",
+        "sourceMethod": "original"
+      },
+      "N": {
+        "asset": "male_middle-part_black_drifter_north_walk",
+        "sourceMethod": "original"
+      },
+      "NW": {
+        "asset": "male_middle-part_black_drifter_north-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "NE"
+      },
+      "W": {
+        "asset": "male_middle-part_black_drifter_west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "E"
+      },
+      "SW": {
+        "asset": "male_middle-part_black_drifter_south-west_walk",
+        "sourceMethod": "mirror",
+        "mirrorOf": "SE"
+      }
+    },
+    "documentedOutlineExceptions": 0
+  },
+  "acceptedExceptions": [],
+  "note": "Exported unchanged from the Sprite Forge approved registry. Do not edit; re-export from the forge."
+}
